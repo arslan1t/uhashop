@@ -17,7 +17,7 @@ interface CustomProductsStore {
   removeProduct: (id: string) => void;
   hasProduct: (id: string) => boolean;
   setHydrated: () => void;
-  setProducts: (products: Product[]) => void;
+  setProducts: (productsOrUpdater: Product[] | ((prev: Product[]) => Product[])) => void;
   setFirestoreSynced: () => void;
 }
 
@@ -30,7 +30,12 @@ export const useCustomProducts = create<CustomProductsStore>()(
 
       setHydrated: () => set({ _hydrated: true }),
       setFirestoreSynced: () => set({ _firestoreSynced: true }),
-      setProducts: (products) => set({ products }),
+      setProducts: (productsOrUpdater) =>
+        set((state) => ({
+          products: typeof productsOrUpdater === "function"
+            ? productsOrUpdater(state.products)
+            : productsOrUpdater,
+        })),
 
       addProduct: (p) => {
         set((state) => ({ products: [...state.products, p] }));

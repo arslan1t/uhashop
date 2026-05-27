@@ -5,6 +5,7 @@
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
 import { getFirestore, type Firestore } from "firebase/firestore";
 import { getAuth, type Auth } from "firebase/auth";
+import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
@@ -28,6 +29,7 @@ export function isFirebaseConfigured(): boolean {
 let _app: FirebaseApp | null = null;
 let _db: Firestore | null = null;
 let _auth: Auth | null = null;
+let _storage: FirebaseStorage | null = null;
 
 function getFirebaseApp(): FirebaseApp {
   if (typeof window === "undefined") {
@@ -46,8 +48,9 @@ export function getFirebaseInstances() {
     _app = getFirebaseApp();
     _db  = getFirestore(_app);
     _auth = getAuth(_app);
+    _storage = getStorage(_app);
   }
-  return { app: _app, db: _db!, auth: _auth! };
+  return { app: _app, db: _db!, auth: _auth!, storage: _storage! };
 }
 
 export function getDb(): Firestore {
@@ -56,6 +59,10 @@ export function getDb(): Firestore {
 
 export function getFirebaseAuth(): Auth {
   return getFirebaseInstances().auth;
+}
+
+export function getFirebaseStorage(): FirebaseStorage {
+  return getFirebaseInstances().storage;
 }
 
 export { getFirebaseApp };
