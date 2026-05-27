@@ -16,7 +16,7 @@ export function HeroSection() {
     { val: "📷",    label: t("stat_photo") },
   ];
 
-  const tgUrl = `https://t.me/hooper_manager?text=${encodeURIComponent("Привет! Хочу найти товар по фото. Можно прислать фотографию?")}`;
+  const tgUrl = `https://t.me/uha_manager?text=${encodeURIComponent("Привет! Хочу найти товар по фото. Можно прислать фотографию?")}`;
 
   return (
     <>
@@ -81,7 +81,7 @@ export function HeroSection() {
               {/* Stats */}
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                 transition={{ duration: 0.6, delay: 0.5 }}
-                className="grid grid-cols-2 sm:grid-cols-4 gap-0 mt-14 pt-8 border-t border-[rgb(var(--border))]">
+                className="grid grid-cols-2 sm:grid-cols-4 gap-0 mt-14 pt-8">
                 {STATS.map((s, i) => {
                   const isPhotoSearch = s.val === "📷";
                   const borderClass =
@@ -140,9 +140,9 @@ export function HeroSection() {
                   <p className="text-white/60 text-sm mt-1">Exclusive collection</p>
                 </div>
 
-                <div className="absolute top-5 right-5" style={{ filter: "drop-shadow(0 0 10px rgba(255,102,0,0.5))" }}>
+                <div className="absolute top-5 right-5" style={{ filter: "drop-shadow(0 0 8px rgba(153,27,27,0.6)) drop-shadow(0 0 18px rgba(153,27,27,0.3))" }}>
                   <div className="w-14 h-14 animate-spin-slow relative">
-                    <Image src="/images/branding/logo-on-dark.png" alt="UHA"
+                    <Image src="/images/branding/logo-spinning.png" alt="UHA"
                       fill className="object-contain" sizes="56px" />
                   </div>
                 </div>

@@ -27,80 +27,101 @@ export default function AcademyComingSoonPage() {
         <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(rgb(255,255,255) 1px, transparent 1px), linear-gradient(90deg, rgb(255,255,255) 1px, transparent 1px)", backgroundSize: "50px 50px" }} />
       </div>
 
-      <div className="container-uha relative z-10 py-20 max-w-2xl">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] transition-colors mb-12">
-          <ArrowLeft className="w-4 h-4" /> Назад
-        </Link>
+      <div className="container-uha relative z-10 py-20">
+        <div className="flex items-center gap-8 lg:gap-16">
+          {/* Left — content */}
+          <div className="flex-1 max-w-2xl">
+            <Link href="/" className="inline-flex items-center gap-2 text-sm text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] transition-colors mb-12">
+              <ArrowLeft className="w-4 h-4" /> Назад
+            </Link>
 
-        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
-          className="w-16 h-16 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-8">
-          <GraduationCap className="w-8 h-8 text-blue-400" />
-        </motion.div>
+            <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5 }}
+              className="w-16 h-16 rounded-3xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-8">
+              <GraduationCap className="w-8 h-8 text-blue-400" />
+            </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-          <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
-            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
-            Coming Soon
-          </div>
-
-          <h1 className="font-display text-4xl md:text-6xl tracking-tight text-[rgb(var(--foreground))] leading-none mb-4">
-            UHA<br /><span className="text-blue-400">ACADEMY</span>
-          </h1>
-          <p className="text-[rgb(var(--accent))] font-semibold text-lg mb-3">
-            Развивай своё мастерство
-          </p>
-          <p className="text-[rgb(var(--muted))] text-base leading-relaxed mb-8 max-w-lg">
-            Тренировочные программы, мастер-классы и развитие молодых талантов Центральной Азии.
-          </p>
-
-          <div className="flex flex-wrap gap-3 mb-10">
-            {[{ icon: Dumbbell, text: "Тренировки" }, { icon: Target, text: "Мастер-классы" }, { icon: Users, text: "Сообщество" }].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-2 px-4 py-2 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-xl text-sm text-[rgb(var(--muted))]">
-                <Icon className="w-3.5 h-3.5 text-blue-400" />
-                {text}
+            <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
+              <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-5">
+                <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse" />
+                Coming Soon
               </div>
-            ))}
-          </div>
 
-          <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl p-6 max-w-md">
-            <p className="text-sm font-semibold mb-1">Первый набор</p>
-            <p className="text-[rgb(var(--muted))] text-xs mb-4 leading-relaxed">
-              Оставь Telegram или почту, чтобы первым узнать о наборе в Академию
-            </p>
+              <h1 className="font-display text-4xl md:text-6xl tracking-tight text-[rgb(var(--foreground))] leading-none mb-4">
+                UHA<br /><span className="text-blue-400">ACADEMY</span>
+              </h1>
+              <p className="text-[rgb(var(--accent))] font-semibold text-lg mb-3">
+                Развивай своё мастерство
+              </p>
+              <p className="text-[rgb(var(--muted))] text-base leading-relaxed mb-8 max-w-lg">
+                Тренировочные программы, мастер-классы и развитие молодых талантов Центральной Азии.
+              </p>
 
-            <AnimatePresence mode="wait">
-              {sent ? (
-                <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                  className="flex items-center gap-3 py-3 px-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-400">
-                  <Check className="w-5 h-5 flex-shrink-0" />
-                  <div>
-                    <p className="font-semibold text-sm">Отлично!</p>
-                    <p className="text-xs opacity-70">Уведомим об открытии набора</p>
+              <div className="flex flex-wrap gap-3 mb-10">
+                {[{ icon: Dumbbell, text: "Тренировки" }, { icon: Target, text: "Мастер-классы" }, { icon: Users, text: "Сообщество" }].map(({ icon: Icon, text }) => (
+                  <div key={text} className="flex items-center gap-2 px-4 py-2 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-xl text-sm text-[rgb(var(--muted))]">
+                    <Icon className="w-3.5 h-3.5 text-blue-400" />
+                    {text}
                   </div>
-                </motion.div>
-              ) : (
-                <motion.form key="form" onSubmit={handleSubmit} className="flex gap-2">
-                  <input value={contact} onChange={e => setContact(e.target.value)} placeholder="@telegram или email"
-                    className="flex-1 h-11 px-4 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-xl text-sm placeholder:text-[rgb(var(--muted))] focus:outline-none focus:border-blue-500/50 transition-colors" />
-                  <button type="submit" disabled={loading || !contact}
-                    className="h-11 px-5 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50">
-                    {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
-                    Записаться
-                  </button>
-                </motion.form>
-              )}
-            </AnimatePresence>
-          </div>
-        </motion.div>
+                ))}
+              </div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-          className="mt-16 pt-8 border-t border-[rgb(var(--border))] flex items-center gap-4">
-          <Image src="/images/branding/academy-logo.png" alt="UHA Academy" width={64} height={32} className="object-contain opacity-50" />
-          <div>
-            <p className="font-display text-base tracking-wider text-[rgb(var(--muted))]">UHA ACADEMY</p>
-            <p className="text-xs text-[rgb(var(--muted)/0.5)] uppercase tracking-widest">Train. Grow. Dominate.</p>
+              <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl p-6 max-w-md">
+                <p className="text-sm font-semibold mb-1">Первый набор</p>
+                <p className="text-[rgb(var(--muted))] text-xs mb-4 leading-relaxed">
+                  Оставь Telegram или почту, чтобы первым узнать о наборе в Академию
+                </p>
+
+                <AnimatePresence mode="wait">
+                  {sent ? (
+                    <motion.div key="success" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
+                      className="flex items-center gap-3 py-3 px-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-400">
+                      <Check className="w-5 h-5 flex-shrink-0" />
+                      <div>
+                        <p className="font-semibold text-sm">Отлично!</p>
+                        <p className="text-xs opacity-70">Уведомим об открытии набора</p>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.form key="form" onSubmit={handleSubmit} className="flex gap-2">
+                      <input value={contact} onChange={e => setContact(e.target.value)} placeholder="@telegram или email"
+                        className="flex-1 h-11 px-4 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-xl text-sm placeholder:text-[rgb(var(--muted))] focus:outline-none focus:border-blue-500/50 transition-colors" />
+                      <button type="submit" disabled={loading || !contact}
+                        className="h-11 px-5 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition-colors text-sm flex items-center gap-2 disabled:opacity-50">
+                        {loading ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
+                        Записаться
+                      </button>
+                    </motion.form>
+                  )}
+                </AnimatePresence>
+              </div>
+            </motion.div>
           </div>
-        </motion.div>
+
+          {/* Right — large transparent academy logo */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="hidden lg:block flex-shrink-0 relative w-[380px] h-[380px] xl:w-[440px] xl:h-[440px]"
+          >
+            {/* Light theme: black logo visible on white bg */}
+            <Image
+              src="/images/branding/academy-black.png"
+              alt="UHA Academy"
+              fill
+              className="object-contain opacity-[0.08] dark:hidden select-none pointer-events-none"
+              sizes="440px"
+            />
+            {/* Dark theme: white logo visible on dark bg */}
+            <Image
+              src="/images/branding/academy-white.png"
+              alt="UHA Academy"
+              fill
+              className="object-contain opacity-[0.10] hidden dark:block select-none pointer-events-none"
+              sizes="440px"
+            />
+          </motion.div>
+        </div>
       </div>
     </div>
   );

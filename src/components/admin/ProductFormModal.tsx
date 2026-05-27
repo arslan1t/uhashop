@@ -7,7 +7,7 @@ import { X, Star, Upload, Trash2, Check, ImageIcon, GripVertical, CheckCircle2 }
 import type { AdminProduct } from "@/data/adminData";
 import { useProductOverrides } from "@/store/productOverrides";
 
-const CLS = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-orange-500/60 transition-colors";
+const CLS = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
 
 const SHOE_SIZES = [36, 37, 38, 39, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45, 46, 47];
 const APPAREL_SIZES = ["XS", "S", "M", "L", "XL", "XXL"];
@@ -296,7 +296,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`px-4 py-2 text-xs font-semibold uppercase tracking-wider transition-all border-b-2 ${
                 tab === t.id
-                  ? "text-orange-400 border-orange-500"
+                  ? "text-red-500 border-red-800"
                   : "text-[#555] border-transparent hover:text-[#999]"
               }`}>
               {t.label}
@@ -400,8 +400,8 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                   onClick={() => fileRef.current?.click()}
                   className={`border-2 border-dashed rounded-2xl p-6 flex flex-col items-center gap-3 cursor-pointer transition-all ${
                     dragging
-                      ? "border-orange-500 bg-orange-500/5"
-                      : "border-[#2a2a2a] hover:border-orange-500/40 hover:bg-[#161616]"
+                      ? "border-red-800 bg-red-800/5"
+                      : "border-[#2a2a2a] hover:border-red-800/40 hover:bg-[#161616]"
                   }`}>
                   <div className="w-10 h-10 rounded-2xl bg-[#1a1a1a] flex items-center justify-center">
                     <Upload className="w-5 h-5 text-[#555]" />
@@ -445,9 +445,9 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                               isDraggingSrc
                                 ? "opacity-40 scale-95"
                                 : isOver
-                                ? "border-orange-400 shadow-lg shadow-orange-500/30 scale-[1.02]"
+                                ? "border-red-500 shadow-lg shadow-red-800/30 scale-[1.02]"
                                 : img.isMain
-                                ? "border-orange-500 shadow-md shadow-orange-500/20"
+                                ? "border-red-800 shadow-md shadow-red-800/20"
                                 : "border-[#2a2a2a] hover:border-[#444]"
                             }`}
                           >
@@ -472,15 +472,15 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
 
                             {/* Main badge */}
                             {img.isMain && (
-                              <div className="absolute top-1.5 left-1.5 bg-orange-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide z-10 shadow">
+                              <div className="absolute top-1.5 left-1.5 bg-red-800 text-white text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wide z-10 shadow">
                                 Главное
                               </div>
                             )}
 
                             {/* Drop-here indicator */}
                             {isOver && !isDraggingSrc && (
-                              <div className="absolute inset-0 bg-orange-500/15 flex items-center justify-center z-20 pointer-events-none">
-                                <div className="w-8 h-8 rounded-full bg-orange-500/80 flex items-center justify-center">
+                              <div className="absolute inset-0 bg-red-800/15 flex items-center justify-center z-20 pointer-events-none">
+                                <div className="w-8 h-8 rounded-full bg-red-800/80 flex items-center justify-center">
                                   <GripVertical className="w-4 h-4 text-white" />
                                 </div>
                               </div>
@@ -492,7 +492,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                                 <button
                                   onClick={e => { e.stopPropagation(); setMain(img.id); }}
                                   title="Сделать главным"
-                                  className="w-8 h-8 rounded-lg bg-orange-500/90 flex items-center justify-center text-white hover:bg-orange-500 transition-colors"
+                                  className="w-8 h-8 rounded-lg bg-red-800/90 flex items-center justify-center text-white hover:bg-red-800 transition-colors"
                                 >
                                   <Star className="w-3.5 h-3.5" />
                                 </button>
@@ -517,7 +517,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                       {/* Add more */}
                       <button
                         onClick={() => fileRef.current?.click()}
-                        className="aspect-square rounded-xl border-2 border-dashed border-[#2a2a2a] flex flex-col items-center justify-center gap-1.5 text-[#444] hover:border-orange-500/40 hover:text-[#666] hover:bg-[#161616] transition-all"
+                        className="aspect-square rounded-xl border-2 border-dashed border-[#2a2a2a] flex flex-col items-center justify-center gap-1.5 text-[#444] hover:border-red-800/40 hover:text-[#666] hover:bg-[#161616] transition-all"
                       >
                         <Upload className="w-4 h-4" />
                         <span className="text-[9px] uppercase tracking-wide font-semibold">Добавить</span>
@@ -527,7 +527,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                     <div className="mt-3 p-3 bg-[#181818] rounded-xl border border-[#242424]">
                       <p className="text-[#555] text-xs leading-relaxed">
                         <span className="text-[#777]">Тяни карточки</span> чтобы изменить порядок ·{" "}
-                        <span className="text-orange-400">★ Главное</span> — фото для каталога и главной ·{" "}
+                        <span className="text-red-500">★ Главное</span> — фото для каталога и главной ·{" "}
                         Остальные — в галерее на странице товара
                       </p>
                     </div>
@@ -562,7 +562,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                         const none: Record<number, boolean> = {};
                         SHOE_SIZES.forEach(s => { none[s] = false; });
                         setShoeSizes(none);
-                      }} className="text-[10px] text-red-400 hover:text-red-300 font-semibold uppercase tracking-wider">
+                      }} className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-wider">
                         Сбросить
                       </button>
                     </div>
@@ -575,7 +575,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                           onClick={() => setShoeSizes(prev => ({ ...prev, [size]: !prev[size] }))}
                           className={`w-14 h-10 rounded-xl text-sm font-semibold border-2 transition-all ${
                             avail
-                              ? "bg-orange-500/10 border-orange-500/50 text-orange-400 hover:bg-orange-500/20"
+                              ? "bg-red-800/10 border-red-800/50 text-red-500 hover:bg-red-800/20"
                               : "bg-[#1a1a1a] border-[#252525] text-[#444] hover:border-[#333] line-through"
                           }`}>
                           {size}
@@ -605,7 +605,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                         const none: Record<string, boolean> = {};
                         APPAREL_SIZES.forEach(s => { none[s] = false; });
                         setApparelSizes(none);
-                      }} className="text-[10px] text-red-400 hover:text-red-300 font-semibold uppercase tracking-wider">
+                      }} className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-wider">
                         Сбросить
                       </button>
                     </div>
@@ -618,7 +618,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                           onClick={() => setApparelSizes(prev => ({ ...prev, [size]: !prev[size] }))}
                           className={`w-16 h-10 rounded-xl text-sm font-semibold border-2 transition-all ${
                             avail
-                              ? "bg-orange-500/10 border-orange-500/50 text-orange-400 hover:bg-orange-500/20"
+                              ? "bg-red-800/10 border-red-800/50 text-red-500 hover:bg-red-800/20"
                               : "bg-[#1a1a1a] border-[#252525] text-[#444] hover:border-[#333] line-through"
                           }`}>
                           {size}
@@ -633,7 +633,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                   <p className="text-[#888] text-xs mb-2 font-semibold uppercase tracking-wider">Активные размеры обуви</p>
                   <div className="flex flex-wrap gap-1.5">
                     {SHOE_SIZES.filter(s => shoeSizes[s]).map(s => (
-                      <span key={s} className="px-2 py-0.5 bg-orange-500/10 border border-orange-500/25 text-orange-400 text-xs rounded-lg font-medium">
+                      <span key={s} className="px-2 py-0.5 bg-red-800/10 border border-red-800/25 text-red-500 text-xs rounded-lg font-medium">
                         EU {s}
                       </span>
                     ))}
@@ -693,7 +693,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                           <div className="w-px h-10 bg-[#2a2a2a]" />
                           <div>
                             <p className="text-[#555] text-[10px] uppercase tracking-wider mb-1">Replica</p>
-                            <p className="text-orange-400 text-2xl font-bold">${replicaPrice}</p>
+                            <p className="text-red-500 text-2xl font-bold">${replicaPrice}</p>
                           </div>
                           <div className="w-px h-10 bg-[#2a2a2a]" />
                           <div>
@@ -730,7 +730,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
               className={`h-10 px-6 font-bold rounded-xl text-sm transition-all shadow-lg flex items-center gap-2 disabled:opacity-70 ${
                 saved
                   ? "bg-emerald-500 text-white shadow-emerald-500/20"
-                  : "bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20"
+                  : "bg-red-800 hover:bg-red-900 text-white shadow-red-800/20"
               }`}>
               {uploading ? (
                 <><span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Загрузка...</>

@@ -22,7 +22,7 @@ type FilterType = "all" | "published" | "draft" | "preorder" | "in_stock";
 const STATUS_STYLES: Record<string, string> = {
   published: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
   draft: "bg-[#2a2a2a] text-[#666] border-[#333]",
-  archived: "bg-red-500/10 text-red-400 border-red-500/20",
+  archived: "bg-red-500/10 text-red-500 border-red-500/20",
 };
 const BADGE_STYLES: Record<string, string> = {
   new: "bg-blue-500/15 text-blue-400",
@@ -175,7 +175,7 @@ export default function AdminProductsPage() {
           <input
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Поиск товара, бренда..."
-            className="w-full h-10 pl-10 pr-4 bg-[#141414] border border-[#222] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-orange-500/50 transition-colors"
+            className="w-full h-10 pl-10 pr-4 bg-[#141414] border border-[#222] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/50 transition-colors"
           />
         </div>
 
@@ -185,7 +185,7 @@ export default function AdminProductsPage() {
             <button key={f} onClick={() => setFilter(f)}
               className={`h-10 px-4 rounded-xl text-xs font-semibold uppercase tracking-wide transition-colors ${
                 filter === f
-                  ? "bg-orange-500 text-white"
+                  ? "bg-red-800 text-white"
                   : "bg-[#141414] border border-[#222] text-[#666] hover:text-white hover:border-[#333]"
               }`}>
               {f === "all" ? "Все" : f === "published" ? "Опублик." : f === "draft" ? "Черновик" : f === "preorder" ? "Предзаказ" : "В наличии"}
@@ -195,7 +195,7 @@ export default function AdminProductsPage() {
 
         {/* Add button */}
         <button onClick={() => setShowAddModal(true)}
-          className="h-10 px-5 bg-orange-500 text-white text-xs font-bold rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2 uppercase tracking-wide flex-shrink-0">
+          className="h-10 px-5 bg-red-800 text-white text-xs font-bold rounded-xl hover:bg-red-900 transition-colors flex items-center gap-2 uppercase tracking-wide flex-shrink-0">
           <Plus className="w-4 h-4" />
           Добавить товар
         </button>
@@ -328,7 +328,7 @@ export default function AdminProductsPage() {
                               removeCustom(product.id);
                             }
                           }}
-                          className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-[#666] hover:text-red-400 transition-colors"
+                          className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-[#666] hover:text-red-500 transition-colors"
                           title={customProds.some(c => c.id === product.id) ? "Удалить" : "Статичный товар"}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

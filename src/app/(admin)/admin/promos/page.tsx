@@ -6,7 +6,7 @@ import { Plus, Trash2, ToggleLeft, ToggleRight, Tag, Percent, DollarSign, Edit2,
 import { usePromoStore, type PromoCode } from "@/store/promoCodes";
 import { formatPrice } from "@/lib/utils";
 
-const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-orange-500/60 transition-colors";
+const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
 
 type NewCode = Omit<PromoCode, "id" | "usedCount">;
 const emptyForm = (): NewCode => ({
@@ -59,7 +59,7 @@ export default function AdminPromosPage() {
           <p className="text-[#555] text-sm mt-0.5">{codes.length} кодов · {codes.filter(c => c.active).length} активных</p>
         </div>
         <button onClick={() => { setShowForm(true); setEditId(null); setForm(emptyForm()); }}
-          className="h-10 px-5 bg-orange-500 text-white text-xs font-bold rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2 uppercase tracking-wide">
+          className="h-10 px-5 bg-red-800 text-white text-xs font-bold rounded-xl hover:bg-red-900 transition-colors flex items-center gap-2 uppercase tracking-wide">
           <Plus className="w-4 h-4" />
           Новый промокод
         </button>
@@ -95,7 +95,7 @@ export default function AdminPromosPage() {
                 className="hover:bg-[#141414] transition-colors group">
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
-                    <Tag className="w-3.5 h-3.5 text-orange-400 flex-shrink-0" />
+                    <Tag className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
                     <span className="text-white font-mono font-bold text-sm tracking-widest">{c.code}</span>
                   </div>
                 </td>
@@ -134,7 +134,7 @@ export default function AdminPromosPage() {
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>
                     <button onClick={() => removeCode(c.id)}
-                      className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-[#666] hover:text-red-400 transition-colors">
+                      className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-[#666] hover:text-red-500 transition-colors">
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -215,7 +215,7 @@ export default function AdminPromosPage() {
                 </div>
                 <button onClick={handleSubmit}
                   className={`w-full h-11 rounded-xl font-bold text-sm uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${
-                    saved ? "bg-emerald-500 text-white" : "bg-orange-500 hover:bg-orange-600 text-white"
+                    saved ? "bg-emerald-500 text-white" : "bg-red-800 hover:bg-red-900 text-white"
                   }`}>
                   {saved ? <><Check className="w-4 h-4" /> Сохранено</> : (editId ? "Сохранить изменения" : "Создать промокод")}
                 </button>

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LogOut, Heart, Package, Clock, Send, ChevronRight,
-  ShoppingBag, CheckCircle2, Truck, Box, XCircle, Loader2, X
+  ShoppingBag, CheckCircle2, Truck, Box, XCircle, Loader2, X, RefreshCw, Copy, CheckCheck
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
@@ -48,28 +48,64 @@ interface MockOrder {
   notes?: string;
 }
 
-const MOCK_ORDERS: MockOrder[] = [
-  {
-    id: "1", orderNumber: "UHA-2024-001", date: "10 февраля 2024",
-    status: "delivered", total: 189,
-    estimatedDelivery: "Доставлен 18 февраля 2024",
-    items: [{ name: "Air Jordan 1 High «Lucky Green»", size: "EU 42", qty: 1, price: 189, version: "original" }],
-  },
-  {
-    id: "2", orderNumber: "UHA-2024-008", date: "15 мая 2026",
-    status: "processing", total: 380,
-    estimatedDelivery: "Ожидается 5–7 июня 2026",
-    notes: "Предзаказ · Оригинал",
-    items: [
-      { name: "Travis Scott × Jordan 1 Low «Mocha»", size: "EU 43", qty: 1, price: 380, version: "original" },
-    ],
-  },
-];
+// Map Supabase order to profile MockOrder format
+function mapOrderFromApi(row: Record<string, unknown>): MockOrder {
+  const addr = (row.shipping_address || {}) as Record<string, string>;
+  const items = (row.items || []) as {
+    name: string; size: string; qty: number; price: number; version?: string;
+  }[];
+
+  const status = (row.status === "pending" ? "new" : row.status) as OrderStatus;
+
+  return {
+    id: row.id as string,
+    orderNumber: (row.order_number as string) || `UHA-${(row.id as string).slice(0, 8)}`,
+    date: new Date(row.created_at as string).toLocaleDateString("ru-RU"),
+    status,
+    total: row.total as number,
+    items: items.map(i => ({
+      name: i.name,
+      size: i.size,
+      qty: i.qty,
+      price: i.price,
+      version: i.version || "original",
+    })),
+    notes: addr.notes,
+  };
+}
 
 // ── Order Status Tracker ─────────────────────────────────────────────
 function OrderTracker({ order, onClose }: { order: MockOrder; onClose: () => void }) {
   const stepIdx = STEP_INDEX[order.status];
   const statusInfo = ORDER_STATUS_INFO[order.status];
+  const { addItem, openCart } = useCartStore();
+  const [copied, setCopied] = useState(false);
+  const [repeating, setRepeating] = useState(false);
+
+  const handleCopyOrderNumber = () => {
+    navigator.clipboard.writeText(order.orderNumber).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const handleRepeatOrder = () => {
+    setRepeating(true);
+    order.items.forEach(item => {
+      const product = products.find(p =>
+        p.name.toLowerCase() === item.name.toLowerCase() ||
+        p.name.toLowerCase().includes(item.name.toLowerCase().split(" ")[0])
+      );
+      if (product) {
+        addItem(product, item.size, (item.version === "replica" ? "replica" : "original") as "original" | "replica");
+      }
+    });
+    setTimeout(() => {
+      setRepeating(false);
+      onClose();
+      openCart();
+    }, 500);
+  };
   const isCancelled = order.status === "cancelled";
 
   return (
@@ -90,7 +126,14 @@ function OrderTracker({ order, onClose }: { order: MockOrder; onClose: () => voi
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-[rgb(var(--border))]">
           <div>
-            <p className="font-bold text-base">{order.orderNumber}</p>
+            <button onClick={handleCopyOrderNumber}
+              className="group flex items-center gap-2 hover:opacity-80 transition-opacity">
+              <p className="font-bold text-base font-mono">{order.orderNumber}</p>
+              {copied
+                ? <CheckCheck className="w-3.5 h-3.5 text-emerald-400" />
+                : <Copy className="w-3.5 h-3.5 text-[rgb(var(--muted))] opacity-0 group-hover:opacity-100 transition-opacity" />
+              }
+            </button>
             <p className="text-[rgb(var(--muted))] text-xs mt-0.5">{order.date}</p>
           </div>
           <div className="flex items-center gap-3">
@@ -196,22 +239,31 @@ function OrderTracker({ order, onClose }: { order: MockOrder; onClose: () => voi
             </div>
           </div>
 
-          {/* Total + Support */}
+          {/* Total */}
           <div className="flex items-center justify-between pt-4 border-t border-[rgb(var(--border))]">
             <div>
               <p className="text-[rgb(var(--muted))] text-xs">Итого</p>
               <p className="font-bold text-xl text-[rgb(var(--accent))]">{formatPrice(order.total)}</p>
             </div>
-            <a
-              href="https://t.me/hooper_manager"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#2AABEE]/10 border border-[#2AABEE]/20 text-[#2AABEE] text-sm font-semibold rounded-xl hover:bg-[#2AABEE]/20 transition-colors"
-            >
+            <a href="https://t.me/uha_manager" target="_blank" rel="noopener noreferrer"
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#2AABEE]/10 border border-[#2AABEE]/20 text-[#2AABEE] text-sm font-semibold rounded-xl hover:bg-[#2AABEE]/20 transition-colors">
               <Send className="w-4 h-4" />
-              Написать в поддержку
+              Поддержка
             </a>
           </div>
+
+          {/* Repeat order */}
+          <button
+            onClick={handleRepeatOrder}
+            disabled={repeating}
+            className="w-full flex items-center justify-center gap-2 py-3 bg-[rgb(var(--surface-2))] border border-[rgb(var(--border))] text-sm font-semibold rounded-2xl hover:bg-[rgb(var(--border))] hover:border-[rgb(var(--accent)/0.3)] transition-all disabled:opacity-60"
+          >
+            {repeating
+              ? <span className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+              : <RefreshCw className="w-4 h-4 text-[rgb(var(--accent))]" />
+            }
+            {repeating ? "Добавляем в корзину..." : "Повторить заказ"}
+          </button>
         </div>
       </motion.div>
     </motion.div>
@@ -225,10 +277,27 @@ export default function ProfilePage() {
   const { slugs: wishlistSlugs } = useWishlist();
   const router = useRouter();
   const [selectedOrder, setSelectedOrder] = useState<MockOrder | null>(null);
+  const [orders, setOrders] = useState<MockOrder[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
 
   useEffect(() => {
     if (!isAuthenticated) router.replace("/auth/login");
   }, [isAuthenticated]);
+
+  // Fetch user orders from API
+  useEffect(() => {
+    if (!user?.id) return;
+    setOrdersLoading(true);
+    fetch(`/api/orders?user_id=${user.id}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.orders) {
+          setOrders(data.orders.map(mapOrderFromApi));
+        }
+      })
+      .catch(console.error)
+      .finally(() => setOrdersLoading(false));
+  }, [user?.id]);
 
   if (!user) return null;
 
@@ -269,10 +338,10 @@ export default function ProfilePage() {
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8">
               {[
-                { icon: Package, label: "Заказов",    value: MOCK_ORDERS.length },
+                { icon: Package, label: "Заказов",    value: orders.length },
                 { icon: Heart,   label: "Сохранено",  value: wishlistSlugs.length },
                 { icon: ShoppingBag, label: "В корзине", value: items.length },
-                { icon: Clock,   label: "Предзаказов", value: MOCK_ORDERS.filter(o => o.status === "processing" || o.status === "ordered").length },
+                { icon: Clock,   label: "Предзаказов", value: orders.filter(o => o.status === "processing" || o.status === "ordered").length },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label} className="p-4 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-2xl">
                   <Icon className="w-4 h-4 text-[rgb(var(--accent))] mb-2" />
@@ -292,7 +361,13 @@ export default function ProfilePage() {
               Мои заказы
             </h2>
             <div className="space-y-3">
-              {MOCK_ORDERS.map(order => {
+              {ordersLoading && (
+                <div className="py-8 text-center">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[rgb(var(--accent))]" />
+                  <p className="text-sm text-[rgb(var(--muted))]">Загрузка заказов...</p>
+                </div>
+              )}
+              {!ordersLoading && orders.map(order => {
                 const info = ORDER_STATUS_INFO[order.status];
                 const stepIdx = STEP_INDEX[order.status];
                 const totalSteps = ORDER_STEPS.length;
@@ -346,7 +421,7 @@ export default function ProfilePage() {
                 );
               })}
 
-              {MOCK_ORDERS.length === 0 && (
+              {!ordersLoading && orders.length === 0 && (
                 <div className="py-12 text-center border border-[rgb(var(--border))] border-dashed rounded-2xl">
                   <Package className="w-8 h-8 mx-auto mb-2 text-[rgb(var(--muted))] opacity-40" />
                   <p className="text-[rgb(var(--muted))]">Заказов пока нет</p>

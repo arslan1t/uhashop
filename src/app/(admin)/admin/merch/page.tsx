@@ -10,7 +10,7 @@ import { useProductOverrides } from "@/store/productOverrides";
 import { useCustomProducts } from "@/store/customProducts";
 import { ProductFormModal } from "@/components/admin/ProductFormModal";
 
-const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-orange-500/60 transition-colors";
+const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
 
 export default function AdminMerchPage() {
   const [saved, setSaved] = useState(false);
@@ -48,7 +48,7 @@ export default function AdminMerchPage() {
           {/* + Добавить → открывает модалку с preset category=merch */}
           <button
             onClick={() => setShowAddModal(true)}
-            className="h-9 px-4 bg-orange-500 text-white text-xs font-bold rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2">
+            className="h-9 px-4 bg-red-800 text-white text-xs font-bold rounded-xl hover:bg-red-900 transition-colors flex items-center gap-2">
             <Plus className="w-3.5 h-3.5" /> Добавить
           </button>
         </div>
@@ -72,7 +72,7 @@ export default function AdminMerchPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-semibold">{p.nameRu}</p>
                   <div className="flex items-center gap-3 mt-0.5">
-                    <span className="text-orange-400 text-sm font-bold">{formatPrice(p.price)}</span>
+                    <span className="text-red-500 text-sm font-bold">{formatPrice(p.price)}</span>
                     {p.stock !== undefined && (
                       <span className="text-[#555] text-xs">{p.stock} шт. в наличии</span>
                     )}
@@ -121,7 +121,7 @@ export default function AdminMerchPage() {
               <span className="text-white text-sm font-semibold">3d-tee.mov</span>
             </div>
             <p className="text-[#555] text-xs mb-4">MOV · 12.4 MB · Текущее видео</p>
-            <div className="border-2 border-dashed border-[#2a2a2a] rounded-xl p-5 flex flex-col items-center gap-2 cursor-pointer hover:border-orange-500/40 transition-colors">
+            <div className="border-2 border-dashed border-[#2a2a2a] rounded-xl p-5 flex flex-col items-center gap-2 cursor-pointer hover:border-red-800/40 transition-colors">
               <Upload className="w-6 h-6 text-[#555]" />
               <p className="text-[#888] text-sm">Перетащи или нажми для замены</p>
               <p className="text-[#444] text-xs">MOV, MP4 до 50MB</p>
@@ -160,7 +160,7 @@ export default function AdminMerchPage() {
       <div className="flex justify-end">
         <button onClick={() => { setSaved(true); setTimeout(() => setSaved(false), 2000); }}
           className={`flex items-center gap-2 px-8 py-3 font-bold rounded-xl text-sm uppercase tracking-widest transition-all ${
-            saved ? "bg-emerald-500 text-white" : "bg-orange-500 text-white hover:bg-orange-600"
+            saved ? "bg-emerald-500 text-white" : "bg-red-800 text-white hover:bg-red-900"
           }`}>
           <Save className="w-4 h-4" />
           {saved ? "Сохранено ✓" : "Сохранить"}

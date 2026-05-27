@@ -13,7 +13,7 @@ function StoreHydration() {
     // Runs after client mount — localStorage is guaranteed available here
     useCartStore.getState().hydrate?.();
     useProductOverrides.getState().hydrate();
-    useAuthStore.getState().hydrate?.();
+    useAuthStore.getState().hydrate();
     useProductVisibility.getState().hydrate();
     useWishlist.getState().hydrate?.();
   }, []);

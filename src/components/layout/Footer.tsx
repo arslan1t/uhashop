@@ -17,7 +17,7 @@ const footerLinks = {
   brand: [
     { labelKey: "about", href: "/uha" },
     { labelKey: "league", href: "/league-coming-soon" },
-    { labelKey: "academy", href: "/academy-coming-soon" },
+    { labelKey: "academy", href: "/academy" },
   ],
 };
 
@@ -38,8 +38,8 @@ export function Footer() {
             <Link href="/" className="inline-flex items-center mb-5 group">
               <Image
                 src={isDark
-                  ? "/images/branding/logo-on-dark.png"
-                  : "/images/branding/logo-on-light.png"}
+                  ? "/images/branding/logo-white.png"
+                  : "/images/branding/logo-black.png"}
                 alt="UHA SHOP"
                 width={160}
                 height={48}
@@ -53,7 +53,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-3">
               <a
-                href="https://www.instagram.com/hooper_foot_locker/"
+                href="https://www.instagram.com/uha_manager/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[rgb(var(--border))] text-sm text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:border-[rgb(var(--foreground))] transition-all group"
@@ -63,7 +63,7 @@ export function Footer() {
                 <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
               </a>
               <a
-                href="https://t.me/hooper_manager"
+                href="https://t.me/uha_manager"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[rgb(var(--border))] text-sm text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:border-[rgb(var(--foreground))] transition-all group"

@@ -9,7 +9,7 @@ import { useProductMeta } from "@/store/productMeta";
 import { useProductOverrides } from "@/store/productOverrides";
 import { useCustomProducts } from "@/store/customProducts";
 
-const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-orange-500/60 transition-colors";
+const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
 
 export default function AdminHomepagePage() {
   const { featuredOrder, setFeaturedOrder, setFeatured, meta: savedMeta } = useProductMeta();
@@ -77,7 +77,7 @@ export default function AdminHomepagePage() {
               <h3 className="text-white font-semibold text-sm">Hero секция</h3>
               <p className="text-[#444] text-xs mt-0.5">Главный заголовок и описание</p>
             </div>
-            <button className="flex items-center gap-1.5 text-xs text-orange-400 hover:text-orange-300">
+            <button className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-400">
               <Eye className="w-3.5 h-3.5" /> Предпросмотр
             </button>
           </div>
@@ -145,7 +145,7 @@ export default function AdminHomepagePage() {
                       <ArrowDown className="w-3.5 h-3.5" />
                     </button>
                     <button onClick={() => remove(p.id)}
-                      className="w-7 h-7 rounded-lg flex items-center justify-center text-[#555] hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                      className="w-7 h-7 rounded-lg flex items-center justify-center text-[#555] hover:text-red-500 hover:bg-red-500/10 transition-colors">
                       <StarOff className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -187,7 +187,7 @@ export default function AdminHomepagePage() {
         <div className="flex justify-end">
           <button onClick={handleSave}
             className={`flex items-center gap-2 px-8 py-3 font-bold rounded-xl text-sm uppercase tracking-widest transition-all ${
-              saved ? "bg-emerald-500 text-white" : "bg-orange-500 text-white hover:bg-orange-600"
+              saved ? "bg-emerald-500 text-white" : "bg-red-800 text-white hover:bg-red-900"
             }`}>
             <Save className="w-4 h-4" />
             {saved ? "Сохранено ✓" : "Сохранить"}

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Check, ArrowLeft, Send, MapPin, User, Phone, Tag, X } from "lucide-react";
+import { Check, ArrowLeft, Send, MapPin, User, Phone, Tag, X, Package, ShoppingBag, Copy, CheckCheck } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { usePromoStore, calcDiscount } from "@/store/promoCodes";
+import { useAuthStore } from "@/store/auth";
 import type { PromoCode } from "@/store/promoCodes";
 import { formatPrice } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export default function CheckoutPage() {
   const t = useTranslations("checkout");
   const { items, totalPrice, clearCart } = useCartStore();
   const { validate, applyUse } = usePromoStore();
+  const { user } = useAuthStore();
   const [form, setForm] = useState<FormData>({
     name: "", telegram: "", phone: "", city: "", address: "", notes: "",
   });
@@ -77,20 +79,86 @@ export default function CheckoutPage() {
     setPromoStatus("idle");
   };
 
+  const [orderError, setOrderError] = useState("");
+  const [orderNumber, setOrderNumber] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  // Auto-fill form from user profile
+  useEffect(() => {
+    if (user) {
+      setForm(f => ({
+        ...f,
+        name: f.name || user.name || "",
+        telegram: f.telegram || user.telegram || "",
+      }));
+    }
+  }, [user?.id]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate_()) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    if (appliedPromo) applyUse(appliedPromo.id);
-    clearCart();
-    setSubmitted(true);
-    setLoading(false);
+    setOrderError("");
+
+    try {
+      const orderItems = items.map((item) => ({
+        name: item.product.name,
+        size: item.size,
+        qty: item.quantity,
+        price: item.version === "replica" && item.product.replicaPrice
+          ? item.product.replicaPrice
+          : item.product.price,
+        version: item.version,
+        image: item.product.image,
+      }));
+
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items: orderItems,
+          total: finalTotal,
+          customer_name: form.name,
+          telegram: form.telegram,
+          phone: form.phone || undefined,
+          city: form.city,
+          address: form.address || undefined,
+          notes: form.notes || undefined,
+          promo_code: appliedPromo?.code || undefined,
+          discount: discount || 0,
+          user_id: user?.id || undefined,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        throw new Error(data.error || "Order failed");
+      }
+
+      if (appliedPromo) applyUse(appliedPromo.id);
+      setOrderNumber(data.order?.order_number || data.order_number || "");
+      clearCart();
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Order error:", err);
+      setOrderError("Не удалось оформить заказ. Попробуйте ещё раз.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const set = (key: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm((f) => ({ ...f, [key]: e.target.value }));
     setErrors((er) => ({ ...er, [key]: undefined }));
+  };
+
+  const handleCopyOrder = () => {
+    if (!orderNumber) return;
+    navigator.clipboard.writeText(orderNumber).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   if (submitted) {
@@ -100,16 +168,74 @@ export default function CheckoutPage() {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="max-w-md w-full text-center p-10 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl"
+          className="max-w-md w-full"
         >
-          <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center mx-auto mb-6">
-            <Check className="w-10 h-10 text-emerald-400" />
+          {/* Success card */}
+          <div className="text-center p-8 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl mb-4">
+            {/* Animated checkmark */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.15 }}
+              className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center mx-auto mb-6"
+            >
+              <Check className="w-10 h-10 text-emerald-400" />
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+              <h1 className="font-display text-3xl tracking-wide mb-2">{t("success_title")}</h1>
+              <p className="text-[rgb(var(--muted))] text-sm mb-6">{t("success_subtitle")}</p>
+
+              {/* Order number */}
+              {orderNumber && (
+                <button
+                  onClick={handleCopyOrder}
+                  className="group inline-flex items-center gap-2.5 px-5 py-3 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-2xl mb-6 hover:border-[rgb(var(--accent)/0.4)] transition-all"
+                >
+                  <Package className="w-4 h-4 text-[rgb(var(--accent))]" />
+                  <span className="font-mono font-bold tracking-widest text-sm">{orderNumber}</span>
+                  {copied
+                    ? <CheckCheck className="w-4 h-4 text-emerald-400" />
+                    : <Copy className="w-4 h-4 text-[rgb(var(--muted))] group-hover:text-[rgb(var(--foreground))] transition-colors" />
+                  }
+                </button>
+              )}
+
+              {/* Telegram info */}
+              <div className="p-4 bg-[#2AABEE]/5 border border-[#2AABEE]/15 rounded-2xl text-left mb-6">
+                <div className="flex items-start gap-3">
+                  <Send className="w-4 h-4 text-[#2AABEE] mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-[#2AABEE] mb-1">Уведомление отправлено</p>
+                    <p className="text-xs text-[rgb(var(--muted))] leading-relaxed">
+                      Менеджер свяжется с вами в Telegram в течение нескольких минут для подтверждения заказа.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
-          <h1 className="font-display text-4xl tracking-wide mb-3">{t("success_title")}</h1>
-          <p className="text-[rgb(var(--muted))] mb-8">{t("success_subtitle")}</p>
-          <Link href="/" className="inline-flex items-center gap-2 px-8 py-4 bg-[rgb(var(--accent))] text-white font-bold rounded-2xl hover:bg-[rgb(var(--accent-hover))] transition-colors text-sm uppercase tracking-widest">
-            {t("back_to_home")}
-          </Link>
+
+          {/* Action buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45 }}
+            className="grid grid-cols-2 gap-3"
+          >
+            {user && (
+              <Link href="/profile"
+                className="flex items-center justify-center gap-2 py-3.5 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] text-sm font-semibold rounded-2xl hover:border-[rgb(var(--foreground)/0.2)] transition-all">
+                <Package className="w-4 h-4 text-[rgb(var(--accent))]" />
+                Мои заказы
+              </Link>
+            )}
+            <Link href="/marketplace"
+              className={`flex items-center justify-center gap-2 py-3.5 bg-[rgb(var(--accent))] text-white text-sm font-bold rounded-2xl hover:bg-[rgb(var(--accent-hover))] transition-colors ${!user ? "col-span-2" : ""}`}>
+              <ShoppingBag className="w-4 h-4" />
+              Продолжить покупки
+            </Link>
+          </motion.div>
         </motion.div>
       </div>
     );
@@ -212,7 +338,7 @@ export default function CheckoutPage() {
                     }`}
                   />
                   <button type="button" onClick={handleApplyPromo}
-                    className="h-11 px-5 bg-[rgb(var(--accent))] text-white font-bold rounded-xl hover:bg-[rgb(var(--accent-hover))] transition-colors text-sm uppercase tracking-wide flex-shrink-0">
+                    className="h-11 px-4 sm:px-5 bg-[rgb(var(--accent))] text-white font-bold rounded-xl hover:bg-[rgb(var(--accent-hover))] transition-colors text-xs sm:text-sm uppercase tracking-wide flex-shrink-0 whitespace-nowrap min-w-[80px]">
                     {t("promo_apply")}
                   </button>
                 </div>
@@ -224,6 +350,12 @@ export default function CheckoutPage() {
                 </p>
               )}
             </div>
+
+            {orderError && (
+              <div className="px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+                {orderError}
+              </div>
+            )}
 
             <button type="submit" disabled={loading || items.length === 0}
               className="w-full py-4 bg-[rgb(var(--accent))] text-white font-bold rounded-2xl hover:bg-[rgb(var(--accent-hover))] transition-all disabled:opacity-50 uppercase tracking-widest text-sm flex items-center justify-center gap-2 shadow-xl shadow-[rgb(var(--accent)/0.25)]">

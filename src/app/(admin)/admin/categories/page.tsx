@@ -47,7 +47,7 @@ export default function AdminCategoriesPage() {
     <div className="p-6 max-w-4xl">
       <div className="flex justify-between items-center mb-6">
         <p className="text-[#555] text-sm">{DEFAULT_CATS.length} категории</p>
-        <button className="h-9 px-5 bg-orange-500 text-white text-xs font-bold rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2 uppercase tracking-wide">
+        <button className="h-9 px-5 bg-red-800 text-white text-xs font-bold rounded-xl hover:bg-red-900 transition-colors flex items-center gap-2 uppercase tracking-wide">
           <Plus className="w-3.5 h-3.5" /> Добавить
         </button>
       </div>
@@ -91,7 +91,7 @@ export default function AdminCategoriesPage() {
                       ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"
                       : isLoading
                       ? "bg-[#1a1a1a] text-[#555] cursor-wait border border-[#2a2a2a]"
-                      : "bg-[#1a1a1a] text-[#888] hover:text-white hover:bg-orange-500/15 hover:border-orange-500/30 border border-[#2a2a2a]"
+                      : "bg-[#1a1a1a] text-[#888] hover:text-white hover:bg-red-800/15 hover:border-red-800/30 border border-[#2a2a2a]"
                   }`}>
                   {isLoading ? (
                     <><Loader2 className="w-3 h-3 animate-spin" /> Загрузка...</>

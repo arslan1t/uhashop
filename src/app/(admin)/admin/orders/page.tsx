@@ -1,8 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Send, XCircle, MessageCircle } from "lucide-react";
-import { useState } from "react";
+import { Search, Send, XCircle, MessageCircle, Loader2, RefreshCw } from "lucide-react";
+import { useState, useEffect } from "react";
 import { type AdminOrder } from "@/data/adminData";
 import { useOrdersStore } from "@/store/orders";
 
@@ -13,7 +13,7 @@ const STATUS_STYLES: Record<string, string> = {
   processing: "bg-amber-500/15 text-amber-400 border-amber-500/25",
   ordered: "bg-purple-500/15 text-purple-400 border-purple-500/25",
   delivered: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
-  cancelled: "bg-red-500/15 text-red-400 border-red-500/25",
+  cancelled: "bg-red-500/15 text-red-500 border-red-500/25",
 };
 const STATUS_LABELS: Record<string, string> = {
   new: "Новый", processing: "В работе", ordered: "Заказан",
@@ -25,16 +25,27 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<OrderStatus>("all");
   const [selected, setSelected] = useState<AdminOrder | null>(null);
 
-  // ── Zustand store — persists to localStorage ─────────────────────────
+  // ── Zustand store — fetches from Supabase ────────────────────────────
   const orders = useOrdersStore(s => s.orders);
+  const loading = useOrdersStore(s => s.loading);
+  const fetched = useOrdersStore(s => s.fetched);
+  const fetchOrders = useOrdersStore(s => s.fetchOrders);
   const updateStatus = useOrdersStore(s => s.updateStatus);
+
+  useEffect(() => {
+    if (!fetched) fetchOrders();
+  }, [fetched, fetchOrders]);
 
   const handleUpdateStatus = (id: string, status: AdminOrder["status"]) => {
     updateStatus(id, status);
-    // sync selected modal if it's the same order
     if (selected?.id === id) {
       setSelected(prev => prev ? { ...prev, status } : null);
     }
+  };
+
+  const handleRefresh = () => {
+    useOrdersStore.getState().resetOrders();
+    fetchOrders();
   };
 
   const filtered = orders.filter((o) => {
@@ -59,10 +70,10 @@ export default function AdminOrdersPage() {
             <button key={s} onClick={() => setStatusFilter(s)}
               className={`px-4 py-3 rounded-2xl border text-left transition-all ${
                 statusFilter === s
-                  ? "border-orange-500/50 bg-orange-500/10"
+                  ? "border-red-800/50 bg-red-800/10"
                   : "border-[#1a1a1a] bg-[#111] hover:border-[#262626]"
               }`}>
-              <div className={`text-lg font-bold ${statusFilter === s ? "text-orange-400" : "text-white"}`}>
+              <div className={`text-lg font-bold ${statusFilter === s ? "text-red-500" : "text-white"}`}>
                 {count}
               </div>
               <div className="text-[#555] text-[11px] uppercase tracking-wider">
@@ -73,13 +84,19 @@ export default function AdminOrdersPage() {
         })}
       </div>
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
-        <input value={search} onChange={e => setSearch(e.target.value)}
-          placeholder="Поиск по клиенту, Telegram, номеру заказа..."
-          className="w-full h-10 pl-10 pr-4 bg-[#141414] border border-[#222] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-orange-500/50 transition-colors"
-        />
+      {/* Search + Refresh */}
+      <div className="flex gap-2 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
+          <input value={search} onChange={e => setSearch(e.target.value)}
+            placeholder="Поиск по клиенту, Telegram, номеру заказа..."
+            className="w-full h-10 pl-10 pr-4 bg-[#141414] border border-[#222] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/50 transition-colors"
+          />
+        </div>
+        <button onClick={handleRefresh} disabled={loading}
+          className="h-10 px-3 bg-[#141414] border border-[#222] rounded-xl text-[#666] hover:text-white hover:border-red-800/50 transition-colors disabled:opacity-50">
+          <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+        </button>
       </div>
 
       {/* Orders table */}
@@ -150,7 +167,13 @@ export default function AdminOrdersPage() {
             </tbody>
           </table>
         </div>
-        {filtered.length === 0 && (
+        {loading && !fetched && (
+          <div className="py-16 text-center">
+            <Loader2 className="w-6 h-6 animate-spin text-red-500 mx-auto mb-3" />
+            <p className="text-[#555] text-sm">Загрузка заказов...</p>
+          </div>
+        )}
+        {!loading && filtered.length === 0 && (
           <div className="py-16 text-center text-[#555] text-sm">
             Заказы не найдены
           </div>
@@ -226,8 +249,8 @@ export default function AdminOrdersPage() {
                 </div>
 
                 {/* Total */}
-                <div className="flex items-center justify-between p-4 bg-orange-500/10 rounded-xl border border-orange-500/20">
-                  <span className="text-orange-400 font-semibold">Итого</span>
+                <div className="flex items-center justify-between p-4 bg-red-800/10 rounded-xl border border-red-800/20">
+                  <span className="text-red-500 font-semibold">Итого</span>
                   <span className="text-white text-xl font-bold">${selected.total}</span>
                 </div>
 
@@ -242,7 +265,7 @@ export default function AdminOrdersPage() {
                 <div className="flex items-center gap-2">
                   <select value={selected.status}
                     onChange={(e) => handleUpdateStatus(selected.id, e.target.value as AdminOrder["status"])}
-                    className="flex-1 h-10 px-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl text-white text-sm focus:outline-none focus:border-orange-500/60">
+                    className="flex-1 h-10 px-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl text-white text-sm focus:outline-none focus:border-red-800/60">
                     {Object.entries(STATUS_LABELS).map(([v, l]) => (
                       <option key={v} value={v}>{l}</option>
                     ))}

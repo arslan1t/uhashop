@@ -14,8 +14,8 @@ const MOCK_MEDIA = [
   { id: "6", src: "/images/products/apparel/fog-tee-1/1.jpg", name: "fog-tee-1.jpg", type: "image", size: "156 KB", date: "2024-01-20" },
   { id: "7", src: "/images/products/apparel/travis-tee-1/1.jpg", name: "travis-tee-1.jpg", type: "image", size: "178 KB", date: "2024-01-21" },
   { id: "8", src: "/images/products/apparel/supreme-tee-1/1.jpg", name: "supreme-tee-1.jpg", type: "image", size: "134 KB", date: "2024-01-22" },
-  { id: "9", src: "/images/branding/logo-on-dark.png", name: "uha-logo-dark.png", type: "image", size: "45 KB", date: "2024-01-10" },
-  { id: "10", src: "/images/branding/logo-on-light.png", name: "uha-logo-light.png", type: "image", size: "43 KB", date: "2024-01-10" },
+  { id: "9", src: "/images/branding/logo-white.png", name: "uha-logo-dark.png", type: "image", size: "45 KB", date: "2024-01-10" },
+  { id: "10", src: "/images/branding/logo-black.png", name: "uha-logo-light.png", type: "image", size: "43 KB", date: "2024-01-10" },
   { id: "v1", src: "", name: "3d-tee.mov", type: "video", size: "12.4 MB", date: "2024-01-25" },
 ];
 
@@ -44,8 +44,8 @@ export default function AdminMediaPage() {
         onDragLeave={() => setDragging(false)}
         className={`border-2 border-dashed rounded-2xl p-8 mb-6 flex flex-col items-center gap-3 cursor-pointer transition-all ${
           dragging
-            ? "border-orange-500 bg-orange-500/5"
-            : "border-[#2a2a2a] hover:border-orange-500/40 hover:bg-orange-500/3"
+            ? "border-red-800 bg-red-800/5"
+            : "border-[#2a2a2a] hover:border-red-800/40 hover:bg-red-800/3"
         }`}>
         <div className="w-12 h-12 rounded-2xl bg-[#1a1a1a] flex items-center justify-center">
           <Upload className="w-6 h-6 text-[#555]" />
@@ -62,7 +62,7 @@ export default function AdminMediaPage() {
         <div className="flex items-center gap-3">
           <span className="text-[#555] text-sm">{MOCK_MEDIA.length} файлов</span>
           {selected.length > 0 && (
-            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold rounded-xl hover:bg-red-500/20 transition-colors">
+            <button className="flex items-center gap-1.5 px-3 py-1.5 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-semibold rounded-xl hover:bg-red-500/20 transition-colors">
               <Trash2 className="w-3.5 h-3.5" />
               Удалить {selected.length}
             </button>
@@ -88,7 +88,7 @@ export default function AdminMediaPage() {
             return (
               <motion.div key={item.id} layout
                 className={`group relative rounded-2xl overflow-hidden bg-[#111] border cursor-pointer transition-all ${
-                  isSel ? "border-orange-500 ring-1 ring-orange-500/30" : "border-[#1a1a1a] hover:border-[#262626]"
+                  isSel ? "border-red-800 ring-1 ring-red-800/30" : "border-[#1a1a1a] hover:border-[#262626]"
                 }`}
                 onClick={() => toggleSelect(item.id)}>
                 <div className="aspect-square relative">
@@ -102,7 +102,7 @@ export default function AdminMediaPage() {
                   )}
                   {/* Checkbox */}
                   <div className={`absolute top-2 left-2 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                    isSel ? "bg-orange-500 border-orange-500" : "border-white/40 bg-black/30 opacity-0 group-hover:opacity-100"
+                    isSel ? "bg-red-800 border-red-800" : "border-white/40 bg-black/30 opacity-0 group-hover:opacity-100"
                   }`}>
                     {isSel && <Check className="w-3 h-3 text-white" />}
                   </div>

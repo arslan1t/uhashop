@@ -5,7 +5,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Upload, Save, Globe, Send, Instagram, Phone } from "lucide-react";
 
-const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-orange-500/60 transition-colors";
+const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
 
 export default function AdminSettingsPage() {
   const [saved, setSaved] = useState(false);
@@ -23,13 +23,13 @@ export default function AdminSettingsPage() {
         <Section title="Брендинг" subtitle="Логотипы и favicon">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { label: "Логотип (тёмный фон)", img: "/images/branding/logo-on-dark.png" },
-              { label: "Логотип (светлый фон)", img: "/images/branding/logo-on-light.png" },
-              { label: "Favicon", img: "/images/branding/logo-on-dark.png" },
+              { label: "Логотип (тёмный фон)", img: "/images/branding/logo-white.png" },
+              { label: "Логотип (светлый фон)", img: "/images/branding/logo-black.png" },
+              { label: "Favicon", img: "/images/branding/logo-white.png" },
             ].map(({ label, img }) => (
               <div key={label}>
                 <p className="text-[#555] text-[10px] uppercase tracking-wider mb-2">{label}</p>
-                <div className="relative h-20 rounded-xl overflow-hidden border border-[#2a2a2a] bg-[#1a1a1a] group cursor-pointer hover:border-orange-500/40 transition-colors flex items-center justify-center">
+                <div className="relative h-20 rounded-xl overflow-hidden border border-[#2a2a2a] bg-[#1a1a1a] group cursor-pointer hover:border-red-800/40 transition-colors flex items-center justify-center">
                   <Image src={img} alt={label} width={100} height={32} className="object-contain" />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Upload className="w-5 h-5 text-white" />
@@ -62,8 +62,8 @@ export default function AdminSettingsPage() {
         {/* Social */}
         <Section title="Ссылки" subtitle="Социальные сети и контакты">
           {[
-            { label: "Telegram (поддержка)", icon: Send, defaultValue: "https://t.me/hooper_manager", placeholder: "https://t.me/..." },
-            { label: "Instagram", icon: Instagram, defaultValue: "https://www.instagram.com/hooper_foot_locker/", placeholder: "https://instagram.com/..." },
+            { label: "Telegram (поддержка)", icon: Send, defaultValue: "https://t.me/uha_manager", placeholder: "https://t.me/..." },
+            { label: "Instagram", icon: Instagram, defaultValue: "https://www.instagram.com/uha_manager/", placeholder: "https://instagram.com/..." },
             { label: "Телефон", icon: Phone, defaultValue: "+998 90 000 00 00", placeholder: "+998..." },
             { label: "Сайт", icon: Globe, defaultValue: "https://uhashop.uz", placeholder: "https://..." },
           ].map(({ label, icon: Icon, defaultValue, placeholder }) => (
@@ -115,7 +115,7 @@ export default function AdminSettingsPage() {
             className={`flex items-center gap-2 px-8 py-3 font-bold rounded-xl text-sm uppercase tracking-widest transition-all ${
               saved
                 ? "bg-emerald-500 text-white"
-                : "bg-orange-500 text-white hover:bg-orange-600"
+                : "bg-red-800 text-white hover:bg-red-900"
             }`}>
             <Save className="w-4 h-4" />
             {saved ? "Сохранено ✓" : "Сохранить настройки"}
