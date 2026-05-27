@@ -44,20 +44,33 @@ export const metadata: Metadata = {
     "Central Asia",
     "Uzbekistan",
   ],
-  metadataBase: new URL("https://uhashop.uz"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://uhashop.uz"),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     type: "website",
     locale: "ru_RU",
+    alternateLocale: ["uz_UZ", "en_US"],
     url: "https://uhashop.uz",
     siteName: "UHA SHOP",
     title: "UHA SHOP — Basketball Ecosystem",
     description:
       "Premium basketball marketplace and sportswear ecosystem of Central Asia.",
+    images: [
+      {
+        url: "/images/branding/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "UHA SHOP — Basketball Ecosystem",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "UHA SHOP",
     description: "Basketball Ecosystem of Central Asia",
+    images: ["/images/branding/og-image.jpg"],
   },
   robots: { index: true, follow: true },
 };

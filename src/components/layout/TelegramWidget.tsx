@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, X, MessageCircle } from "lucide-react";
 
-const TELEGRAM_URL = "https://t.me/hooper_manager";
+const TELEGRAM_URL = "https://t.me/uha_manager";
 
 const QUICK_ACTIONS = [
   { emoji: "📏", label: "Помощь с размером", msg: "Привет! Помогите с выбором размера" },

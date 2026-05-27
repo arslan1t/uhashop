@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
           backgroundSize: "48px 48px",
         }}
       />
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[400px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[500px] h-[400px] bg-red-800/5 rounded-full blur-[120px] pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -47,8 +47,8 @@ export default function AdminLoginPage() {
         className="relative z-10 w-full max-w-[380px]"
       >
         <div className="flex flex-col items-center mb-10">
-          <div className="w-14 h-14 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-4">
-            <span className="text-orange-400 text-2xl font-black" style={{ fontFamily: "Bebas Neue, Impact, sans-serif", letterSpacing: "0.05em" }}>UHA</span>
+          <div className="w-14 h-14 rounded-2xl bg-red-800/10 border border-red-800/20 flex items-center justify-center mb-4">
+            <span className="text-red-500 text-2xl font-black" style={{ fontFamily: "Bebas Neue, Impact, sans-serif", letterSpacing: "0.05em" }}>UHA</span>
           </div>
           <p className="text-white font-bold tracking-[0.25em] uppercase text-sm">Admin Panel</p>
           <p className="text-[#444] text-[11px] mt-1 tracking-widest uppercase">UHA SHOP</p>
@@ -64,7 +64,7 @@ export default function AdminLoginPage() {
               <input
                 type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@uhashop.uz"
-                className="w-full h-12 px-4 bg-[#161616] border border-[#252525] rounded-xl text-white text-sm placeholder:text-[#3a3a3a] focus:outline-none focus:border-orange-500/60 transition-all"
+                className="w-full h-12 px-4 bg-[#161616] border border-[#252525] rounded-xl text-white text-sm placeholder:text-[#3a3a3a] focus:outline-none focus:border-red-800/60 transition-all"
               />
             </div>
 
@@ -75,7 +75,7 @@ export default function AdminLoginPage() {
                   type={showPass ? "text" : "password"} value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   placeholder="••••••••••"
-                  className="w-full h-12 px-4 pr-12 bg-[#161616] border border-[#252525] rounded-xl text-white text-sm placeholder:text-[#3a3a3a] focus:outline-none focus:border-orange-500/60 transition-all"
+                  className="w-full h-12 px-4 pr-12 bg-[#161616] border border-[#252525] rounded-xl text-white text-sm placeholder:text-[#3a3a3a] focus:outline-none focus:border-red-800/60 transition-all"
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
                   className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#3a3a3a] hover:text-[#777] transition-colors p-1">
@@ -87,13 +87,13 @@ export default function AdminLoginPage() {
             {error && (
               <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
                 className="flex items-center gap-2.5 px-4 py-3 bg-red-500/8 border border-red-500/15 rounded-xl">
-                <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
-                <span className="text-red-400 text-sm">{error}</span>
+                <AlertCircle className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                <span className="text-red-500 text-sm">{error}</span>
               </motion.div>
             )}
 
             <button type="submit" disabled={loading}
-              className="w-full h-12 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors text-sm uppercase tracking-[0.15em] flex items-center justify-center gap-2.5 disabled:opacity-50 mt-2 shadow-lg shadow-orange-500/20">
+              className="w-full h-12 bg-red-800 hover:bg-red-900 text-white font-bold rounded-xl transition-colors text-sm uppercase tracking-[0.15em] flex items-center justify-center gap-2.5 disabled:opacity-50 mt-2 shadow-lg shadow-red-800/20">
               {loading ? (<><Loader2 className="w-4 h-4 animate-spin" /><span>Входим...</span></>) : "Войти"}
             </button>
           </form>

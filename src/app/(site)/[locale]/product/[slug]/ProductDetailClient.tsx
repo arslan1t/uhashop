@@ -125,9 +125,9 @@ export function ProductDetailClient({ product }: Props) {
 
               {/* Rotating real UHA logo */}
               <div className="absolute bottom-4 right-4 z-10 w-10 h-10 animate-spin-slow"
-                style={{ filter: "drop-shadow(0 0 6px rgba(255,102,0,0.4))" }}>
-                <Image src="/images/branding/logo-on-dark.png" alt="UHA"
-                  fill className="object-contain opacity-80" sizes="40px" />
+                style={{ filter: "drop-shadow(0 0 6px rgba(153,27,27,0.55)) drop-shadow(0 0 14px rgba(153,27,27,0.25))" }}>
+                <Image src="/images/branding/logo-spinning.png" alt="UHA"
+                  fill className="object-contain" sizes="40px" />
               </div>
 
               {/* Badges */}

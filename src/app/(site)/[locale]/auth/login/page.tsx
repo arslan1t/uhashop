@@ -21,9 +21,9 @@ export default function LoginPage() {
     e.preventDefault();
     if (!email || !password) { setError("Заполните все поля"); return; }
     setLoading(true); setError("");
-    const ok = await login(email, password);
-    if (ok) router.replace("/profile");
-    else { setError("Неверный email или пароль"); setLoading(false); }
+    const result = await login(email, password);
+    if (result.ok) router.replace("/profile");
+    else { setError(result.error || "Неверный email или пароль"); setLoading(false); }
   };
 
   const INP = "w-full h-12 px-4 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl text-[rgb(var(--foreground))] text-sm placeholder:text-[rgb(var(--muted))] focus:outline-none focus:border-[rgb(var(--accent)/0.6)] transition-all";
@@ -37,7 +37,7 @@ export default function LoginPage() {
         </Link>
         <div className="flex flex-col items-center mb-8">
           <div className="relative h-8 w-28 mb-4">
-            <Image src="/images/branding/logo-on-dark.png" alt="UHA SHOP" fill className="object-contain" />
+            <Image src="/images/branding/logo-white.png" alt="UHA SHOP" fill className="object-contain" />
           </div>
         </div>
         <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl p-8">

@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, FolderOpen,
   Image as ImageIcon, Settings, Shirt, FileText,
-  ChevronLeft, LogOut, ExternalLink, Tag
+  ChevronLeft, LogOut, ExternalLink, Tag, GraduationCap
 } from "lucide-react";
 import { useAdminStore } from "@/store/admin";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ const NAV = [
   { label: "Категории", href: "/admin/categories", icon: FolderOpen },
   { label: "Медиа", href: "/admin/media", icon: ImageIcon },
   { label: "Главная", href: "/admin/homepage", icon: FileText },
+  { label: "Академия", href: "/admin/academy", icon: GraduationCap, badge: "new" },
   { label: "Пользователи", href: "/admin/users", icon: Users },
   { label: "Настройки", href: "/admin/settings", icon: Settings },
 ];
@@ -50,7 +51,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         {!collapsed && (
           <div className="flex items-center gap-2.5">
             <div className="relative h-6 w-20">
-              <Image src="/images/branding/logo-on-dark.png" alt="UHA"
+              <Image src="/images/branding/logo-white.png" alt="UHA"
                 fill className="object-contain object-left" />
             </div>
             <span className="text-[#444] text-[10px] font-bold uppercase tracking-widest border-l border-[#2a2a2a] pl-2">
@@ -76,18 +77,18 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
               className={cn(
                 "relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
                 active
-                  ? "bg-orange-500/15 text-orange-400"
+                  ? "bg-red-800/15 text-red-500"
                   : "text-[#666] hover:text-white hover:bg-[#141414]"
               )}>
               {active && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-orange-500 rounded-r-full" />
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-red-800 rounded-r-full" />
               )}
-              <Icon className={cn("w-4 h-4 flex-shrink-0", active ? "text-orange-400" : "text-[#555] group-hover:text-[#888]")} />
+              <Icon className={cn("w-4 h-4 flex-shrink-0", active ? "text-red-500" : "text-[#555] group-hover:text-[#888]")} />
               {!collapsed && (
                 <span className="truncate">{label}</span>
               )}
               {!collapsed && badge && (
-                <span className="ml-auto bg-orange-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase">
+                <span className="ml-auto bg-red-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase">
                   {badge}
                 </span>
               )}
@@ -105,7 +106,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         </Link>
 
         <button onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#555] hover:text-red-400 hover:bg-red-500/5 transition-colors group">
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#555] hover:text-red-500 hover:bg-red-500/5 transition-colors group">
           <LogOut className="w-4 h-4 flex-shrink-0" />
           {!collapsed && <span>Выйти</span>}
         </button>
@@ -113,8 +114,8 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         {!collapsed && adminUser && (
           <div className="px-3 pt-2 pb-1">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-orange-500/20 border border-orange-500/30 flex items-center justify-center flex-shrink-0">
-                <span className="text-orange-400 text-xs font-bold">
+              <div className="w-8 h-8 rounded-xl bg-red-800/20 border border-red-800/30 flex items-center justify-center flex-shrink-0">
+                <span className="text-red-500 text-xs font-bold">
                   {adminUser.name.charAt(0)}
                 </span>
               </div>

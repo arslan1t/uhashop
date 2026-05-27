@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -7,7 +8,8 @@ import {
   Package, ShoppingCart, TrendingUp, Star, Clock,
   ArrowUpRight, DollarSign, AlertCircle, CheckCircle2, Loader2
 } from "lucide-react";
-import { STATS, adminOrders, adminProducts } from "@/data/adminData";
+import { adminProducts } from "@/data/adminData";
+import { useOrdersStore } from "@/store/orders";
 
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
 const fadeUp = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
@@ -17,7 +19,7 @@ const STATUS_COLOR: Record<string, string> = {
   processing: "bg-amber-500/15 text-amber-400 border-amber-500/25",
   ordered: "bg-purple-500/15 text-purple-400 border-purple-500/25",
   delivered: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
-  cancelled: "bg-red-500/15 text-red-400 border-red-500/25",
+  cancelled: "bg-red-500/15 text-red-500 border-red-500/25",
 };
 const STATUS_LABEL: Record<string, string> = {
   new: "Новый", processing: "В работе", ordered: "Заказан",
@@ -25,8 +27,25 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function AdminDashboard() {
-  const recentOrders = adminOrders.slice(0, 5);
+  const orders = useOrdersStore(s => s.orders);
+  const fetched = useOrdersStore(s => s.fetched);
+  const fetchOrders = useOrdersStore(s => s.fetchOrders);
+
+  useEffect(() => {
+    if (!fetched) fetchOrders();
+  }, [fetched, fetchOrders]);
+
+  const recentOrders = orders.slice(0, 5);
   const recentProducts = adminProducts.filter(p => p.status === "published").slice(0, 4);
+
+  const STATS = {
+    totalProducts: adminProducts.length,
+    publishedProducts: adminProducts.length,
+    totalOrders: orders.length,
+    newOrders: orders.filter(o => o.status === "new").length,
+    revenue: orders.filter(o => o.status !== "cancelled").reduce((s, o) => s + o.total, 0),
+    featuredProducts: adminProducts.filter(p => p.isFeatured).length,
+  };
 
   return (
     <div className="p-6 space-y-6 max-w-[1400px]">
@@ -48,7 +67,7 @@ export default function AdminDashboard() {
         className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Всего товаров", value: STATS.totalProducts, sub: `${STATS.publishedProducts} опубликовано`, icon: Package, color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/20" },
-          { label: "Новых заказов", value: STATS.newOrders, sub: `${STATS.totalOrders} всего`, icon: ShoppingCart, color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/20" },
+          { label: "Новых заказов", value: STATS.newOrders, sub: `${STATS.totalOrders} всего`, icon: ShoppingCart, color: "text-red-500", bg: "bg-red-800/10 border-red-800/20" },
           { label: "Выручка", value: `$${STATS.revenue}`, sub: "За всё время", icon: DollarSign, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
           { label: "Избранных", value: STATS.featuredProducts, sub: "На главной", icon: Star, color: "text-purple-400", bg: "bg-purple-500/10 border-purple-500/20" },
         ].map(({ label, value, sub, icon: Icon, color, bg }) => (
@@ -74,7 +93,7 @@ export default function AdminDashboard() {
           className="xl:col-span-3 bg-[#111] border border-[#1a1a1a] rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-[#1a1a1a]">
             <h3 className="text-white font-semibold text-sm">Последние заказы</h3>
-            <Link href="/admin/orders" className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1">
+            <Link href="/admin/orders" className="text-xs text-red-500 hover:text-red-400 flex items-center gap-1">
               Все заказы <ArrowUpRight className="w-3 h-3" />
             </Link>
           </div>
@@ -109,7 +128,7 @@ export default function AdminDashboard() {
           className="xl:col-span-2 bg-[#111] border border-[#1a1a1a] rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-[#1a1a1a]">
             <h3 className="text-white font-semibold text-sm">Товары</h3>
-            <Link href="/admin/products" className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1">
+            <Link href="/admin/products" className="text-xs text-red-500 hover:text-red-400 flex items-center gap-1">
               Все <ArrowUpRight className="w-3 h-3" />
             </Link>
           </div>
@@ -139,7 +158,7 @@ export default function AdminDashboard() {
         className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: "Добавить товар", href: "/admin/products", icon: Package, color: "bg-blue-500/10 border-blue-500/20 text-blue-400" },
-          { label: "Просмотр заказов", href: "/admin/orders", icon: ShoppingCart, color: "bg-orange-500/10 border-orange-500/20 text-orange-400" },
+          { label: "Просмотр заказов", href: "/admin/orders", icon: ShoppingCart, color: "bg-red-800/10 border-red-800/20 text-red-500" },
           { label: "Загрузить медиа", href: "/admin/media", icon: AlertCircle, color: "bg-purple-500/10 border-purple-500/20 text-purple-400" },
           { label: "Настройки сайта", href: "/admin/settings", icon: CheckCircle2, color: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" },
         ].map(({ label, href, icon: Icon, color }) => (

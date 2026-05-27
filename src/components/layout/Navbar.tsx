@@ -15,8 +15,8 @@ import { useRouter, usePathname } from "@/i18n/navigation";
 const NAV_LINKS = [
   { key: "marketplace", href: "/marketplace" },
   { key: "merch",       href: "/merch" },
-  { key: "league",      href: "/league-coming-soon" },
-  { key: "academy",     href: "/academy-coming-soon" },
+  { key: "league",      href: "/league", external: true, externalHref: "http://localhost:3001" },
+  { key: "academy",     href: "/academy" },
   { key: "uha",         href: "/uha" },
 ] as const;
 
@@ -67,8 +67,8 @@ export function Navbar() {
                 {mounted ? (
                   <Image
                     src={isDark
-                      ? "/images/branding/logo-on-dark.png"
-                      : "/images/branding/logo-on-light.png"}
+                      ? "/images/branding/logo-white.png"
+                      : "/images/branding/logo-black.png"}
                     alt="UHA SHOP"
                     width={160}
                     height={48}
@@ -77,7 +77,7 @@ export function Navbar() {
                   />
                 ) : (
                   <Image
-                    src="/images/branding/logo-on-dark.png"
+                    src="/images/branding/logo-white.png"
                     alt="UHA SHOP"
                     width={160}
                     height={48}
@@ -90,22 +90,39 @@ export function Navbar() {
 
             {/* ── Desktop Nav ── */}
             <nav className="hidden md:flex items-center gap-1">
-              {NAV_LINKS.map(({ key, href, label }: { key: string; href: string; label?: string }) => (
-                <Link key={key} href={href}
-                  className={cn(
-                    "relative px-4 py-2 text-sm font-medium tracking-wide uppercase transition-colors duration-200",
-                    isActive(href)
-                      ? "text-[rgb(var(--accent))]"
-                      : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))]"
-                  )}>
-                  {label ?? t(key as Parameters<typeof t>[0])}
-                  {isActive(href) && (
-                    <motion.div layoutId="nav-indicator"
-                      className="absolute bottom-0 left-4 right-4 h-0.5 bg-[rgb(var(--accent))]"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }} />
-                  )}
-                </Link>
-              ))}
+              {NAV_LINKS.map((item) => {
+                const { key, href } = item;
+                const isExt = "external" in item && item.external;
+                const linkHref = isExt && "externalHref" in item ? (item as { externalHref: string }).externalHref : href;
+                const navLabel: string = t(key as Parameters<typeof t>[0]) as string;
+                if (isExt) {
+                  return (
+                    <a key={key} href={linkHref} target="_blank" rel="noopener noreferrer"
+                      className={cn(
+                        "relative px-4 py-2 text-sm font-medium tracking-wide uppercase transition-colors duration-200",
+                        "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))]"
+                      )}>
+                      {navLabel}
+                    </a>
+                  );
+                }
+                return (
+                  <Link key={key} href={href}
+                    className={cn(
+                      "relative px-4 py-2 text-sm font-medium tracking-wide uppercase transition-colors duration-200",
+                      isActive(href)
+                        ? "text-[rgb(var(--accent))]"
+                        : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))]"
+                    )}>
+                    {navLabel}
+                    {isActive(href) && (
+                      <motion.div layoutId="nav-indicator"
+                        className="absolute bottom-0 left-4 right-4 h-0.5 bg-[rgb(var(--accent))]"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }} />
+                    )}
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* ── Right Controls ── */}
@@ -187,17 +204,35 @@ export function Navbar() {
               exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.25 }}
               className="md:hidden overflow-hidden bg-[rgb(var(--surface))] border-t border-[rgb(var(--border))]">
               <nav className="container-uha py-4 flex flex-col gap-1">
-                {NAV_LINKS.map(({ key, href, label }: { key: string; href: string; label?: string }) => (
-                  <Link key={key} href={href} onClick={() => setMobileOpen(false)}
-                    className={cn(
-                      "flex items-center px-4 py-3 rounded-xl text-sm font-medium uppercase tracking-wider transition-colors",
-                      isActive(href)
-                        ? "bg-[rgb(var(--accent)/0.1)] text-[rgb(var(--accent))]"
-                        : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface-2))]"
-                    )}>
-                    {label ?? t(key as Parameters<typeof t>[0])}
-                  </Link>
-                ))}
+                {NAV_LINKS.map((item) => {
+                  const { key, href } = item;
+                  const isExt = "external" in item && item.external;
+                  const linkHref = isExt && "externalHref" in item ? (item as { externalHref: string }).externalHref : href;
+                  const mobileLabel: string = t(key as Parameters<typeof t>[0]) as string;
+                  if (isExt) {
+                    return (
+                      <a key={key} href={linkHref} target="_blank" rel="noopener noreferrer"
+                        onClick={() => setMobileOpen(false)}
+                        className={cn(
+                          "flex items-center px-4 py-3 rounded-xl text-sm font-medium uppercase tracking-wider transition-colors",
+                          "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface-2))]"
+                        )}>
+                        {mobileLabel}
+                      </a>
+                    );
+                  }
+                  return (
+                    <Link key={key} href={href} onClick={() => setMobileOpen(false)}
+                      className={cn(
+                        "flex items-center px-4 py-3 rounded-xl text-sm font-medium uppercase tracking-wider transition-colors",
+                        isActive(href)
+                          ? "bg-[rgb(var(--accent)/0.1)] text-[rgb(var(--accent))]"
+                          : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface-2))]"
+                      )}>
+                      {mobileLabel}
+                    </Link>
+                  );
+                })}
 
                 {/* Divider */}
                 <div className="mt-2 pt-2 border-t border-[rgb(var(--border))] flex flex-col gap-1">

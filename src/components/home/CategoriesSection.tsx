@@ -17,14 +17,14 @@ export function CategoriesSection() {
       subtitle: t("cat_shoes_sub"),
       href: "/marketplace?category=shoes",
       coverImage: "/images/branding/category-shoes.png",
-      accent: "from-orange-600/20",
+      accent: "from-red-800/20",
     },
     {
       id: "apparel",
       title: t("cat_apparel_title"),
       subtitle: t("cat_apparel_sub"),
       href: "/marketplace?category=apparel",
-      coverImage: "/images/branding/category-apparel.jpg",
+      coverImage: "/images/branding/category-apparel.png",
       accent: "from-purple-600/20",
     },
     {
@@ -33,7 +33,7 @@ export function CategoriesSection() {
       subtitle: t("cat_merch_sub"),
       href: "/merch",
       coverImage: "/images/branding/category-merch.png",
-      accent: "from-orange-500/15",
+      accent: "from-red-500/15",
       badge: t("cat_merch_badge"),
     },
   ];

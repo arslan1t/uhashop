@@ -31,8 +31,8 @@ const ECOSYSTEM = [
   {
     icon: GraduationCap,
     key: "academy",
-    href: "/academy-coming-soon",
-    active: false,
+    href: "/academy",
+    active: true,
     accent: "#3b82f6",
   },
 ] as const;

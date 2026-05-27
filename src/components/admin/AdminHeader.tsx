@@ -40,19 +40,19 @@ export function AdminHeader() {
           <input
             type="text"
             placeholder="Поиск..."
-            className="h-9 pl-9 pr-4 bg-[#141414] border border-[#222] rounded-xl text-sm text-white placeholder:text-[#444] focus:outline-none focus:border-orange-500/50 transition-colors w-52"
+            className="h-9 pl-9 pr-4 bg-[#141414] border border-[#222] rounded-xl text-sm text-white placeholder:text-[#444] focus:outline-none focus:border-red-800/50 transition-colors w-52"
           />
         </div>
 
         {/* Notifications */}
         <button className="relative w-9 h-9 rounded-xl bg-[#141414] border border-[#222] flex items-center justify-center text-[#555] hover:text-white hover:border-[#333] transition-colors">
           <Bell className="w-4 h-4" />
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-orange-500 rounded-full" />
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-800 rounded-full" />
         </button>
 
         {/* Page action */}
         {action && (
-          <button className="h-9 px-4 bg-orange-500 text-white text-xs font-bold rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-1.5 uppercase tracking-wide">
+          <button className="h-9 px-4 bg-red-800 text-white text-xs font-bold rounded-xl hover:bg-red-900 transition-colors flex items-center gap-1.5 uppercase tracking-wide">
             <Plus className="w-3.5 h-3.5" />
             {action.label}
           </button>

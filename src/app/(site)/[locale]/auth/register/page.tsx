@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, AlertCircle, Loader2, ArrowLeft, Send } from "lucide-react";
+import { Eye, EyeOff, AlertCircle, Loader2, ArrowLeft, Send, Mail, CheckCircle2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { TelegramLoginButton } from "@/components/ui/TelegramLoginButton";
 
@@ -16,6 +16,7 @@ export default function RegisterPage() {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const { register } = useAuthStore();
   const router = useRouter();
 
@@ -24,9 +25,16 @@ export default function RegisterPage() {
     if (!name || !email || !password) { setError("Заполните обязательные поля"); return; }
     if (password.length < 6) { setError("Пароль минимум 6 символов"); return; }
     setLoading(true); setError("");
-    const ok = await register(name, email, password, telegram);
-    if (ok) router.replace("/profile");
-    else { setError("Email уже зарегистрирован"); setLoading(false); }
+    const result = await register(name, email, password, telegram);
+    if (result.ok && result.error === "confirm_email") {
+      setEmailSent(true);
+      setLoading(false);
+    } else if (result.ok) {
+      router.replace("/profile");
+    } else {
+      setError(result.error || "Email уже зарегистрирован");
+      setLoading(false);
+    }
   };
 
   const INP = "w-full h-12 px-4 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl text-[rgb(var(--foreground))] text-sm placeholder:text-[rgb(var(--muted))] focus:outline-none focus:border-[rgb(var(--accent)/0.6)] transition-all";
@@ -40,10 +48,35 @@ export default function RegisterPage() {
         </Link>
         <div className="flex flex-col items-center mb-8">
           <div className="relative h-8 w-28 mb-4">
-            <Image src="/images/branding/logo-on-dark.png" alt="UHA SHOP" fill className="object-contain" />
+            <Image src="/images/branding/logo-white.png" alt="UHA SHOP" fill className="object-contain" />
           </div>
         </div>
         <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl p-8">
+          {emailSent ? (
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
+              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-5">
+                <Mail className="w-8 h-8 text-emerald-400" />
+              </div>
+              <h2 className="text-xl font-bold mb-2">Проверь почту</h2>
+              <p className="text-[rgb(var(--muted))] text-sm mb-2">
+                Мы отправили письмо на
+              </p>
+              <p className="text-[rgb(var(--accent))] font-semibold text-sm mb-5">{email}</p>
+              <p className="text-[rgb(var(--muted))] text-xs leading-relaxed mb-6">
+                Нажми на ссылку в письме, чтобы подтвердить аккаунт. После этого можешь войти.
+              </p>
+              <div className="flex flex-col gap-3">
+                <Link href="/auth/login"
+                  className="w-full h-12 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white font-bold rounded-2xl text-sm uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
+                  <CheckCircle2 className="w-4 h-4" /> Перейти к входу
+                </Link>
+                <button onClick={() => { setEmailSent(false); setPassword(""); }}
+                  className="text-sm text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] transition-colors">
+                  Отправить ещё раз
+                </button>
+              </div>
+            </motion.div>
+          ) : (<>
           <h1 className="text-xl font-bold mb-1">Создать аккаунт</h1>
           <p className="text-[rgb(var(--muted))] text-sm mb-7">Присоединись к UHA Basketball Ecosystem</p>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -90,6 +123,7 @@ export default function RegisterPage() {
             Уже есть аккаунт?{" "}
             <Link href="/auth/login" className="text-[rgb(var(--accent))] font-semibold hover:underline">Войти</Link>
           </p>
+          </>)}
         </div>
       </motion.div>
     </div>

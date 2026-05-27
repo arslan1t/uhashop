@@ -15,13 +15,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = getProductBySlug(slug);
   if (!product) return { title: "Product | UHA SHOP" };
+
+  const title = `${product.name} — ${product.brand}`;
+  const description = product.descriptionRu ?? `${product.name} от ${product.brand} — купить в UHA SHOP.`;
+
   return {
-    title: product.name,
-    description: product.descriptionRu,
+    title,
+    description,
     openGraph: {
-      title: product.name,
-      description: product.descriptionRu,
-      images: [{ url: product.image }],
+      title,
+      description,
+      images: [
+        {
+          url: product.image,
+          width: 800,
+          height: 800,
+          alt: product.name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [product.image],
     },
   };
 }
