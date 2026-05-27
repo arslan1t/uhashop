@@ -1,20 +1,24 @@
 /**
  * Store for admin-created products.
- * Persists to localStorage so products survive page reloads.
- * Merged with static products.ts catalog on the site.
+ * Synced with Firebase Firestore — changes visible on ALL devices in real time.
+ * Falls back to localStorage if Firebase is not configured.
  */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Product, ProductBrand, ProductCategory, ProductType } from "@/types";
+import { isFirebaseConfigured } from "@/lib/firebase/config";
 
 interface CustomProductsStore {
   products: Product[];
   _hydrated: boolean;
+  _firestoreSynced: boolean;
   addProduct: (p: Product) => void;
   updateProduct: (id: string, data: Partial<Product>) => void;
   removeProduct: (id: string) => void;
   hasProduct: (id: string) => boolean;
   setHydrated: () => void;
+  setProducts: (products: Product[]) => void;
+  setFirestoreSynced: () => void;
 }
 
 export const useCustomProducts = create<CustomProductsStore>()(
@@ -22,23 +26,50 @@ export const useCustomProducts = create<CustomProductsStore>()(
     (set, get) => ({
       products: [],
       _hydrated: false,
+      _firestoreSynced: false,
 
       setHydrated: () => set({ _hydrated: true }),
+      setFirestoreSynced: () => set({ _firestoreSynced: true }),
+      setProducts: (products) => set({ products }),
 
-      addProduct: (p) =>
-        set((state) => ({ products: [...state.products, p] })),
+      addProduct: (p) => {
+        set((state) => ({ products: [...state.products, p] }));
+        // Sync to Firestore if configured
+        if (typeof window !== "undefined" && isFirebaseConfigured()) {
+          import("@/lib/firebase/productFirestore").then(({ saveProductToFirestore }) => {
+            saveProductToFirestore(p).catch(console.error);
+          });
+        }
+      },
 
-      updateProduct: (id, data) =>
+      updateProduct: (id, data) => {
         set((state) => ({
           products: state.products.map((p) =>
             p.id === id ? { ...p, ...data } : p
           ),
-        })),
+        }));
+        // Sync to Firestore
+        if (typeof window !== "undefined" && isFirebaseConfigured()) {
+          const updated = get().products.find(p => p.id === id);
+          if (updated) {
+            import("@/lib/firebase/productFirestore").then(({ saveProductToFirestore }) => {
+              saveProductToFirestore(updated).catch(console.error);
+            });
+          }
+        }
+      },
 
-      removeProduct: (id) =>
+      removeProduct: (id) => {
         set((state) => ({
           products: state.products.filter((p) => p.id !== id),
-        })),
+        }));
+        // Delete from Firestore
+        if (typeof window !== "undefined" && isFirebaseConfigured()) {
+          import("@/lib/firebase/productFirestore").then(({ deleteProductFromFirestore }) => {
+            deleteProductFromFirestore(id).catch(console.error);
+          });
+        }
+      },
 
       hasProduct: (id) => get().products.some((p) => p.id === id),
     }),

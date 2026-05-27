@@ -7,6 +7,7 @@ import { useProductOverrides } from "@/store/productOverrides";
 import { useAuthStore } from "@/store/auth";
 import { useProductVisibility } from "@/store/productVisibility";
 import { useWishlist } from "@/store/wishlist";
+import { useFirestoreProducts } from "@/hooks/useFirestoreProducts";
 
 function StoreHydration() {
   useEffect(() => {
@@ -17,6 +18,9 @@ function StoreHydration() {
     useProductVisibility.getState().hydrate();
     useWishlist.getState().hydrate?.();
   }, []);
+
+  // Subscribe to Firestore products — syncs across all devices in real time
+  useFirestoreProducts();
 
   return null;
 }
