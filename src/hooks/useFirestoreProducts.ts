@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useCustomProducts } from "@/store/customProducts";
+import { useProductOverrides } from "@/store/productOverrides";
 import { isFirebaseConfigured } from "@/lib/firebase/config";
 
 /**
@@ -14,12 +15,13 @@ import { isFirebaseConfigured } from "@/lib/firebase/config";
  * 3. Never wipe the store with an empty Firestore response
  */
 export function useFirestoreProducts() {
-  const setProducts     = useCustomProducts(s => s.setProducts);
+  const setProducts        = useCustomProducts(s => s.setProducts);
   const setFirestoreSynced = useCustomProducts(s => s.setFirestoreSynced);
-  const firestoreSynced = useCustomProducts(s => s._firestoreSynced);
-  const hydrated        = useCustomProducts(s => s._hydrated);
-  const localProducts   = useCustomProducts(s => s.products);
-  const migrated        = useRef(false);
+  const firestoreSynced    = useCustomProducts(s => s._firestoreSynced);
+  const hydrated           = useCustomProducts(s => s._hydrated);
+  const localProducts      = useCustomProducts(s => s.products);
+  const mergeOverrides     = useProductOverrides(s => s.mergeOverrides);
+  const migrated           = useRef(false);
 
   // ── Step 1: migrate localStorage → Firestore on first load ────────────────
   useEffect(() => {
@@ -54,6 +56,24 @@ export function useFirestoreProducts() {
         });
 
         setFirestoreSynced();
+      });
+    }).catch(console.error);
+
+    return () => { unsubscribe?.(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Step 3: real-time overrides subscription (main image changes) ──────────
+  useEffect(() => {
+    if (typeof window === "undefined" || !isFirebaseConfigured()) return;
+
+    let unsubscribe: (() => void) | null = null;
+
+    import("@/lib/firebase/overridesFirestore").then(({ subscribeToOverrides }) => {
+      unsubscribe = subscribeToOverrides((overrides) => {
+        if (Object.keys(overrides).length > 0) {
+          mergeOverrides(overrides);
+        }
       });
     }).catch(console.error);
 

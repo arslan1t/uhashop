@@ -1,6 +1,6 @@
 /**
  * Admin overrides store — persists image order & main image per product.
- * Manual localStorage management (compatible with existing stored data format).
+ * Synced to Firestore so changes are visible on ALL devices.
  */
 import { create } from "zustand";
 import { safeStorage } from "@/lib/storage";
@@ -16,6 +16,7 @@ export interface ProductOverride {
 interface OverridesStore {
   overrides: Record<string, ProductOverride>;
   setOverride: (slug: string, data: Partial<ProductOverride>) => void;
+  mergeOverrides: (incoming: Record<string, ProductOverride>) => void;
   clearOverride: (slug: string) => void;
   hydrate: () => void;
 }
@@ -25,9 +26,7 @@ function loadFromStorage(): Record<string, ProductOverride> {
     const raw = safeStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     const parsed = JSON.parse(raw);
-    // Guard against zustand/persist format accidentally written: { state: {...}, version: N }
     if (parsed?.state?.overrides) return parsed.state.overrides;
-    // Normal format: { slug: { mainImage, imageOrder } }
     return parsed as Record<string, ProductOverride>;
   } catch {
     return {};
@@ -38,13 +37,21 @@ function save(overrides: Record<string, ProductOverride>) {
   safeStorage.setItem(STORAGE_KEY, JSON.stringify(overrides));
 }
 
-export const useProductOverrides = create<OverridesStore>()((set, get) => ({
+function syncToFirestore(entry: ProductOverride) {
+  if (typeof window === "undefined") return;
+  import("@/lib/firebase/config").then(({ isFirebaseConfigured }) => {
+    if (!isFirebaseConfigured()) return;
+    import("@/lib/firebase/overridesFirestore").then(({ saveOverrideToFirestore }) => {
+      saveOverrideToFirestore(entry).catch(console.error);
+    });
+  });
+}
+
+export const useProductOverrides = create<OverridesStore>()((set) => ({
   overrides: {},
 
-  // Called from Providers useEffect after client mount — guaranteed to have real localStorage
   hydrate: () => {
     const raw = loadFromStorage();
-    // Clean up stale blob: URLs that became invalid after browser session ended
     const cleaned: Record<string, ProductOverride> = {};
     for (const [slug, override] of Object.entries(raw)) {
       const cleanedOverride: ProductOverride = { slug };
@@ -63,12 +70,20 @@ export const useProductOverrides = create<OverridesStore>()((set, get) => ({
 
   setOverride: (slug, data) => {
     set(state => {
-      const updated = {
-        ...state.overrides,
-        [slug]: { ...state.overrides[slug], slug, ...data },
-      };
+      const entry = { ...state.overrides[slug], slug, ...data };
+      const updated = { ...state.overrides, [slug]: entry };
       save(updated);
+      syncToFirestore(entry); // ← sync to Firestore for all devices
       return { overrides: updated };
+    });
+  },
+
+  // Called by Firestore subscription to merge remote overrides
+  mergeOverrides: (incoming) => {
+    set(state => {
+      const merged = { ...state.overrides, ...incoming };
+      save(merged);
+      return { overrides: merged };
     });
   },
 
