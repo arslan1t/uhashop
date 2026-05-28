@@ -96,17 +96,21 @@ export default function AdminProductsPage() {
   });
 
   const toggleFeatured = (id: string) => {
-    // Custom product
-    if (customProds.some(c => c.id === id)) {
-      const cur = customProds.find(c => c.id === id);
-      updateCustom(id, { isFeatured: !cur?.isFeatured });
-      return;
-    }
-    // Static product — persist meta + update local display
-    const cur = staticProducts.find(p => p.id === id);
-    const newVal = !(getMeta(id).isFeatured ?? cur?.isFeatured ?? false);
+    const isCustom = customProds.some(c => c.id === id);
+    const curCustom = isCustom ? customProds.find(c => c.id === id) : null;
+    const curStatic = staticProducts.find(p => p.id === id);
+    const currentVal = getMeta(id).isFeatured ?? curCustom?.isFeatured ?? curStatic?.isFeatured ?? false;
+    const newVal = !currentVal;
+
+    // ALWAYS write to shop_meta (Firestore) — single source of truth for all devices
     setFeatured(id, newVal);
-    setStaticProducts(prev => prev.map(p => p.id === id ? { ...p, isFeatured: newVal } : p));
+
+    // Also update the local display
+    if (isCustom) {
+      updateCustom(id, { isFeatured: newVal });
+    } else {
+      setStaticProducts(prev => prev.map(p => p.id === id ? { ...p, isFeatured: newVal } : p));
+    }
   };
 
   const toggleStatus = (id: string) => {
