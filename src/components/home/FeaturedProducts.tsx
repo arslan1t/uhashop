@@ -30,24 +30,27 @@ export function FeaturedProducts() {
 
   const allStatic = getMarketplaceProducts();
 
+  // Build merged product pool (custom overrides static with same ID)
+  const customIds = new Set(customProducts.map(p => p.id));
+  const allProducts = [...customProducts, ...allStatic.filter(p => !customIds.has(p.id))];
+
   let featured;
 
   if (featuredOrder.length > 0) {
     // Admin saved a specific order — use it
-    const staticById = Object.fromEntries(allStatic.map(p => [p.id, p]));
-    const customById = Object.fromEntries(customProducts.map(p => [p.id, p]));
-    featured = featuredOrder
-      .map(id => staticById[id] ?? customById[id])
-      .filter(Boolean)
-      .slice(0, 5);
+    const byId = Object.fromEntries(allProducts.map(p => [p.id, p]));
+    featured = featuredOrder.map(id => byId[id]).filter(Boolean).slice(0, 5);
   } else {
-    // No saved order — use defaults: custom featured + static featured
-    const customFeatured = customProducts.filter(p => p.isFeatured);
-    const staticFeatured = allStatic.filter(p => {
-      const m = meta[p.id];
-      return m?.isFeatured !== undefined ? m.isFeatured : p.isFeatured;
-    });
-    featured = [...customFeatured, ...staticFeatured].slice(0, 5);
+    // meta is single source of truth for isFeatured (synced via Firestore shop_meta)
+    // Fallback to p.isFeatured if meta doesn't have an entry yet
+    const deletedIds = new Set(Object.entries(meta).filter(([, m]) => m.isDeleted).map(([id]) => id));
+    featured = allProducts
+      .filter(p => {
+        if (deletedIds.has(p.id)) return false;
+        const m = meta[p.id];
+        return m?.isFeatured !== undefined ? m.isFeatured : p.isFeatured;
+      })
+      .slice(0, 5);
   }
 
   return (
