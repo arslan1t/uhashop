@@ -28,7 +28,7 @@ export default function AdminMerchPage() {
     brand: p.brand, category: p.category, price: p.price, replicaPrice: p.replicaPrice,
     status: "published" as const, type: p.type, isFeatured: p.isFeatured ?? false,
     stock: p.inStock, estimatedDelivery: p.estimatedDelivery ?? "14–21 дней",
-    image: p.image, imageCount: p.images?.length || 1, createdAt: "", badge: p.badge,
+    image: p.image, images: p.images ?? [], imageCount: p.images?.length || 1, createdAt: "", badge: p.badge,
   }));
   const allMerch = [...customMerch, ...staticMerch];
 
@@ -173,7 +173,7 @@ export default function AdminMerchPage() {
           <ProductFormModal
             onClose={() => setShowAddModal(false)}
             // Pass a fake "template" product to preset the category
-            product={{ ...adminProducts[0], id: "", slug: "", nameRu: "", nameUz: "", category: "merch", status: "published", isFeatured: false, imageCount: 0, createdAt: "" } as AdminProduct}
+            product={{ ...adminProducts[0], id: "", slug: "", nameRu: "", nameUz: "", category: "merch", status: "published", isFeatured: false, images: [], imageCount: 0, createdAt: "" } as AdminProduct}
           />
         )}
       </AnimatePresence>

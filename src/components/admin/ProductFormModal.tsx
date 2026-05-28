@@ -55,11 +55,10 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
     prod: NonNullable<typeof product>,
     currentOverrides: Record<string, { mainImage?: string; imageOrder?: string[] }>
   ): GalleryImage[] => {
-    const cat = prod.category === "apparel" ? "apparel" : "shoes";
-    const basePaths = Array.from(
-      { length: Math.max(prod.imageCount, 1) },
-      (_, i) => `/images/products/${cat}/${prod.slug}/${i + 1}.jpg`
-    );
+    // Use actual image paths from product data (preserves correct extensions: .jpg, .png, .webp, .jpeg)
+    const basePaths = prod.images?.length
+      ? prod.images
+      : [prod.image].filter(Boolean);
 
     const override = currentOverrides[prod.slug];
     const savedOrder  = override?.imageOrder ?? basePaths;
