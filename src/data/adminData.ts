@@ -16,11 +16,13 @@ export interface AdminProduct {
   isFeatured: boolean;
   stock?: number;
   estimatedDelivery: string;
+  replicaDelivery?: string;
   image: string;
   images: string[];
   imageCount: number;
   createdAt: string;
   badge?: string;
+  descriptionRu?: string;
 }
 
 export interface AdminOrder {
@@ -54,9 +56,11 @@ export const adminProducts: AdminProduct[] = products.map((p) => ({
   isFeatured: p.isFeatured ?? false,
   stock: p.inStock,
   estimatedDelivery: p.estimatedDelivery ?? "14–21 дней",
+  replicaDelivery: p.replicaDelivery,
   image: p.image,
   images: p.images,
   imageCount: p.images.length || 1,
+  descriptionRu: p.descriptionRu,
   createdAt: "2024-01-15",
   badge: p.badge,
 }));
