@@ -383,10 +383,12 @@ export default function AdminProductsPage() {
                         <button
                           onClick={() => {
                             if (!confirm(`Удалить «${product.nameRu}»?`)) return;
+                            // ALWAYS mark as deleted in shop_meta (Firestore)
+                            // This prevents the static version from resurfacing
+                            setDeleted(product.id, true);
+                            // Also remove from customProducts if it's a custom product
                             if (customProds.some(c => c.id === product.id)) {
-                              removeCustom(product.id); // delete from Firestore
-                            } else {
-                              setDeleted(product.id, true); // hide static product via Firestore meta
+                              removeCustom(product.id);
                             }
                           }}
                           className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-[#666] hover:text-red-500 transition-colors"
