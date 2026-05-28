@@ -71,7 +71,9 @@ export default function AdminProductsPage() {
     badge: p.badge,
   }));
 
-  const products = [...customAsAdmin, ...staticProducts];
+  // Deduplicate: custom product with same ID overrides static
+  const customIds = new Set(customProds.map(c => c.id));
+  const products = [...customAsAdmin, ...staticProducts.filter(p => !customIds.has(p.id))];
 
   const filtered = products.filter((p) => {
     const q = search.toLowerCase();
@@ -140,7 +142,7 @@ export default function AdminProductsPage() {
     setShowAddModal(false);
   };
 
-  // Handler for EDITING an existing custom product
+  // Handler for EDITING any product (custom or static)
   const handleSaveEdit = (data: Partial<AdminProduct> & {
     shoeSizes?: Record<number, boolean>;
     apparelSizes?: Record<string, boolean>;
@@ -149,20 +151,61 @@ export default function AdminProductsPage() {
     image?: string;
   }) => {
     if (!selectedProduct) return;
-    // Only update custom products — static products use productOverrides for image
-    if (customProds.some(c => c.id === selectedProduct.id)) {
+
+    const isCustom = customProds.some(c => c.id === selectedProduct.id);
+
+    if (isCustom) {
+      // Update existing custom product
       updateCustom(selectedProduct.id, {
         nameRu: data.nameRu ?? selectedProduct.nameRu,
+        name: data.nameRu ?? selectedProduct.nameRu,
         brand: (data.brand as Product["brand"]) ?? selectedProduct.brand,
         price: data.price ?? selectedProduct.price,
         replicaPrice: data.replicaPrice,
-        estimatedDelivery: data.estimatedDelivery,
+        estimatedDelivery: data.estimatedDelivery ?? selectedProduct.estimatedDelivery,
         isFeatured: data.isFeatured ?? false,
         badge: data.badge as Product["badge"],
         type: (data.type as Product["type"]) ?? selectedProduct.type,
         ...(data.image && !data.image.startsWith("blob:") ? { image: data.image, images: [data.image] } : {}),
       });
+    } else {
+      // Static product → convert to custom with same ID (overrides static)
+      const staticProd = staticProducts.find(p => p.id === selectedProduct.id);
+      if (!staticProd) { setSelectedProduct(null); return; }
+
+      const updatedImage = (data.image && !data.image.startsWith("blob:"))
+        ? data.image
+        : (staticProd.images?.[0] ?? staticProd.image);
+
+      const updatedImages = (data.image && !data.image.startsWith("blob:"))
+        ? [data.image]
+        : (staticProd.images ?? [staticProd.image]);
+
+      const product = buildProductFromForm({
+        nameRu: data.nameRu ?? staticProd.nameRu,
+        slug: staticProd.slug,
+        brand: data.brand ?? staticProd.brand,
+        category: staticProd.category,
+        type: (data.type as string) ?? staticProd.type,
+        status: "published",
+        badge: data.badge ?? staticProd.badge ?? "",
+        isFeatured: data.isFeatured ?? staticProd.isFeatured ?? false,
+        estimatedDelivery: data.estimatedDelivery ?? staticProd.estimatedDelivery,
+        price: data.price ?? staticProd.price,
+        replicaPrice: data.replicaPrice ?? staticProd.replicaPrice,
+        replicaDelivery: data.replicaDelivery,
+        descriptionRu: data.descriptionRu ?? "",
+        shoeSizes: data.shoeSizes ?? {},
+        apparelSizes: data.apparelSizes ?? {},
+        image: updatedImage,
+      }, staticProd.id); // ← keep same ID so it overrides the static entry
+
+      // Manually attach correct images array (buildProductFromForm only sets single image)
+      product.images = updatedImages;
+
+      addProduct(product);
     }
+
     setSelectedProduct(null);
   };
 

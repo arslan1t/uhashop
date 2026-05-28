@@ -20,7 +20,11 @@ export function MarketplaceClient() {
   const t = useTranslations("marketplace");
   const customProds = useCustomProducts(s => s.products);
 
-  const allProducts = useMemo(() => [...customProds, ...staticProducts], [customProds]);
+  // Custom products override static ones with same ID
+  const allProducts = useMemo(() => {
+    const customIds = new Set(customProds.map(p => p.id));
+    return [...customProds, ...staticProducts.filter(p => !customIds.has(p.id))];
+  }, [customProds]);
 
   // Derived lists for filter options
   const BRANDS = useMemo(() => [...new Set(allProducts.map(p => p.brand))].sort(), [allProducts]);
