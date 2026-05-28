@@ -7,6 +7,8 @@ import { AdminHeader } from "./AdminHeader";
 import { useAdminStore } from "@/store/admin";
 import { useProductOverrides } from "@/store/productOverrides";
 import { useProductVisibility } from "@/store/productVisibility";
+import { useCustomProducts } from "@/store/customProducts";
+import { useFirestoreProducts } from "@/hooks/useFirestoreProducts";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -14,14 +16,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, checkAuth } = useAdminStore();
   const hydrateOverrides = useProductOverrides(s => s.hydrate);
   const hydrateVisibility = useProductVisibility(s => s.hydrate);
+  const setHydrated = useCustomProducts(s => s.setHydrated);
   const router = useRouter();
   const pathname = usePathname();
   const isLogin = pathname === "/admin/login";
+
+  // Sync products + image overrides from Firestore in real time
+  useFirestoreProducts();
 
   useEffect(() => {
     checkAuth();
     hydrateOverrides();
     hydrateVisibility();
+    setHydrated();
     setReady(true);
   }, []);
 
