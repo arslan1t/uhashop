@@ -9,6 +9,7 @@ import { FilterBar, type FilterState } from "@/components/ui/FilterBar";
 import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 import { getMarketplaceProducts } from "@/data/products";
 import { useCustomProducts } from "@/store/customProducts";
+import { useProductMeta } from "@/store/productMeta";
 
 const staticProducts = getMarketplaceProducts();
 
@@ -19,12 +20,22 @@ const TG_URL = "https://t.me/uha_manager";
 export function MarketplaceClient() {
   const t = useTranslations("marketplace");
   const customProds = useCustomProducts(s => s.products);
+  const metaMap     = useProductMeta(s => s.meta);
 
-  // Custom products override static ones with same ID
+  // Custom products override static ones with same ID; hide deleted products
   const allProducts = useMemo(() => {
-    const customIds = new Set(customProds.map(p => p.id));
-    return [...customProds, ...staticProducts.filter(p => !customIds.has(p.id))];
-  }, [customProds]);
+    const customIds  = new Set(customProds.map(p => p.id));
+    const deletedIds = new Set(Object.entries(metaMap).filter(([, m]) => m.isDeleted).map(([id]) => id));
+    const merged = [
+      ...customProds.filter(p => !deletedIds.has(p.id)),
+      ...staticProducts.filter(p => !customIds.has(p.id) && !deletedIds.has(p.id)),
+    ];
+    // Apply isFeatured overrides from meta
+    return merged.map(p => ({
+      ...p,
+      isFeatured: metaMap[p.id]?.isFeatured ?? p.isFeatured,
+    }));
+  }, [customProds, metaMap]);
 
   // Derived lists for filter options
   const BRANDS = useMemo(() => [...new Set(allProducts.map(p => p.brand))].sort(), [allProducts]);
