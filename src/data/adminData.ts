@@ -17,6 +17,7 @@ export interface AdminProduct {
   stock?: number;
   estimatedDelivery: string;
   image: string;
+  images: string[];
   imageCount: number;
   createdAt: string;
   badge?: string;
@@ -54,6 +55,7 @@ export const adminProducts: AdminProduct[] = products.map((p) => ({
   stock: p.inStock,
   estimatedDelivery: p.estimatedDelivery ?? "14–21 дней",
   image: p.image,
+  images: p.images,
   imageCount: p.images.length || 1,
   createdAt: "2024-01-15",
   badge: p.badge,

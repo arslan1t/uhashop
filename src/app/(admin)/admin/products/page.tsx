@@ -65,6 +65,7 @@ export default function AdminProductsPage() {
     stock: p.inStock,
     estimatedDelivery: p.estimatedDelivery ?? "14–21 дней",
     image: p.image,
+    images: p.images,
     imageCount: p.images.length || 1,
     createdAt: new Date().toISOString().split("T")[0],
     badge: p.badge,
