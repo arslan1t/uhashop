@@ -25,38 +25,47 @@ export function useFirestoreProducts() {
   const mergeMeta          = useProductMeta(s => s.mergeMeta);
   const migrated           = useRef(false);
 
-  // ── Step 1: migrate localStorage → Firestore on first load ────────────────
+  const MIGRATION_DONE_KEY = "uha-firestore-migrated-v2";
+
+  // ── Step 1: one-time migration localStorage → Firestore ───────────────────
+  // Only runs ONCE per device (flag stored in localStorage).
+  // Skipped entirely if device already synced (flag present).
   useEffect(() => {
     if (!hydrated || migrated.current) return;
     if (typeof window === "undefined" || !isFirebaseConfigured()) return;
-    if (localProducts.length === 0) return;
-
     migrated.current = true;
+
+    const alreadyMigrated = localStorage.getItem(MIGRATION_DONE_KEY);
+    if (alreadyMigrated || localProducts.length === 0) return;
+
+    // Mark as migrated first so refresh/race doesn't re-run
+    localStorage.setItem(MIGRATION_DONE_KEY, "1");
 
     import("@/lib/firebase/productFirestore").then(({ saveProductToFirestore }) => {
       Promise.all(localProducts.map(p => saveProductToFirestore(p)))
         .catch(console.error);
     });
-  }, [hydrated, localProducts]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hydrated]);
 
   // ── Step 2: real-time Firestore subscription ───────────────────────────────
+  // After first sync Firestore is THE source of truth — completely replaces local.
   useEffect(() => {
     if (typeof window === "undefined" || !isFirebaseConfigured()) return;
 
     let unsubscribe: (() => void) | null = null;
+    let firstFire = true;
 
     import("@/lib/firebase/productFirestore").then(({ subscribeToProducts }) => {
       unsubscribe = subscribeToProducts((firestoreProducts) => {
-        // Never wipe store with an empty Firestore response
-        if (firestoreProducts.length === 0 && !firestoreSynced) return;
-
-        // Merge: build a map from current local products, then overwrite with Firestore
-        setProducts((prev: import("@/types").Product[]) => {
-          const map = new Map(prev.map(p => [p.id, p]));
-          firestoreProducts.forEach(p => map.set(p.id, p));
-          return Array.from(map.values());
-        });
-
+        if (firstFire && firestoreProducts.length === 0) {
+          // Firestore is empty on first fire → wait for migration to populate it
+          firstFire = false;
+          return;
+        }
+        firstFire = false;
+        // Firestore is authoritative: replace local completely
+        setProducts(firestoreProducts);
         setFirestoreSynced();
       });
     }).catch(console.error);
