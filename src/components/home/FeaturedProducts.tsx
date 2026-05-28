@@ -41,14 +41,20 @@ export function FeaturedProducts() {
     const byId = Object.fromEntries(allProducts.map(p => [p.id, p]));
     featured = featuredOrder.map(id => byId[id]).filter(Boolean).slice(0, 5);
   } else {
-    // meta is single source of truth for isFeatured (synced via Firestore shop_meta)
-    // Fallback to p.isFeatured if meta doesn't have an entry yet
     const deletedIds = new Set(Object.entries(meta).filter(([, m]) => m.isDeleted).map(([id]) => id));
+    // Check if admin has ever explicitly set featured products via meta
+    const adminHasSetFeatured = Object.values(meta).some(m => m.isFeatured !== undefined);
+
     featured = allProducts
       .filter(p => {
         if (deletedIds.has(p.id)) return false;
         const m = meta[p.id];
-        return m?.isFeatured !== undefined ? m.isFeatured : p.isFeatured;
+        if (adminHasSetFeatured) {
+          // Admin controls featured: only show products explicitly marked in meta
+          return m?.isFeatured === true;
+        }
+        // No admin override yet: use static defaults from products.ts
+        return p.isFeatured === true;
       })
       .slice(0, 5);
   }
