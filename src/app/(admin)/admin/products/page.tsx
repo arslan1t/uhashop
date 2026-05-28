@@ -64,11 +64,13 @@ export default function AdminProductsPage() {
     isFeatured: p.isFeatured ?? false,
     stock: p.inStock,
     estimatedDelivery: p.estimatedDelivery ?? "14–21 дней",
+    replicaDelivery: p.replicaDelivery,
     image: p.image,
     images: p.images,
     imageCount: p.images.length || 1,
     createdAt: new Date().toISOString().split("T")[0],
     badge: p.badge,
+    descriptionRu: p.descriptionRu,
   }));
 
   // Deduplicate: custom product with same ID overrides static

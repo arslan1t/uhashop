@@ -44,7 +44,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
   const [badge, setBadge] = useState(product?.badge ?? "");
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
   const [delivery, setDelivery] = useState(product?.estimatedDelivery ?? "14–21 дней");
-  const [descRu, setDescRu] = useState("");
+  const [descRu, setDescRu] = useState(product?.descriptionRu ?? "");
   const [saved, setSaved] = useState(false);
 
   // Override store
@@ -95,7 +95,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
   // Pricing state
   const [price, setPrice] = useState(String(product?.price ?? ""));
   const [replicaPrice, setReplicaPrice] = useState(String(product?.replicaPrice ?? ""));
-  const [replicaDelivery, setReplicaDelivery] = useState("7–14 дней");
+  const [replicaDelivery, setReplicaDelivery] = useState(product?.replicaDelivery ?? "7–14 дней");
   const [stock, setStock] = useState(String(product?.stock ?? ""));
 
   // ── Media handlers ──
