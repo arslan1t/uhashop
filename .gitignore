@@ -33,3 +33,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Block Cyrillic/non-ASCII filenames in product images
+public/images/products/**/*крупный*
+public/images/products/**/*копия*
+public/images/products/**/ChatGPT*
+public/images/products/**/Problembo*
+public/images/products/**/*— *
+public/images/products/**/*\xa0*
