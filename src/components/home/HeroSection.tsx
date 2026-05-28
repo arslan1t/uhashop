@@ -85,10 +85,8 @@ export function HeroSection() {
                 {STATS.map((s, i) => {
                   const isPhotoSearch = s.val === "📷";
                   const borderClass =
-                    i === 0 ? "" :
-                    i === 1 ? "" :
-                    i === 2 ? "border-t sm:border-t-0 pt-5 sm:pt-0" :
-                              "border-t sm:border-t-0 pt-5 sm:pt-0";
+                    i === 2 ? "pt-5 sm:pt-0" :
+                    i === 3 ? "pt-5 sm:pt-0" : "";
 
                   const content = (
                     <>

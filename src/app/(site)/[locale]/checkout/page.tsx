@@ -323,7 +323,7 @@ export default function CheckoutPage() {
                   </button>
                 </div>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex flex-col xs:flex-row gap-2">
                   <input
                     value={promoInput}
                     onChange={e => { setPromoInput(e.target.value.toUpperCase()); setPromoStatus("idle"); setPromoError(null); }}
@@ -338,7 +338,7 @@ export default function CheckoutPage() {
                     }`}
                   />
                   <button type="button" onClick={handleApplyPromo}
-                    className="h-11 px-4 sm:px-5 bg-[rgb(var(--accent))] text-white font-bold rounded-xl hover:bg-[rgb(var(--accent-hover))] transition-colors text-xs sm:text-sm uppercase tracking-wide flex-shrink-0 whitespace-nowrap min-w-[80px]">
+                    className="h-11 px-5 bg-[rgb(var(--accent))] text-white font-bold rounded-xl hover:bg-[rgb(var(--accent-hover))] transition-colors text-sm uppercase tracking-wide whitespace-nowrap w-full xs:w-auto">
                     {t("promo_apply")}
                   </button>
                 </div>
