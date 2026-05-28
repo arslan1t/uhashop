@@ -46,7 +46,7 @@ export default function AdminProductsPage() {
   const overrides = useProductOverrides(s => s.overrides);
   const { isHidden, toggleHidden } = useProductVisibility();
   const { products: customProds, addProduct, removeProduct: removeCustom, updateProduct: updateCustom } = useCustomProducts();
-  const { setFeatured, setStatus, getMeta } = useProductMeta();
+  const { setFeatured, setStatus, setDeleted, getMeta } = useProductMeta();
 
   // Merge static + custom products for display
   const customAsAdmin: AdminProduct[] = customProds.map(p => ({
@@ -72,8 +72,13 @@ export default function AdminProductsPage() {
   }));
 
   // Deduplicate: custom product with same ID overrides static
+  // Also filter out products marked as deleted in meta
   const customIds = new Set(customProds.map(c => c.id));
-  const products = [...customAsAdmin, ...staticProducts.filter(p => !customIds.has(p.id))];
+  const deletedIds = new Set(Object.entries(savedMeta).filter(([, m]) => m.isDeleted).map(([id]) => id));
+  const products = [
+    ...customAsAdmin,
+    ...staticProducts.filter(p => !customIds.has(p.id) && !deletedIds.has(p.id)),
+  ];
 
   const filtered = products.filter((p) => {
     const q = search.toLowerCase();
@@ -368,12 +373,15 @@ export default function AdminProductsPage() {
                         </Link>
                         <button
                           onClick={() => {
+                            if (!confirm(`Удалить «${product.nameRu}»?`)) return;
                             if (customProds.some(c => c.id === product.id)) {
-                              removeCustom(product.id);
+                              removeCustom(product.id); // delete from Firestore
+                            } else {
+                              setDeleted(product.id, true); // hide static product via Firestore meta
                             }
                           }}
                           className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-[#666] hover:text-red-500 transition-colors"
-                          title={customProds.some(c => c.id === product.id) ? "Удалить" : "Статичный товар"}>
+                          title="Удалить товар">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>

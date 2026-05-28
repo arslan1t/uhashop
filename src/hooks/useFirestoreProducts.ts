@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useCustomProducts } from "@/store/customProducts";
 import { useProductOverrides } from "@/store/productOverrides";
+import { useProductMeta } from "@/store/productMeta";
 import { isFirebaseConfigured } from "@/lib/firebase/config";
 
 /**
@@ -21,6 +22,7 @@ export function useFirestoreProducts() {
   const hydrated           = useCustomProducts(s => s._hydrated);
   const localProducts      = useCustomProducts(s => s.products);
   const mergeOverrides     = useProductOverrides(s => s.mergeOverrides);
+  const mergeMeta          = useProductMeta(s => s.mergeMeta);
   const migrated           = useRef(false);
 
   // ── Step 1: migrate localStorage → Firestore on first load ────────────────
@@ -73,6 +75,24 @@ export function useFirestoreProducts() {
       unsubscribe = subscribeToOverrides((overrides) => {
         if (Object.keys(overrides).length > 0) {
           mergeOverrides(overrides);
+        }
+      });
+    }).catch(console.error);
+
+    return () => { unsubscribe?.(); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ── Step 4: product meta (isFeatured, isDeleted) subscription ─────────────
+  useEffect(() => {
+    if (typeof window === "undefined" || !isFirebaseConfigured()) return;
+
+    let unsubscribe: (() => void) | null = null;
+
+    import("@/lib/firebase/metaFirestore").then(({ subscribeToMeta }) => {
+      unsubscribe = subscribeToMeta((meta) => {
+        if (Object.keys(meta).length > 0) {
+          mergeMeta(meta);
         }
       });
     }).catch(console.error);
