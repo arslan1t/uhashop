@@ -164,17 +164,22 @@ export default function AdminProductsPage() {
     const isCustom = customProds.some(c => c.id === selectedProduct.id);
 
     if (isCustom) {
-      // Update existing custom product
+      // Update existing custom product — all fields from modal
+      const cur = customProds.find(c => c.id === selectedProduct.id)!;
       updateCustom(selectedProduct.id, {
-        nameRu: data.nameRu ?? selectedProduct.nameRu,
-        name: data.nameRu ?? selectedProduct.nameRu,
-        brand: (data.brand as Product["brand"]) ?? selectedProduct.brand,
-        price: data.price ?? selectedProduct.price,
-        replicaPrice: data.replicaPrice,
-        estimatedDelivery: data.estimatedDelivery ?? selectedProduct.estimatedDelivery,
-        isFeatured: data.isFeatured ?? false,
-        badge: data.badge as Product["badge"],
-        type: (data.type as Product["type"]) ?? selectedProduct.type,
+        nameRu:           data.nameRu           ?? cur.nameRu,
+        name:             data.nameRu           ?? cur.nameRu,
+        slug:             data.slug             ?? cur.slug,
+        brand:            (data.brand as Product["brand"]) ?? cur.brand,
+        category:         (data.category as Product["category"]) ?? cur.category,
+        type:             (data.type as Product["type"]) ?? cur.type,
+        price:            data.price            ?? cur.price,
+        replicaPrice:     data.replicaPrice     ?? cur.replicaPrice,
+        estimatedDelivery:data.estimatedDelivery?? cur.estimatedDelivery,
+        replicaDelivery:  data.replicaDelivery  ?? cur.replicaDelivery,
+        isFeatured:       data.isFeatured       ?? cur.isFeatured ?? false,
+        badge:            (data.badge as Product["badge"]) ?? cur.badge,
+        descriptionRu:    data.descriptionRu    ?? cur.descriptionRu,
         ...(data.image && !data.image.startsWith("blob:") ? { image: data.image, images: [data.image] } : {}),
       });
     } else {
@@ -191,22 +196,22 @@ export default function AdminProductsPage() {
         : (staticProd.images ?? [staticProd.image]);
 
       const product = buildProductFromForm({
-        nameRu: data.nameRu ?? staticProd.nameRu,
-        slug: staticProd.slug,
-        brand: data.brand ?? staticProd.brand,
-        category: staticProd.category,
-        type: (data.type as string) ?? staticProd.type,
-        status: "published",
-        badge: data.badge ?? staticProd.badge ?? "",
-        isFeatured: data.isFeatured ?? staticProd.isFeatured ?? false,
-        estimatedDelivery: data.estimatedDelivery ?? staticProd.estimatedDelivery,
-        price: data.price ?? staticProd.price,
-        replicaPrice: data.replicaPrice ?? staticProd.replicaPrice,
-        replicaDelivery: data.replicaDelivery,
-        descriptionRu: data.descriptionRu ?? "",
-        shoeSizes: data.shoeSizes ?? {},
-        apparelSizes: data.apparelSizes ?? {},
-        image: updatedImage,
+        nameRu:            data.nameRu           ?? staticProd.nameRu,
+        slug:              data.slug             ?? staticProd.slug,
+        brand:             data.brand            ?? staticProd.brand,
+        category:          data.category         ?? staticProd.category,
+        type:              (data.type as string) ?? staticProd.type,
+        status:            "published",
+        badge:             data.badge            ?? staticProd.badge ?? "",
+        isFeatured:        data.isFeatured       ?? staticProd.isFeatured ?? false,
+        estimatedDelivery: data.estimatedDelivery?? staticProd.estimatedDelivery,
+        price:             data.price            ?? staticProd.price,
+        replicaPrice:      data.replicaPrice     ?? staticProd.replicaPrice,
+        replicaDelivery:   data.replicaDelivery,
+        descriptionRu:     data.descriptionRu    ?? "",
+        shoeSizes:         data.shoeSizes        ?? {},
+        apparelSizes:      data.apparelSizes     ?? {},
+        image:             updatedImage,
       }, staticProd.id); // ← keep same ID so it overrides the static entry
 
       // Manually attach correct images array (buildProductFromForm only sets single image)
