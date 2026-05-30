@@ -7,9 +7,9 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatPrice(price: number, currency: "USD" | "UZS" = "USD") {
   if (currency === "USD") {
-    return `$${price.toLocaleString("en-US")}`;
+    return `≈$${price.toLocaleString("en-US")}`;
   }
-  return `${(price * 12500).toLocaleString("ru-RU")} сум`;
+  return `≈${(price * 12500).toLocaleString("ru-RU")} сум`;
 }
 
 export function slugify(str: string) {
