@@ -191,8 +191,15 @@ export default function AdminAcademyPage() {
                           {APP_STATUS_LABELS[app.status]}
                         </span>
                         <span className="text-[#444] text-xs">
-                          {app.createdAt && typeof app.createdAt === "object" && "toDate" in (app.createdAt as object)
-                            ? (app.createdAt as { toDate: () => Date }).toDate().toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" })
+                          {app.createdAt
+                            ? (() => {
+                                const d = typeof app.createdAt === "string"
+                                  ? new Date(app.createdAt)
+                                  : typeof app.createdAt === "object" && "toDate" in (app.createdAt as object)
+                                    ? (app.createdAt as { toDate: () => Date }).toDate()
+                                    : null;
+                                return d ? d.toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" }) : "—";
+                              })()
                             : "—"
                           }
                         </span>
