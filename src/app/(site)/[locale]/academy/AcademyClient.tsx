@@ -1,19 +1,23 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
   GraduationCap, ArrowLeft, ArrowRight, Dumbbell, Target, Users,
-  Calendar, Trophy, Shield, Star, ChevronRight
+  Calendar, Trophy, Shield, Star, ChevronRight,
+  MapPin, Clock, Phone, Bus, Navigation
 } from "lucide-react";
+import { AcademyApplicationModal } from "@/components/ui/AcademyApplicationModal";
 
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.1 } } };
 const fadeUp = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { duration: 0.5 } } };
 
 export function AcademyClient() {
   const t = useTranslations("academy");
+  const [showModal, setShowModal] = useState(false);
 
   const FEATURES = [
     {
@@ -91,10 +95,10 @@ export function AcademyClient() {
                     className="flex items-center gap-2 h-12 px-7 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl text-sm uppercase tracking-wider transition-colors">
                     <GraduationCap className="w-4 h-4" /> {t("btn_login")}
                   </Link>
-                  <a href="https://t.me/uha_manager" target="_blank"
+                  <button onClick={() => setShowModal(true)}
                     className="flex items-center gap-2 h-12 px-7 border border-[rgb(var(--border))] text-[rgb(var(--foreground))] font-semibold rounded-2xl text-sm hover:border-blue-500/30 hover:bg-blue-500/5 transition-all">
                     {t("btn_register")} <ArrowRight className="w-4 h-4" />
-                  </a>
+                  </button>
                 </div>
               </motion.div>
             </div>
@@ -221,13 +225,121 @@ export function AcademyClient() {
               className="flex items-center gap-2 h-12 px-7 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl text-sm uppercase tracking-wider transition-colors">
               {t("btn_login")}
             </Link>
-            <a href="https://t.me/uha_manager" target="_blank"
+            <button onClick={() => setShowModal(true)}
               className="flex items-center gap-2 h-12 px-7 border border-[rgb(var(--border))] rounded-2xl text-sm font-semibold hover:border-blue-500/30 transition-colors">
               {t("btn_trial")}
-            </a>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* ── LOCATION BLOCK ── */}
+      <section className="py-16 md:py-20 bg-[rgb(var(--surface))]">
+        <div className="container-uha">
+          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }} transition={{ duration: 0.6 }}>
+
+            <div className="text-center mb-10">
+              <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Где тренируемся</span>
+              <h2 className="font-display text-3xl md:text-4xl mt-2 tracking-tight">Локация тренировок</h2>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Main info card */}
+              <div className="bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-3xl p-6 md:p-8 space-y-5">
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">Адрес</p>
+                    <p className="font-semibold text-[rgb(var(--foreground))] text-base leading-snug">
+                      Ташкент, спортивный зал<br />
+                      Транспортного университета
+                    </p>
+                    <p className="text-[rgb(var(--muted))] text-sm mt-1">
+                      ул. Темур Малик, 1 (ТГТУ)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="border-t border-[rgb(var(--border))]" />
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">Расписание</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[rgb(var(--foreground))]">Пн / Ср / Пт</span>
+                        <span className="font-semibold text-blue-400">17:00 – 19:00</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[rgb(var(--foreground))]">Вт / Чт</span>
+                        <span className="font-semibold text-blue-400">18:00 – 20:00</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-[rgb(var(--foreground))]">Суббота</span>
+                        <span className="font-semibold text-blue-400">10:00 – 12:00</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="border-t border-[rgb(var(--border))]" />
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <Bus className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">Как добраться</p>
+                    <ul className="text-sm text-[rgb(var(--foreground))] space-y-1">
+                      <li>🚇 Метро: ст. «Ойбек» — 10 мин пешком</li>
+                      <li>🚌 Автобусы: 29, 41, 60 до «ТГТУ»</li>
+                      <li>🚗 Парковка: бесплатно на территории</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Map placeholder + CTA */}
+              <div className="space-y-4">
+                {/* Google Maps embed */}
+                <div className="relative rounded-3xl overflow-hidden border border-[rgb(var(--border))] bg-[rgb(var(--surface-2))]" style={{ height: 280 }}>
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2996.4!2d69.2826!3d41.3111!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38ae8b0cc379e9cb%3A0x6cf2e4e8b096!2z0KLQsNGI0LrQtdC90YLRgdC60LjQuSDQs9C-0YHRg9C00LDRgNGB0YLQstC10L3QvdGL0Lkg0YPQvdC40LLQtdGA0YHQuNGC0LXRgg!5e0!3m2!1sru!2suz!4v1"
+                    width="100%" height="100%" style={{ border: 0, filter: "grayscale(30%)" }}
+                    allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+                    title="UHA Academy location"
+                  />
+                </div>
+
+                {/* Quick CTA */}
+                <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-3xl p-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Star className="w-5 h-5 text-blue-400" />
+                    <span className="font-semibold text-[rgb(var(--foreground))]">Пробная тренировка — бесплатно</span>
+                  </div>
+                  <p className="text-[rgb(var(--muted))] text-sm mb-4">
+                    Запишитесь на первую тренировку прямо сейчас. Тренер оценит уровень и подберёт группу.
+                  </p>
+                  <button onClick={() => setShowModal(true)}
+                    className="w-full h-11 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl text-sm uppercase tracking-widest transition-colors">
+                    Записаться бесплатно
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Enrollment modal */}
+      {showModal && <AcademyApplicationModal onClose={() => setShowModal(false)} />}
     </div>
   );
 }
