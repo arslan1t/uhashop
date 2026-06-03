@@ -255,12 +255,16 @@ export function AcademyClient() {
                   <div>
                     <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">Адрес</p>
                     <p className="font-semibold text-[rgb(var(--foreground))] text-base leading-snug">
-                      Ташкент, спортивный зал<br />
-                      Транспортного университета
+                      Ташкент, Юнусабадский район
                     </p>
                     <p className="text-[rgb(var(--muted))] text-sm mt-1">
-                      ул. Темур Малик, 1 (ТГТУ)
+                      ул. Амира Темура, 108
                     </p>
+                    <a href="https://yandex.com/maps/10335/tashkent/?ll=69.283463%2C41.276256&mode=whatshere&whatshere%5Bpoint%5D=69.283292%2C41.276780&whatshere%5Bzoom%5D=19&z=19"
+                      target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-blue-400 text-xs mt-1.5 hover:text-blue-300 transition-colors">
+                      <Navigation className="w-3 h-3" /> Открыть в Яндекс Картах
+                    </a>
                   </div>
                 </div>
 
@@ -298,9 +302,9 @@ export function AcademyClient() {
                   <div>
                     <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">Как добраться</p>
                     <ul className="text-sm text-[rgb(var(--foreground))] space-y-1">
-                      <li>🚇 Метро: ст. «Ойбек» — 10 мин пешком</li>
-                      <li>🚌 Автобусы: 29, 41, 60 до «ТГТУ»</li>
-                      <li>🚗 Парковка: бесплатно на территории</li>
+                      <li>🚇 Метро: ст. «Юнусабад» — 5 мин пешком</li>
+                      <li>🚌 Автобусы: до ост. «Амира Темура, 108»</li>
+                      <li>🚗 Парковка: рядом с объектом</li>
                     </ul>
                   </div>
                 </div>
@@ -308,12 +312,12 @@ export function AcademyClient() {
 
               {/* Map placeholder + CTA */}
               <div className="space-y-4">
-                {/* Google Maps embed */}
+                {/* Yandex Maps embed */}
                 <div className="relative rounded-3xl overflow-hidden border border-[rgb(var(--border))] bg-[rgb(var(--surface-2))]" style={{ height: 280 }}>
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2996.4!2d69.2826!3d41.3111!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x38ae8b0cc379e9cb%3A0x6cf2e4e8b096!2z0KLQsNGI0LrQtdC90YLRgdC60LjQuSDQs9C-0YHRg9C00LDRgNGB0YLQstC10L3QvdGL0Lkg0YPQvdC40LLQtdGA0YHQuNGC0LXRgg!5e0!3m2!1sru!2suz!4v1"
-                    width="100%" height="100%" style={{ border: 0, filter: "grayscale(30%)" }}
-                    allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"
+                    src="https://yandex.com/map-widget/v1/?ll=69.283292%2C41.276780&z=17&l=sat&pt=69.283292%2C41.276780%2Cpm2rdm&text=UHA%20Academy"
+                    width="100%" height="100%" style={{ border: 0 }}
+                    allowFullScreen loading="lazy"
                     title="UHA Academy location"
                   />
                 </div>
