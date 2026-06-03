@@ -54,13 +54,20 @@
     font-feature-settings: "kern" 1, "liga" 1;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
-    /* prevent iOS rubber-band scroll from showing overflow */
     position: relative;
     width: 100%;
-    /* Global grid background — visible on all pages */
+  }
+
+  /* Grid overlay — fixed, sits above all section backgrounds, below navbar/modals */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
     background-image:
-      linear-gradient(rgb(var(--foreground) / 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(var(--foreground) / 0.03) 1px, transparent 1px);
+      linear-gradient(rgb(var(--foreground) / 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--foreground) / 0.025) 1px, transparent 1px);
     background-size: 60px 60px;
   }
 
