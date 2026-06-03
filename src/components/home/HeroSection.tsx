@@ -21,14 +21,8 @@ export function HeroSection() {
   return (
     <>
       <section className="relative min-h-[92vh] flex items-center overflow-hidden">
-        {/* Background grid */}
-        <div className="absolute inset-0 bg-[rgb(var(--background))]">
-          <div className="absolute inset-0 opacity-[0.025]"
-            style={{
-              backgroundImage: `linear-gradient(rgb(var(--foreground)) 1px, transparent 1px),
-                                linear-gradient(90deg, rgb(var(--foreground)) 1px, transparent 1px)`,
-              backgroundSize: "60px 60px",
-            }} />
+        {/* Accent glows (grid is now global via body::after) */}
+        <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/4 right-1/4 w-[600px] h-[600px] bg-[rgb(var(--accent)/0.06)] rounded-full blur-[120px]" />
           <div className="absolute bottom-0 left-1/3 w-[400px] h-[300px] bg-[rgb(var(--accent)/0.03)] rounded-full blur-[80px]" />
         </div>
