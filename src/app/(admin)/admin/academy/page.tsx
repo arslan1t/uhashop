@@ -1,14 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   GraduationCap, Users, Calendar, Dumbbell, CreditCard,
   ArrowUpRight, Plus, Search, Send, XCircle, Trash2,
   TrendingUp, AlertTriangle, CheckCircle2, Edit3,
-  CalendarDays, Medal, Camera, Image as ImageIcon, Play
+  CalendarDays, Medal, Camera, Image as ImageIcon, Play,
+  ClipboardList, MessageCircle, UserCheck, UserX, ChevronDown,
 } from "lucide-react";
+import {
+  subscribeToApplications, updateApplicationStatus,
+  type AcademyApplication, type ApplicationStatus,
+} from "@/lib/firebase/academyApplications";
+import { isFirebaseConfigured } from "@/lib/firebase/config";
 import { useAcademyStore } from "@/store/academy";
 import {
   POSITION_SHORT, STATUS_LABELS, STATUS_COLORS,
@@ -25,7 +31,7 @@ import {
   type EventType, type BadgeRarity, type ProgressMetric,
 } from "@/data/academy";
 
-type Tab = "overview" | "athletes" | "parents" | "schedule" | "exercises" | "payments" | "events" | "badges" | "progress" | "media";
+type Tab = "applications" | "overview" | "athletes" | "parents" | "schedule" | "exercises" | "payments" | "events" | "badges" | "progress" | "media";
 
 const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
 const fadeUp = { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.35 } } };
@@ -35,7 +41,18 @@ export default function AdminAcademyPage() {
   const store = useAcademyStore();
   const { athletes, parents, schedule, exercises, payments, events, badges, athleteBadges, progress, media } = store;
 
-  const [tab, setTab] = useState<Tab>("overview");
+  const [tab, setTab] = useState<Tab>("applications");
+  const [applications, setApplications] = useState<AcademyApplication[]>([]);
+  const [appSearch, setAppSearch] = useState("");
+  const [appStatusFilter, setAppStatusFilter] = useState<ApplicationStatus | "all">("all");
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  // Subscribe to academy applications from Firestore
+  useEffect(() => {
+    if (!isFirebaseConfigured()) return;
+    const unsub = subscribeToApplications(setApplications);
+    return unsub;
+  }, []);
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState<"athlete" | "parent" | "session" | "exercise" | "payment" | "event" | "badge" | "progress" | "media" | null>(null);
 
@@ -46,7 +63,41 @@ export default function AdminAcademyPage() {
   const totalRevenue = payments.filter(p => p.status === "paid").reduce((s, p) => s + p.amount, 0);
   const upcomingEvents = events.filter(e => e.date >= new Date().toISOString().slice(0, 10)).length;
 
+  const newAppsCount = applications.filter(a => a.status === "new").length;
+
+  const handleStatusChange = async (id: string, status: ApplicationStatus) => {
+    setUpdatingId(id);
+    try { await updateApplicationStatus(id, status); }
+    catch (e) { console.error(e); }
+    finally { setUpdatingId(null); }
+  };
+
+  const APP_STATUS_STYLES: Record<ApplicationStatus, string> = {
+    new:       "bg-blue-500/15 text-blue-400 border-blue-500/25",
+    contacted: "bg-amber-500/15 text-amber-400 border-amber-500/25",
+    enrolled:  "bg-emerald-500/15 text-emerald-400 border-emerald-500/25",
+    rejected:  "bg-red-500/15 text-red-400 border-red-500/25",
+  };
+  const APP_STATUS_LABELS: Record<ApplicationStatus, string> = {
+    new: "Новая", contacted: "Связались", enrolled: "Зачислен", rejected: "Отказ",
+  };
+  const SKILL_LABELS: Record<string, string> = {
+    beginner: "Начинающий", intermediate: "Любитель",
+    advanced: "Продвинутый", pro: "Профессионал",
+  };
+
+  const filteredApps = applications.filter(a => {
+    const matchStatus = appStatusFilter === "all" || a.status === appStatusFilter;
+    const q = appSearch.toLowerCase();
+    const matchSearch = !q ||
+      a.parentName.toLowerCase().includes(q) ||
+      a.parentTg.toLowerCase().includes(q) ||
+      (a.athleteName ?? "").toLowerCase().includes(q);
+    return matchStatus && matchSearch;
+  });
+
   const TABS: { key: Tab; label: string; icon: typeof GraduationCap; badge?: number }[] = [
+    { key: "applications", label: "Заявки", icon: ClipboardList, badge: newAppsCount || undefined },
     { key: "overview", label: "Обзор", icon: GraduationCap },
     { key: "athletes", label: "Спортсмены", icon: Users, badge: athletes.length },
     { key: "parents", label: "Родители", icon: Users, badge: parents.length },
@@ -90,6 +141,135 @@ export default function AdminAcademyPage() {
           </button>
         ))}
       </div>
+
+      {/* ═══ APPLICATIONS ═══ */}
+      {tab === "applications" && (
+        <div className="space-y-4">
+          {/* Toolbar */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#444]" />
+              <input value={appSearch} onChange={e => setAppSearch(e.target.value)}
+                placeholder="Поиск по имени или Telegram..."
+                className="w-full h-10 pl-10 pr-4 bg-[#141414] border border-[#222] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-blue-500/50 transition-colors" />
+            </div>
+            <div className="flex gap-2">
+              {(["all","new","contacted","enrolled","rejected"] as const).map(s => (
+                <button key={s} onClick={() => setAppStatusFilter(s)}
+                  className={`h-10 px-3 rounded-xl text-xs font-semibold uppercase tracking-wide transition-colors ${
+                    appStatusFilter === s
+                      ? "bg-blue-600 text-white"
+                      : "bg-[#141414] border border-[#222] text-[#666] hover:text-white"
+                  }`}>
+                  {s === "all" ? "Все" : APP_STATUS_LABELS[s as ApplicationStatus]}
+                  {s === "new" && newAppsCount > 0 && (
+                    <span className="ml-1.5 bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">{newAppsCount}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Applications list */}
+          {filteredApps.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="text-5xl mb-4">📋</div>
+              <p className="text-[#555] text-sm">
+                {applications.length === 0 ? "Заявок пока нет" : "Нет заявок по фильтру"}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredApps.map(app => (
+                <motion.div key={app.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                  className="bg-[#111] border border-[#1a1a1a] rounded-2xl p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                    {/* Left: info */}
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg border uppercase tracking-wide ${APP_STATUS_STYLES[app.status]}`}>
+                          {APP_STATUS_LABELS[app.status]}
+                        </span>
+                        <span className="text-[#444] text-xs">
+                          {app.createdAt && typeof app.createdAt === "object" && "toDate" in (app.createdAt as object)
+                            ? (app.createdAt as { toDate: () => Date }).toDate().toLocaleDateString("ru-RU", { day: "numeric", month: "short", year: "numeric" })
+                            : "—"
+                          }
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                        <div>
+                          <span className="text-[#555]">Родитель: </span>
+                          <span className="text-white font-medium">{app.parentName}</span>
+                        </div>
+                        <div>
+                          <span className="text-[#555]">Telegram: </span>
+                          <a href={`https://t.me/${app.parentTg.replace("@","")}`} target="_blank"
+                            className="text-blue-400 hover:text-blue-300 transition-colors font-mono">
+                            {app.parentTg}
+                          </a>
+                        </div>
+                        <div>
+                          <span className="text-[#555]">Возраст: </span>
+                          <span className="text-white">{app.age} лет</span>
+                        </div>
+                        {app.athleteName && (
+                          <div>
+                            <span className="text-[#555]">Спортсмен: </span>
+                            <span className="text-white">{app.athleteName}</span>
+                          </div>
+                        )}
+                        {app.skillLevel && (
+                          <div>
+                            <span className="text-[#555]">Уровень: </span>
+                            <span className="text-white">{SKILL_LABELS[app.skillLevel] ?? app.skillLevel}</span>
+                          </div>
+                        )}
+                        {app.height && (
+                          <div>
+                            <span className="text-[#555]">Рост / Вес: </span>
+                            <span className="text-white">{app.height} см {app.weight ? `/ ${app.weight} кг` : ""}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: action buttons */}
+                    <div className="flex sm:flex-col gap-2 flex-shrink-0">
+                      <a href={`https://t.me/${app.parentTg.replace("@","")}`} target="_blank"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold rounded-xl hover:bg-blue-500/20 transition-colors">
+                        <MessageCircle className="w-3.5 h-3.5" /> Написать
+                      </a>
+                      {app.status !== "enrolled" && (
+                        <button disabled={updatingId === app.id}
+                          onClick={() => handleStatusChange(app.id!, "enrolled")}
+                          className="flex items-center gap-1.5 px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold rounded-xl hover:bg-emerald-500/20 transition-colors disabled:opacity-50">
+                          <UserCheck className="w-3.5 h-3.5" /> Зачислить
+                        </button>
+                      )}
+                      {app.status !== "contacted" && app.status !== "enrolled" && (
+                        <button disabled={updatingId === app.id}
+                          onClick={() => handleStatusChange(app.id!, "contacted")}
+                          className="flex items-center gap-1.5 px-3 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold rounded-xl hover:bg-amber-500/20 transition-colors disabled:opacity-50">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Связались
+                        </button>
+                      )}
+                      {app.status !== "rejected" && (
+                        <button disabled={updatingId === app.id}
+                          onClick={() => handleStatusChange(app.id!, "rejected")}
+                          className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-semibold rounded-xl hover:bg-red-500/20 transition-colors disabled:opacity-50">
+                          <UserX className="w-3.5 h-3.5" /> Отказ
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ═══ OVERVIEW ═══ */}
       {tab === "overview" && (
