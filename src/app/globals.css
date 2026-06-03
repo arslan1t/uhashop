@@ -57,6 +57,11 @@
     /* prevent iOS rubber-band scroll from showing overflow */
     position: relative;
     width: 100%;
+    /* Global grid background — visible on all pages */
+    background-image:
+      linear-gradient(rgb(var(--foreground) / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--foreground) / 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
   }
 
   ::selection {

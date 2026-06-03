@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, User, Phone, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
+import { X, User, Loader2, CheckCircle2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface Props {
   onClose: () => void;
@@ -10,20 +11,21 @@ interface Props {
 
 type Step = "form" | "success";
 
-const SKILL_OPTIONS = [
-  { value: "beginner",     label: "Начинающий",    desc: "Никогда не играл или менее 1 года" },
-  { value: "intermediate", label: "Любитель",       desc: "1–3 года опыта, знаю основы" },
-  { value: "advanced",     label: "Продвинутый",    desc: "3+ лет, участвую в соревнованиях" },
-  { value: "pro",          label: "Профессионал",   desc: "Серьёзная подготовка / сборная" },
-];
-
 const INP = "w-full h-11 px-4 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-xl text-[rgb(var(--foreground))] text-sm placeholder:text-[rgb(var(--muted))] focus:outline-none focus:border-blue-500/60 transition-colors";
 const LBL = "block text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1.5";
 
 export function AcademyApplicationModal({ onClose }: Props) {
+  const t = useTranslations("academy");
   const [step, setStep] = useState<Step>("form");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const SKILL_OPTIONS = [
+    { value: "beginner",     label: t("modal_skill_beginner"),     desc: t("modal_skill_beginner_desc") },
+    { value: "intermediate", label: t("modal_skill_intermediate"),  desc: t("modal_skill_intermediate_desc") },
+    { value: "advanced",     label: t("modal_skill_advanced"),      desc: t("modal_skill_advanced_desc") },
+    { value: "pro",          label: t("modal_skill_pro"),           desc: t("modal_skill_pro_desc") },
+  ];
 
   // Required fields
   const [parentName,  setParentName]  = useState("");
@@ -41,11 +43,11 @@ export function AcademyApplicationModal({ onClose }: Props) {
     setError(null);
 
     if (!parentName.trim() || !parentTg.trim() || !age.trim()) {
-      setError("Заполните все обязательные поля");
+      setError(t("modal_required_error"));
       return;
     }
     if (Number(age) < 6 || Number(age) > 25) {
-      setError("Возраст должен быть от 6 до 25 лет");
+      setError(t("modal_age_error"));
       return;
     }
 
@@ -65,10 +67,10 @@ export function AcademyApplicationModal({ onClose }: Props) {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Ошибка");
+      if (!res.ok) throw new Error(data.error ?? t("modal_server_error"));
       setStep("success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ошибка отправки. Попробуйте ещё раз.");
+      setError(err instanceof Error ? err.message : t("modal_server_error"));
     } finally {
       setLoading(false);
     }
@@ -95,11 +97,11 @@ export function AcademyApplicationModal({ onClose }: Props) {
           <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-[rgb(var(--border))]">
             <div>
               <h2 className="font-display text-xl tracking-tight">
-                {step === "success" ? "Заявка принята!" : "Записаться в академию"}
+                {step === "success" ? t("modal_success_title") : t("modal_title")}
               </h2>
               {step === "form" && (
                 <p className="text-[rgb(var(--muted))] text-sm mt-0.5">
-                  UHA Basketball Academy · Ташкент
+                  {t("modal_subtitle")}
                 </p>
               )}
             </div>
@@ -116,22 +118,22 @@ export function AcademyApplicationModal({ onClose }: Props) {
                 <CheckCircle2 className="w-10 h-10 text-blue-400" />
               </div>
               <div>
-                <h3 className="font-display text-2xl mb-2">Спасибо за заявку!</h3>
+                <h3 className="font-display text-2xl mb-2">{t("modal_success_title")}</h3>
                 <p className="text-[rgb(var(--muted))] leading-relaxed max-w-sm">
-                  Мы получили вашу заявку и свяжемся с вами в ближайшее время через Telegram.
+                  {t("modal_success_text")}
                 </p>
               </div>
               <div className="mt-2 w-full bg-blue-500/8 border border-blue-500/20 rounded-2xl px-5 py-4 text-left">
-                <p className="text-blue-400 text-xs font-semibold uppercase tracking-widest mb-1">Что дальше?</p>
+                <p className="text-blue-400 text-xs font-semibold uppercase tracking-widest mb-1">{t("modal_next_label")}</p>
                 <ul className="text-[rgb(var(--foreground))] text-sm space-y-1.5">
-                  <li>• Тренер свяжется с вами в течение 24 часов</li>
-                  <li>• Вас пригласят на пробную тренировку</li>
-                  <li>• Определим программу под уровень спортсмена</li>
+                  <li>• {t("modal_next_1")}</li>
+                  <li>• {t("modal_next_2")}</li>
+                  <li>• {t("modal_next_3")}</li>
                 </ul>
               </div>
               <button onClick={onClose}
                 className="mt-2 w-full h-12 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl text-sm uppercase tracking-widest transition-colors">
-                Закрыть
+                {t("modal_close")}
               </button>
             </div>
           ) : (
@@ -141,23 +143,23 @@ export function AcademyApplicationModal({ onClose }: Props) {
               {/* Required section */}
               <div className="space-y-3">
                 <p className="text-[10px] font-bold text-[rgb(var(--accent))] uppercase tracking-widest">
-                  Обязательные данные
+                  {t("modal_required_label")}
                 </p>
 
                 <div>
-                  <label className={LBL}>ФИО родителя / опекуна</label>
+                  <label className={LBL}>{t("modal_parent_name")}</label>
                   <div className="relative">
                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--muted))]" />
                     <input
                       value={parentName} onChange={e => setParentName(e.target.value)}
-                      placeholder="Иванов Иван Иванович"
+                      placeholder={t("modal_parent_name_ph")}
                       className={`${INP} pl-10`} required
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className={LBL}>Telegram родителя</label>
+                  <label className={LBL}>{t("modal_parent_tg")}</label>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[rgb(var(--muted))] text-sm font-mono">@</span>
                     <input
@@ -169,7 +171,7 @@ export function AcademyApplicationModal({ onClose }: Props) {
                 </div>
 
                 <div>
-                  <label className={LBL}>Возраст спортсмена</label>
+                  <label className={LBL}>{t("modal_age")}</label>
                   <input
                     type="number" min="6" max="25"
                     value={age} onChange={e => setAge(e.target.value)}
@@ -185,11 +187,11 @@ export function AcademyApplicationModal({ onClose }: Props) {
               {/* Optional section */}
               <div className="space-y-3">
                 <p className="text-[10px] font-bold text-[rgb(var(--muted))] uppercase tracking-widest">
-                  Дополнительно (необязательно)
+                  {t("modal_optional_label")}
                 </p>
 
                 <div>
-                  <label className={LBL}>ФИО спортсмена</label>
+                  <label className={LBL}>{t("modal_athlete_name")}</label>
                   <input
                     value={athleteName} onChange={e => setAthleteName(e.target.value)}
                     placeholder="Иванов Алексей"
@@ -199,7 +201,7 @@ export function AcademyApplicationModal({ onClose }: Props) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className={LBL}>Рост (см)</label>
+                    <label className={LBL}>{t("modal_height")}</label>
                     <input
                       type="number" min="100" max="230"
                       value={height} onChange={e => setHeight(e.target.value)}
@@ -208,7 +210,7 @@ export function AcademyApplicationModal({ onClose }: Props) {
                     />
                   </div>
                   <div>
-                    <label className={LBL}>Вес (кг)</label>
+                    <label className={LBL}>{t("modal_weight")}</label>
                     <input
                       type="number" min="20" max="150"
                       value={weight} onChange={e => setWeight(e.target.value)}
@@ -219,7 +221,7 @@ export function AcademyApplicationModal({ onClose }: Props) {
                 </div>
 
                 <div>
-                  <label className={LBL}>Уровень игры</label>
+                  <label className={LBL}>{t("modal_skill_label")}</label>
                   <div className="grid grid-cols-2 gap-2">
                     {SKILL_OPTIONS.map(opt => (
                       <button key={opt.value} type="button"
@@ -249,13 +251,13 @@ export function AcademyApplicationModal({ onClose }: Props) {
               <button type="submit" disabled={loading}
                 className="w-full h-12 bg-blue-500 hover:bg-blue-600 disabled:opacity-60 text-white font-bold rounded-2xl text-sm uppercase tracking-widest transition-colors flex items-center justify-center gap-2">
                 {loading
-                  ? <><Loader2 className="w-4 h-4 animate-spin" /> Отправляем...</>
-                  : "Отправить заявку"
+                  ? <><Loader2 className="w-4 h-4 animate-spin" /> {t("modal_submitting")}</>
+                  : t("modal_submit")
                 }
               </button>
 
               <p className="text-center text-[rgb(var(--muted))] text-xs pb-1">
-                Нажимая кнопку, вы соглашаетесь на обработку данных
+                {t("modal_consent")}
               </p>
             </form>
           )}
