@@ -240,8 +240,8 @@ export function AcademyClient() {
             viewport={{ once: true }} transition={{ duration: 0.6 }}>
 
             <div className="text-center mb-10">
-              <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">Где тренируемся</span>
-              <h2 className="font-display text-3xl md:text-4xl mt-2 tracking-tight">Локация тренировок</h2>
+              <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">{t("loc_title")}</span>
+              <h2 className="font-display text-3xl md:text-4xl mt-2 tracking-tight">{t("loc_heading")}</h2>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -253,17 +253,17 @@ export function AcademyClient() {
                     <MapPin className="w-6 h-6 text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">Адрес</p>
+                    <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">{t("loc_address_label")}</p>
                     <p className="font-semibold text-[rgb(var(--foreground))] text-base leading-snug">
-                      Ташкент, Юнусабадский район
+                      {t("loc_city")}
                     </p>
                     <p className="text-[rgb(var(--muted))] text-sm mt-1">
-                      ул. Амира Темура, 108
+                      {t("loc_street")}
                     </p>
                     <a href="https://yandex.com/maps/10335/tashkent/?ll=69.283463%2C41.276256&mode=whatshere&whatshere%5Bpoint%5D=69.283292%2C41.276780&whatshere%5Bzoom%5D=19&z=19"
                       target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-blue-400 text-xs mt-1.5 hover:text-blue-300 transition-colors">
-                      <Navigation className="w-3 h-3" /> Открыть в Яндекс Картах
+                      <Navigation className="w-3 h-3" /> {t("loc_yandex")}
                     </a>
                   </div>
                 </div>
@@ -275,18 +275,18 @@ export function AcademyClient() {
                     <Clock className="w-6 h-6 text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">Расписание</p>
+                    <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">{t("loc_schedule_label")}</p>
                     <div className="space-y-1">
                       <div className="flex justify-between text-sm">
-                        <span className="text-[rgb(var(--foreground))]">Пн / Ср / Пт</span>
+                        <span className="text-[rgb(var(--foreground))]">{t("loc_mon_wed_fri")}</span>
                         <span className="font-semibold text-blue-400">17:00 – 19:00</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-[rgb(var(--foreground))]">Вт / Чт</span>
+                        <span className="text-[rgb(var(--foreground))]">{t("loc_tue_thu")}</span>
                         <span className="font-semibold text-blue-400">18:00 – 20:00</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-[rgb(var(--foreground))]">Суббота</span>
+                        <span className="text-[rgb(var(--foreground))]">{t("loc_saturday")}</span>
                         <span className="font-semibold text-blue-400">10:00 – 12:00</span>
                       </div>
                     </div>
@@ -300,11 +300,11 @@ export function AcademyClient() {
                     <Bus className="w-6 h-6 text-blue-400" />
                   </div>
                   <div>
-                    <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">Как добраться</p>
+                    <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">{t("loc_transport_label")}</p>
                     <ul className="text-sm text-[rgb(var(--foreground))] space-y-1">
-                      <li>🚇 Метро: ст. «Юнусабад» — 5 мин пешком</li>
-                      <li>🚌 Автобусы: до ост. «Амира Темура, 108»</li>
-                      <li>🚗 Парковка: рядом с объектом</li>
+                      <li>🚇 {t("loc_metro")}</li>
+                      <li>🚌 {t("loc_bus")}</li>
+                      <li>🚗 {t("loc_parking")}</li>
                     </ul>
                   </div>
                 </div>
@@ -326,14 +326,14 @@ export function AcademyClient() {
                 <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/20 rounded-3xl p-6">
                   <div className="flex items-center gap-2 mb-2">
                     <Star className="w-5 h-5 text-blue-400" />
-                    <span className="font-semibold text-[rgb(var(--foreground))]">Пробная тренировка — бесплатно</span>
+                    <span className="font-semibold text-[rgb(var(--foreground))]">{t("loc_cta_badge")}</span>
                   </div>
                   <p className="text-[rgb(var(--muted))] text-sm mb-4">
-                    Запишитесь на первую тренировку прямо сейчас. Тренер оценит уровень и подберёт группу.
+                    {t("loc_cta_desc")}
                   </p>
                   <button onClick={() => setShowModal(true)}
                     className="w-full h-11 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl text-sm uppercase tracking-widest transition-colors">
-                    Записаться бесплатно
+                    {t("loc_cta_btn")}
                   </button>
                 </div>
               </div>
