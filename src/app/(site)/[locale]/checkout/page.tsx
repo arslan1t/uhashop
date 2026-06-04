@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Check, ArrowLeft, Send, MapPin, User, Phone, Tag, X, Package, ShoppingBag, Copy, CheckCheck } from "lucide-react";

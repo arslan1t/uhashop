@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Eye, Clock, Check, Heart, X } from "lucide-react";
 import { Badge } from "./Badge";

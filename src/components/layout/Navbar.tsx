@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { useTheme } from "next-themes";
@@ -10,7 +9,7 @@ import { ShoppingBag, Sun, Moon, Menu, X, User, ChevronDown } from "lucide-react
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
-import { useRouter, usePathname } from "@/i18n/navigation";
+import { Link, useRouter, usePathname } from "@/i18n/navigation";
 
 const NAV_LINKS = [
   { key: "marketplace", href: "/marketplace" },
