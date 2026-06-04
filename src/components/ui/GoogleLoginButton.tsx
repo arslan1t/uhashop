@@ -27,14 +27,26 @@ export function GoogleLoginButton({ redirectTo = "/profile", label = "Войти
       const provider = new GoogleAuthProvider();
       const { user } = await signInWithPopup(auth, provider);
 
-      setUser({
+      const profile = {
         id: user.uid,
         name: user.displayName || user.email?.split("@")[0] || "User",
         email: user.email || "",
         avatar: user.photoURL || undefined,
         createdAt: user.metadata.creationTime || new Date().toISOString(),
-      });
+        provider: "google",
+      };
 
+      // Save to Firestore so admin can see the user
+      try {
+        const { getDb } = await import("@/lib/firebase/config");
+        const { doc, setDoc } = await import("firebase/firestore");
+        await setDoc(doc(getDb(), "shop_users", user.uid), {
+          ...profile,
+          lastLogin: new Date().toISOString(),
+        }, { merge: true });
+      } catch { /* non-critical */ }
+
+      setUser(profile);
       router.replace(redirectTo);
     } catch (e: unknown) {
       const code = (e as { code?: string }).code;
