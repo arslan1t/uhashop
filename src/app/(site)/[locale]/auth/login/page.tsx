@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { TelegramLoginButton } from "@/components/ui/TelegramLoginButton";
+import { GoogleLoginButton } from "@/components/ui/GoogleLoginButton";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -73,6 +74,9 @@ export default function LoginPage() {
             <span className="text-xs text-[rgb(var(--muted))] font-medium">или</span>
             <div className="flex-1 h-px bg-[rgb(var(--border))]" />
           </div>
+
+          {/* Google login */}
+          <GoogleLoginButton redirectTo="/profile" />
 
           {/* Telegram quick login */}
           <TelegramLoginButton redirectTo="/profile" />

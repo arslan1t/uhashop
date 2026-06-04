@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Eye, EyeOff, AlertCircle, Loader2, ArrowLeft, Send, Mail, CheckCircle2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { TelegramLoginButton } from "@/components/ui/TelegramLoginButton";
+import { GoogleLoginButton } from "@/components/ui/GoogleLoginButton";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -117,6 +118,7 @@ export default function RegisterPage() {
             <div className="flex-1 h-px bg-[rgb(var(--border))]" />
           </div>
 
+          <GoogleLoginButton redirectTo="/profile" label="Зарегистрироваться через Google" />
           <TelegramLoginButton redirectTo="/profile" label="Зарегистрироваться через Telegram" />
 
           <p className="text-center text-sm text-[rgb(var(--muted))] mt-5">
