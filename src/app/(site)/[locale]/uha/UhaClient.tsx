@@ -124,24 +124,16 @@ export function UhaClient() {
               <div className="relative">
                 <Quote className="absolute -top-2 -left-1 w-8 h-8 text-[rgb(var(--accent)/0.3)]" />
                 <p className="text-[rgb(var(--foreground))] text-lg leading-relaxed pl-8">
-                  Всё началось с простого вопроса: почему в Центральной Азии невозможно найти нормальную пару Jordan'ов?
+                  Баскетбол — это не просто игра. Это культура, которой в Центральной Азии не хватало экосистемы.
                 </p>
               </div>
 
               <p className="text-[rgb(var(--muted))] leading-relaxed">
-                <strong className="text-[rgb(var(--foreground))]">Сарвар Мусаев</strong> вырос в Ташкенте, с детства влюблённый в баскетбол. Кроссовки для него были не просто обувью — это была часть культуры, которую он видел в клипах, на площадках НБА, в уличных играх. Но купить пару оригинальных Nike или Jordan в Узбекистане было практически невозможно: либо подделки, либо цены в три раза выше рыночных.
+                <strong className="text-[rgb(var(--foreground))]">Самир Мусаев</strong> — основатель UHA. Начал с простого: привозил кроссовки для себя и друзей, потому что найти оригинал в Ташкенте было почти невозможно. Спрос вырос — так появился <strong className="text-[rgb(var(--foreground))]">UHA Shop</strong>.
               </p>
 
               <p className="text-[rgb(var(--muted))] leading-relaxed">
-                В 2021 году Сарвар начал привозить кроссовки для себя и друзей через прямые каналы из Китая и Европы. Сарафанное радио сработало быстро — заказов становилось всё больше. Так родился <strong className="text-[rgb(var(--foreground))]">UHA Shop</strong> — маркетплейс для тех, кто живёт баскетболом.
-              </p>
-
-              <p className="text-[rgb(var(--muted))] leading-relaxed">
-                Но остановиться на магазине было не в его характере. Он понял: чтобы баскетбольная культура в Центральной Азии развивалась, нужна полноценная экосистема. Так появились <strong className="text-[rgb(var(--foreground))]">UHA League</strong> — любительская лига 3×3 с официальным статусом FIBA, <strong className="text-[rgb(var(--foreground))]">UHA Academy</strong> — профессиональная школа для молодых игроков, и <strong className="text-[rgb(var(--foreground))]">UHA Merch</strong> — собственная линейка одежды для тех, кто идентифицирует себя с движением.
-              </p>
-
-              <p className="text-[rgb(var(--muted))] leading-relaxed">
-                Сегодня UHA — это не просто бренд. Это сообщество тысяч игроков, болельщиков и хуперов по всей Центральной Азии, объединённых одной любовью к игре.
+                Дальше больше: <strong className="text-[rgb(var(--foreground))]">UHA League</strong> — 3×3 турниры с официальным статусом FIBA, <strong className="text-[rgb(var(--foreground))]">UHA Academy</strong> — школа для молодых игроков, <strong className="text-[rgb(var(--foreground))]">UHA Merch</strong> — своя линейка одежды. Всё под одной идеей: Basketball. Culture. Central Asia.
               </p>
 
               <a href="https://www.instagram.com/_s_musaev/" target="_blank" rel="noopener noreferrer"
@@ -161,7 +153,7 @@ export function UhaClient() {
                     <span className="font-display text-2xl text-[rgb(var(--accent))]">S</span>
                   </div>
                   <div>
-                    <div className="font-display text-xl tracking-tight">Сарвар Мусаев</div>
+                    <div className="font-display text-xl tracking-tight">Самир Мусаев</div>
                     <div className="text-[rgb(var(--muted))] text-sm">Founder & CEO, UHA</div>
                   </div>
                 </div>
