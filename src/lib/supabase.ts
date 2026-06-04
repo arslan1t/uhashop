@@ -10,8 +10,14 @@ export const supabase: SupabaseClient =
     ? createClient(supabaseUrl, supabaseAnonKey)
     : createClient("https://placeholder.supabase.co", "placeholder-key");
 
+const PLACEHOLDER_URLS = [
+  "https://placeholder.supabase.co",
+  "https://your-project.supabase.co",
+  "placeholder.supabase.co",
+];
 export const isSupabaseConfigured = !!(
   process.env.NEXT_PUBLIC_SUPABASE_URL &&
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
-  process.env.NEXT_PUBLIC_SUPABASE_URL !== "https://your-project.supabase.co"
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY !== "placeholder_key" &&
+  !PLACEHOLDER_URLS.some(p => process.env.NEXT_PUBLIC_SUPABASE_URL?.includes(p))
 );

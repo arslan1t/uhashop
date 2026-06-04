@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { safeStorage } from "@/lib/storage";
+import { isFirebaseConfigured } from "@/lib/firebase/config";
 
 export interface UserProfile {
   id: string;
@@ -54,8 +55,31 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           set({ user: null, isAuthenticated: false, loading: false });
         }
       }).catch(() => set({ loading: false }));
+    } else if (typeof window !== "undefined" && isFirebaseConfigured()) {
+      // Firebase Auth mode
+      import("firebase/auth").then(({ getAuth, onAuthStateChanged }) => {
+        import("@/lib/firebase/config").then(({ getFirebaseApp }) => {
+          const auth = getAuth(getFirebaseApp());
+          onAuthStateChanged(auth, (fbUser) => {
+            if (fbUser && fbUser.emailVerified) {
+              set({
+                user: {
+                  id: fbUser.uid,
+                  name: fbUser.displayName || fbUser.email?.split("@")[0] || "",
+                  email: fbUser.email || "",
+                  createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
+                },
+                isAuthenticated: true,
+                loading: false,
+              });
+            } else {
+              set({ user: null, isAuthenticated: false, loading: false });
+            }
+          });
+        });
+      }).catch(() => set({ loading: false }));
     } else {
-      // Local mode: localStorage fallback
+      // Pure local fallback (no email service available)
       try {
         const raw = safeStorage.getItem(AUTH_KEY);
         if (raw) {
@@ -98,8 +122,37 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       } catch (e) {
         return { ok: false, error: String(e) };
       }
+    } else if (typeof window !== "undefined" && isFirebaseConfigured()) {
+      // Firebase Auth login
+      try {
+        const { getAuth, signInWithEmailAndPassword } = await import("firebase/auth");
+        const { getFirebaseApp } = await import("@/lib/firebase/config");
+        const auth = getAuth(getFirebaseApp());
+        const { user: fbUser } = await signInWithEmailAndPassword(auth, email, password);
+        if (!fbUser.emailVerified) {
+          await auth.signOut();
+          return { ok: false, error: "Сначала подтвердите email. Проверьте почту." };
+        }
+        set({
+          user: {
+            id: fbUser.uid,
+            name: fbUser.displayName || email.split("@")[0],
+            email: fbUser.email || email,
+            createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
+          },
+          isAuthenticated: true,
+        });
+        return { ok: true };
+      } catch (e: unknown) {
+        const code = (e as { code?: string }).code;
+        if (code === "auth/user-not-found" || code === "auth/wrong-password" || code === "auth/invalid-credential")
+          return { ok: false, error: "Неверный email или пароль" };
+        if (code === "auth/too-many-requests")
+          return { ok: false, error: "Слишком много попыток. Попробуйте позже." };
+        return { ok: false, error: "Ошибка входа" };
+      }
     } else {
-      // Local fallback
+      // Pure local fallback
       await new Promise(r => setTimeout(r, 400));
       try {
         const raw = safeStorage.getItem(USERS_KEY);
@@ -159,8 +212,32 @@ export const useAuthStore = create<AuthStore>()((set) => ({
       } catch (e) {
         return { ok: false, error: String(e) };
       }
+    } else if (typeof window !== "undefined" && isFirebaseConfigured()) {
+      // Firebase Auth registration with email verification
+      try {
+        const { getAuth, createUserWithEmailAndPassword, updateProfile, sendEmailVerification } = await import("firebase/auth");
+        const { getFirebaseApp } = await import("@/lib/firebase/config");
+        const auth = getAuth(getFirebaseApp());
+        const { user: fbUser } = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(fbUser, { displayName: name });
+        await sendEmailVerification(fbUser, {
+          url: `${window.location.origin}/auth/login`,
+        });
+        // Sign out until email is verified
+        await auth.signOut();
+        return { ok: true, error: "confirm_email" };
+      } catch (e: unknown) {
+        const code = (e as { code?: string }).code;
+        if (code === "auth/email-already-in-use")
+          return { ok: false, error: "Email уже зарегистрирован" };
+        if (code === "auth/weak-password")
+          return { ok: false, error: "Пароль слишком простой" };
+        if (code === "auth/invalid-email")
+          return { ok: false, error: "Некорректный email" };
+        return { ok: false, error: "Ошибка регистрации" };
+      }
     } else {
-      // Local fallback
+      // Pure local fallback (no email service)
       await new Promise(r => setTimeout(r, 400));
       try {
         const raw = safeStorage.getItem(USERS_KEY);
@@ -189,6 +266,12 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   logout: () => {
     if (isSupabaseConfigured) {
       supabase.auth.signOut();
+    } else if (typeof window !== "undefined" && isFirebaseConfigured()) {
+      import("firebase/auth").then(({ getAuth, signOut }) => {
+        import("@/lib/firebase/config").then(({ getFirebaseApp }) => {
+          signOut(getAuth(getFirebaseApp())).catch(console.error);
+        });
+      });
     }
     safeStorage.removeItem(AUTH_KEY);
     set({ user: null, isAuthenticated: false });
