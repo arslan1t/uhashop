@@ -133,13 +133,22 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           await auth.signOut();
           return { ok: false, error: "Сначала подтвердите email. Проверьте почту." };
         }
+        const profile = {
+          id: fbUser.uid,
+          name: fbUser.displayName || email.split("@")[0],
+          email: fbUser.email || email,
+          createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
+        };
+        // Save to Firestore shop_users
+        try {
+          const { getDb } = await import("@/lib/firebase/config");
+          const { doc, setDoc } = await import("firebase/firestore");
+          await setDoc(doc(getDb(), "shop_users", fbUser.uid), {
+            ...profile, provider: "email", lastLogin: new Date().toISOString(),
+          }, { merge: true });
+        } catch { /* non-critical */ }
         set({
-          user: {
-            id: fbUser.uid,
-            name: fbUser.displayName || email.split("@")[0],
-            email: fbUser.email || email,
-            createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
-          },
+          user: profile,
           isAuthenticated: true,
         });
         return { ok: true };
