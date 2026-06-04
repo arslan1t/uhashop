@@ -260,7 +260,7 @@ export function AcademyClient() {
                     <p className="text-[rgb(var(--muted))] text-sm mt-1">
                       {t("loc_street")}
                     </p>
-                    <a href="https://yandex.com/maps/10335/tashkent/?ll=69.283463%2C41.276256&mode=whatshere&whatshere%5Bpoint%5D=69.283292%2C41.276780&whatshere%5Bzoom%5D=19&z=19"
+                    <a href="https://yandex.com/maps/-/CPXFeSN9"
                       target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-blue-400 text-xs mt-1.5 hover:text-blue-300 transition-colors">
                       <Navigation className="w-3 h-3" /> {t("loc_yandex")}
@@ -315,7 +315,7 @@ export function AcademyClient() {
                 {/* Yandex Maps embed */}
                 <div className="relative rounded-3xl overflow-hidden border border-[rgb(var(--border))] bg-[rgb(var(--surface-2))]" style={{ height: 280 }}>
                   <iframe
-                    src="https://yandex.com/map-widget/v1/?ll=69.283292%2C41.276780&z=17&l=sat&pt=69.283292%2C41.276780%2Cpm2rdm&text=UHA%20Academy"
+                    src="https://yandex.com/map-widget/v1/?url=https%3A%2F%2Fyandex.com%2Fmaps%2F-%2FCPXFeSN9&z=17"
                     width="100%" height="100%" style={{ border: 0 }}
                     allowFullScreen loading="lazy"
                     title="UHA Academy location"
