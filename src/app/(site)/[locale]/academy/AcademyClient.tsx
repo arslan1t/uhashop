@@ -315,7 +315,7 @@ export function AcademyClient() {
                 {/* Yandex Maps embed */}
                 <div className="relative rounded-3xl overflow-hidden border border-[rgb(var(--border))] bg-[rgb(var(--surface-2))]" style={{ height: 280 }}>
                   <iframe
-                    src="https://yandex.com/map-widget/v1/?url=https%3A%2F%2Fyandex.com%2Fmaps%2F-%2FCPXFeSN9&z=17"
+                    src="https://yandex.com/map-widget/v1/?ll=69.282401%2C41.277016&z=17&pt=69.282401%2C41.277016%2Cpm2rdm"
                     width="100%" height="100%" style={{ border: 0 }}
                     allowFullScreen loading="lazy"
                     title="UHA Academy location"
