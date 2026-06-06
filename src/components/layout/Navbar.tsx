@@ -14,7 +14,7 @@ import { Link, useRouter, usePathname } from "@/i18n/navigation";
 const NAV_LINKS = [
   { key: "marketplace", href: "/marketplace" },
   { key: "merch",       href: "/merch" },
-  { key: "league",      href: "/league", external: true, externalHref: "https://uha-league-eta.vercel.app" },
+  { key: "league",      href: "/league" },
   { key: "academy",     href: "/academy" },
   { key: "uha",         href: "/uha" },
 ] as const;
