@@ -13,16 +13,21 @@ export function LeagueClient() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Subscribe to all events
-    const unsub = subscribeToEvents((evts) => {
-      setEvents(evts);
+    try {
+      // Subscribe to all events
+      const unsub = subscribeToEvents((evts) => {
+        setEvents(evts);
+        setLoading(false);
+      });
+
+      // Fetch next upcoming event
+      getUpcomingEvent().then(setNextEvent).catch(() => setLoading(false));
+
+      return unsub;
+    } catch (err) {
+      console.error("Failed to load league events:", err);
       setLoading(false);
-    });
-
-    // Fetch next upcoming event
-    getUpcomingEvent().then(setNextEvent);
-
-    return unsub;
+    }
   }, []);
 
   // Stats data
