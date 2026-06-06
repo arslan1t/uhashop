@@ -48,79 +48,83 @@ export function LeagueClient() {
 
       {/* ── HERO ── */}
       <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
-        {/* Background video/image */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 to-black/70 z-10" />
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: "url('/images/league/hero-bg.jpg')",
-            backgroundPosition: "center",
-          }}
-        />
+        {/* Background */}
+        <div className="absolute inset-0 bg-[#050505] z-0" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-black/80 z-10" />
 
-        {/* Content */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative z-20 text-center max-w-4xl px-4"
-        >
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-sm font-bold uppercase tracking-[0.3em] text-[#ff6b00] mb-6"
-          >
-            Street Basketball League
-          </motion.p>
+        {/* Hero Content Grid */}
+        <div className="relative z-20 w-full h-full flex items-center px-4 md:px-8">
+          <div className="container-uha mx-auto w-full">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center h-full">
+              {/* Left Block */}
+              <motion.div
+                initial={{ opacity: 0, x: -40 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                className="lg:col-span-3 flex flex-col justify-center"
+              >
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#ff6b00] mb-4">
+                  Street Basketball League
+                </p>
+                <p className="text-lg text-gray-300 font-light leading-relaxed">
+                  Each player's statistics
+                </p>
+              </motion.div>
 
-          <motion.h1
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="font-display text-8xl md:text-9xl font-black tracking-tighter mb-4 text-white leading-none"
-          >
-            UHA 3X3
-          </motion.h1>
+              {/* Center - UHA 3X3 + Team Photo */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.9, delay: 0.1 }}
+                className="lg:col-span-6 flex flex-col items-center justify-center"
+              >
+                <div className="relative w-full mb-8">
+                  {/* Team Photo */}
+                  <div className="relative aspect-video md:aspect-auto md:h-96 rounded-2xl overflow-hidden border-4 border-[#ff6b00]/30 bg-[#101010]">
+                    <img
+                      src="/images/league/hero-bg.jpg"
+                      alt="UHA 3x3 Team"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  </div>
+                </div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto font-light tracking-wide"
-          >
-            Узбекистан's Premier Street Basketball Series
-          </motion.p>
+                {/* UHA 3X3 Text Overlay */}
+                <motion.h1
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                  className="font-display text-7xl md:text-8xl font-black tracking-tighter text-white leading-none text-center"
+                >
+                  UHA{" "}
+                  <span className="text-[#ff6b00]">3X3</span>
+                </motion.h1>
+              </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="text-gray-400 text-base mb-12 max-w-2xl mx-auto leading-relaxed"
-          >
-            Рекурентные турниры каждые 2 недели. Разные города, одна страсть.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <button
-              onClick={() => setShowTeamModal(true)}
-              className="px-8 py-4 bg-[#ff6b00] text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-[#ff8533] transition-all hover:scale-105"
-            >
-              Регистрация Команды
-            </button>
-            <a
-              href="#highlights"
-              className="px-8 py-4 border-2 border-white text-white font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-white/5 transition-all flex items-center justify-center gap-2"
-            >
-              <Play className="w-4 h-4" /> Смотреть Хайлайты
-            </a>
-          </motion.div>
-        </motion.div>
+              {/* Right Block */}
+              <motion.div
+                initial={{ opacity: 0, x: 40 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, delay: 0.1 }}
+                className="lg:col-span-3 flex flex-col justify-center items-end text-right"
+              >
+                <p className="text-xs font-bold uppercase tracking-[0.3em] text-[#ff6b00] mb-4">
+                  Every 2 Weeks New Event
+                </p>
+                <p className="text-lg text-gray-300 font-light leading-relaxed mb-8">
+                  Professional level
+                </p>
+                <button
+                  onClick={() => setShowTeamModal(true)}
+                  className="px-6 py-3 bg-[#ff6b00] text-black font-bold text-sm uppercase tracking-widest rounded-lg hover:bg-[#ff8533] transition-all hover:scale-105"
+                >
+                  Register Your Team
+                </button>
+              </motion.div>
+            </div>
+          </div>
+        </div>
 
         {/* Scroll indicator */}
         <motion.div
