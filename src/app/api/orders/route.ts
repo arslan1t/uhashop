@@ -1,10 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { sendTelegramMessage, escapeHtml } from "@/lib/telegram";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const TELEGRAM_ADMIN_CHAT_ID = process.env.TELEGRAM_ADMIN_CHAT_ID;
 
 function getSupabase() {
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -27,51 +26,30 @@ async function sendTelegramNotification(order: {
   discount?: number;
   notes?: string;
 }) {
-  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_ADMIN_CHAT_ID) return;
-
   const itemsList = order.items
-    .map((i) => `  • ${i.name} (${i.size}) ×${i.qty} — $${i.price * i.qty}`)
+    .map((i) => `  • ${escapeHtml(i.name)} (${escapeHtml(i.size)}) ×${i.qty} — $${i.price * i.qty}`)
     .join("\n");
 
   let message =
-    `🛒 *Новый заказ!*\n\n` +
-    `📋 *${order.order_number}*\n` +
-    `👤 ${escapeMarkdown(order.customer_name)}\n` +
-    `📨 ${escapeMarkdown(order.telegram || "—")}\n` +
-    `📞 ${escapeMarkdown(order.phone || "—")}\n` +
-    `📍 ${escapeMarkdown(order.city)}${order.address ? `, ${escapeMarkdown(order.address)}` : ""}\n\n` +
-    `📦 *Товары:*\n${itemsList}\n\n`;
+    `🛒 <b>Новый заказ!</b>\n\n` +
+    `📋 <b>${escapeHtml(order.order_number)}</b>\n` +
+    `👤 ${escapeHtml(order.customer_name)}\n` +
+    `📨 ${escapeHtml(order.telegram || "—")}\n` +
+    `📞 ${escapeHtml(order.phone || "—")}\n` +
+    `📍 ${escapeHtml(order.city)}${order.address ? `, ${escapeHtml(order.address)}` : ""}\n\n` +
+    `📦 <b>Товары:</b>\n${itemsList}\n\n`;
 
   if (order.discount && order.discount > 0) {
-    message += `🏷 Промокод: ${order.promo_code} (−$${order.discount})\n`;
+    message += `🏷 Промокод: ${escapeHtml(order.promo_code || "")} (−$${order.discount})\n`;
   }
 
-  message += `💰 *Итого: $${order.total}*`;
+  message += `💰 <b>Итого: $${order.total}</b>`;
 
   if (order.notes) {
-    message += `\n\n📝 ${escapeMarkdown(order.notes)}`;
+    message += `\n\n📝 ${escapeHtml(order.notes)}`;
   }
 
-  try {
-    await fetch(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: TELEGRAM_ADMIN_CHAT_ID,
-          text: message,
-          parse_mode: "Markdown",
-        }),
-      }
-    );
-  } catch (e) {
-    console.error("Telegram notification failed:", e);
-  }
-}
-
-function escapeMarkdown(text: string): string {
-  return text.replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&");
+  await sendTelegramMessage(message);
 }
 
 // ── POST — create order ─────────────────────────────────────────────

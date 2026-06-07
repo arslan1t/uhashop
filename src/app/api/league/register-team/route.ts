@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, addDoc } from "firebase/firestore";
+import { sendTelegramMessage, escapeHtml } from "@/lib/telegram";
 
 function getDb() {
   const cfg = {
@@ -31,28 +32,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const cleanPlayers = players.filter((p: string) => p.trim());
+
     // Save to Firestore
     const docRef = await addDoc(collection(db, "league_team_registrations"), {
       teamName,
       captainName,
       captainPhone,
       captainTg,
-      players: players.filter((p: string) => p.trim()),
+      players: cleanPlayers,
       status: "pending",
       createdAt: new Date().toISOString(),
     });
 
-    // TODO: Send Telegram notification to admin
-    // const botToken = process.env.TELEGRAM_BOT_TOKEN;
-    // const chatId = process.env.TELEGRAM_CHAT_ID;
-    // await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-    //   method: "POST",
-    //   headers: { "Content-Type": "application/json" },
-    //   body: JSON.stringify({
-    //     chat_id: chatId,
-    //     text: `🏀 Новая регистрация команды:\n\nКоманда: ${teamName}\nКапитан: ${captainName}\nТелефон: ${captainPhone}\nTelegram: ${captainTg}`,
-    //   }),
-    // });
+    // Send Telegram notification to admin (non-blocking)
+    const playersList = cleanPlayers.map((p: string, i: number) => `  ${i + 1}. ${escapeHtml(p)}`).join("\n");
+    sendTelegramMessage(
+      `🏀 <b>Новая регистрация команды!</b>\n\n` +
+      `🏆 Команда: <b>${escapeHtml(teamName)}</b>\n` +
+      `👤 Капитан: ${escapeHtml(captainName)}\n` +
+      `📞 Телефон: ${escapeHtml(captainPhone)}\n` +
+      `📨 Telegram: ${escapeHtml(captainTg || "—")}\n\n` +
+      `👥 <b>Игроки:</b>\n${playersList}`
+    ).catch(console.error);
 
     return NextResponse.json({ id: docRef.id }, { status: 200 });
   } catch (e) {
