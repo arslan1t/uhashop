@@ -4,6 +4,7 @@
  * 2. Sends Telegram notification to admin
  */
 import { NextRequest, NextResponse } from "next/server";
+import { sendTelegramMessage } from "@/lib/telegram";
 
 const SKILL_LABELS: Record<string, string> = {
   beginner:     "Начинающий",
@@ -51,15 +52,7 @@ async function saveToFirestore(data: Record<string, unknown>): Promise<string> {
 }
 
 async function sendTelegram(text: string): Promise<void> {
-  const token  = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
-  if (!token || !chatId) return;
-
-  await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
-  }).catch(console.error);
+  await sendTelegramMessage(text).catch(console.error);
 }
 
 export async function POST(req: NextRequest) {
