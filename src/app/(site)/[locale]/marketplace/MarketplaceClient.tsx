@@ -22,13 +22,23 @@ export function MarketplaceClient() {
   const customProds = useCustomProducts(s => s.products);
   const metaMap     = useProductMeta(s => s.meta);
 
-  // Custom products override static ones with same ID; hide deleted products
+  // Custom products override static ones with same ID or slug; hide deleted products
   const allProducts = useMemo(() => {
-    const customIds  = new Set(customProds.map(p => p.id));
-    const deletedIds = new Set(Object.entries(metaMap).filter(([, m]) => m.isDeleted).map(([id]) => id));
+    const customIds   = new Set(customProds.map(p => p.id));
+    const customSlugs = new Set(customProds.map(p => p.slug));
+    const deletedIds  = new Set(Object.entries(metaMap).filter(([, m]) => m.isDeleted).map(([id]) => id));
+
+    // Deduplicate customProds itself by slug (keep last occurrence)
+    const seenSlugs = new Set<string>();
+    const dedupedCustom = [...customProds].reverse().filter(p => {
+      if (seenSlugs.has(p.slug)) return false;
+      seenSlugs.add(p.slug);
+      return true;
+    }).reverse();
+
     const merged = [
-      ...customProds.filter(p => !deletedIds.has(p.id)),
-      ...staticProducts.filter(p => !customIds.has(p.id) && !deletedIds.has(p.id)),
+      ...dedupedCustom.filter(p => !deletedIds.has(p.id)),
+      ...staticProducts.filter(p => !customIds.has(p.id) && !customSlugs.has(p.slug) && !deletedIds.has(p.id)),
     ];
     // Apply isFeatured overrides from meta
     return merged.map(p => ({
