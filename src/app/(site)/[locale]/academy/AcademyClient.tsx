@@ -6,9 +6,9 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
 import {
-  GraduationCap, ArrowLeft, ArrowRight, Dumbbell, Target, Users,
+  GraduationCap, ArrowLeft, ArrowRight, Dumbbell, Users,
   Calendar, Trophy, Shield, Star, ChevronRight,
-  MapPin, Clock, Phone, Bus, Navigation
+  MapPin, Clock, Phone, Bus, Navigation, Award, Globe
 } from "lucide-react";
 import { AcademyApplicationModal } from "@/components/ui/AcademyApplicationModal";
 
@@ -51,11 +51,46 @@ export function AcademyClient() {
   ];
 
   const AGE_GROUPS = [
-    { group: "U-10", ageRange: "8–10", scheduleKey: "age_schedule_3" as const, price: "350 000 сум/мес" },
-    { group: "U-12", ageRange: "10–12", scheduleKey: "age_schedule_3" as const, price: "400 000 сум/мес" },
-    { group: "U-14", ageRange: "12–14", scheduleKey: "age_schedule_4" as const, price: "500 000 сум/мес" },
-    { group: "U-16", ageRange: "14–16", scheduleKey: "age_schedule_4" as const, price: "500 000 сум/мес" },
+    { group: "U-10", ageRange: "8–10",  scheduleKey: "age_schedule_3" as const, price: "600 000 сум/мес" },
+    { group: "U-12", ageRange: "10–12", scheduleKey: "age_schedule_3" as const, price: "600 000 сум/мес" },
+    { group: "U-14", ageRange: "12–14", scheduleKey: "age_schedule_4" as const, price: "600 000 сум/мес" },
+    { group: "U-16", ageRange: "14–16", scheduleKey: "age_schedule_4" as const, price: "600 000 сум/мес" },
     { group: "U-18", ageRange: "16–18", scheduleKey: "age_schedule_5" as const, price: "600 000 сум/мес" },
+  ];
+
+  const COACHES = [
+    {
+      name: "Арслан Сафин",
+      role: "Игрок университетской сборной Кореи",
+      bio: "Профессиональный баскетболист с международным опытом. Выступал за университетскую сборную Республики Корея, привнося передовые методики азиатского баскетбола в тренировочный процесс.",
+      flag: "🇰🇷",
+      badge: "Корея",
+      gradient: "from-blue-500/20 to-cyan-500/10",
+      border: "border-blue-500/30",
+      accent: "text-blue-400",
+      accentBg: "bg-blue-500/10",
+      stats: [
+        { label: "Стаж", value: "5+ лет" },
+        { label: "Уровень", value: "Проф." },
+        { label: "Спортсменов", value: "100+" },
+      ],
+    },
+    {
+      name: "Мусаев Самир Эркинович",
+      role: "Игрок сборной Узбекистана",
+      bio: "Действующий игрок национальной сборной Узбекистана по баскетболу. Многолетний опыт выступлений на международных турнирах, тренер с глубоким пониманием тактики и физической подготовки.",
+      flag: "🇺🇿",
+      badge: "Сборная Узбекистана",
+      gradient: "from-emerald-500/20 to-teal-500/10",
+      border: "border-emerald-500/30",
+      accent: "text-emerald-400",
+      accentBg: "bg-emerald-500/10",
+      stats: [
+        { label: "Стаж", value: "8+ лет" },
+        { label: "Уровень", value: "Нац. сб." },
+        { label: "Турниров", value: "50+" },
+      ],
+    },
   ];
 
   return (
@@ -187,13 +222,13 @@ export function AcademyClient() {
         </div>
       </div>
 
-      {/* Age groups */}
+      {/* Age groups + Pricing */}
       <div className="border-t border-[rgb(var(--border))]">
         <div className="container-uha py-16">
           <h2 className="font-display text-3xl tracking-tight mb-3 text-center">{t("age_groups_title")}</h2>
           <p className="text-center text-[rgb(var(--muted))] text-sm mb-8">{t("age_groups_subtitle")}</p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 max-w-4xl mx-auto mb-6">
             {AGE_GROUPS.map(({ group, ageRange, scheduleKey, price }) => (
               <motion.div key={group}
                 initial={{ opacity: 0, y: 16 }}
@@ -206,6 +241,86 @@ export function AcademyClient() {
                   <p>{t(scheduleKey)}</p>
                   <p className="font-semibold text-[rgb(var(--foreground))]">{price}</p>
                 </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Individual training card */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-4xl mx-auto p-5 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/25 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-11 h-11 rounded-xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center flex-shrink-0">
+                <Users className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <p className="font-bold text-[rgb(var(--foreground))]">Индивидуальные тренировки</p>
+                <p className="text-xs text-[rgb(var(--muted))] mt-0.5">Мини-группа · макс. 6 человек · персональный подход</p>
+              </div>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <p className="text-xl font-black text-blue-400">800 000 сум</p>
+              <p className="text-xs text-[rgb(var(--muted))]">в месяц</p>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* ── COACHES ── */}
+      <div className="border-t border-[rgb(var(--border))]">
+        <div className="container-uha py-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">{t("coaches_title")}</span>
+            <h2 className="font-display text-3xl md:text-4xl mt-2 tracking-tight">{t("coaches_heading")}</h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            {COACHES.map((coach, i) => (
+              <motion.div
+                key={coach.name}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.15 }}
+                className={`relative overflow-hidden rounded-3xl border ${coach.border} bg-gradient-to-br ${coach.gradient} p-6 md:p-8`}
+              >
+                {/* Top row */}
+                <div className="flex items-start justify-between mb-5">
+                  <div className={`w-14 h-14 rounded-2xl ${coach.accentBg} border ${coach.border} flex items-center justify-center text-2xl`}>
+                    {coach.flag}
+                  </div>
+                  <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${coach.accentBg} ${coach.accent} border ${coach.border}`}>
+                    {coach.badge}
+                  </span>
+                </div>
+
+                {/* Name & role */}
+                <h3 className="font-bold text-xl text-[rgb(var(--foreground))] mb-1 leading-snug">{coach.name}</h3>
+                <p className={`text-sm font-medium ${coach.accent} mb-4`}>{coach.role}</p>
+
+                {/* Bio */}
+                <p className="text-[rgb(var(--muted))] text-sm leading-relaxed mb-6">{coach.bio}</p>
+
+                {/* Stats row */}
+                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/10">
+                  {coach.stats.map(s => (
+                    <div key={s.label} className="text-center">
+                      <p className={`font-black text-lg ${coach.accent}`}>{s.value}</p>
+                      <p className="text-[rgb(var(--muted))] text-[10px] uppercase tracking-wider mt-0.5">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Decorative orb */}
+                <div className={`absolute -bottom-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-20 bg-current ${coach.accent}`} />
               </motion.div>
             ))}
           </div>
@@ -260,10 +375,25 @@ export function AcademyClient() {
                     <p className="text-[rgb(var(--muted))] text-sm mt-1">
                       {t("loc_street")}
                     </p>
-                    <a href="https://yandex.com/maps/-/CPXFeSN9"
+                    <a href="https://yandex.com/maps/?text=Ташкент+улица+Чамбил+1"
                       target="_blank" rel="noopener noreferrer"
                       className="inline-flex items-center gap-1 text-blue-400 text-xs mt-1.5 hover:text-blue-300 transition-colors">
                       <Navigation className="w-3 h-3" /> {t("loc_yandex")}
+                    </a>
+                  </div>
+                </div>
+
+                <div className="border-t border-[rgb(var(--border))]" />
+
+                {/* Phone */}
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                    <Phone className="w-6 h-6 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">{t("loc_phone_label")}</p>
+                    <a href="tel:+998977407477" className="font-semibold text-[rgb(var(--foreground))] text-base hover:text-blue-400 transition-colors">
+                      {t("loc_phone")}
                     </a>
                   </div>
                 </div>
@@ -315,7 +445,7 @@ export function AcademyClient() {
                 {/* Yandex Maps embed */}
                 <div className="relative rounded-3xl overflow-hidden border border-[rgb(var(--border))] bg-[rgb(var(--surface-2))]" style={{ height: 280 }}>
                   <iframe
-                    src="https://yandex.com/map-widget/v1/?ll=69.282401%2C41.277016&z=17&pt=69.282401%2C41.277016%2Cpm2rdm"
+                    src="https://yandex.com/map-widget/v1/?text=Ташкент+улица+Чамбил+1&z=16"
                     width="100%" height="100%" style={{ border: 0 }}
                     allowFullScreen loading="lazy"
                     title="UHA Academy location"
