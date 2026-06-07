@@ -121,15 +121,13 @@ export function AcademyClient() {
                 <p className="text-[rgb(var(--accent))] font-semibold text-lg mb-3">
                   {t("hero_tagline")}
                 </p>
-                <div className="flex items-start gap-3 mb-8">
-                  <p className="text-[rgb(var(--muted))] text-base leading-relaxed max-w-lg">
-                    {t("hero_desc")}
-                  </p>
-                  <a href="tel:+998977407477"
-                    className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-blue-500/15 border border-blue-500/30 rounded-xl text-blue-400 text-xs font-bold hover:bg-blue-500/25 transition-all whitespace-nowrap">
-                    <Phone className="w-3.5 h-3.5" /> +998 97 740 74 77
-                  </a>
-                </div>
+                <p className="text-[rgb(var(--muted))] text-base leading-relaxed mb-4 max-w-lg">
+                  {t("hero_desc")}
+                </p>
+                <a href="tel:+998977407477"
+                  className="inline-flex items-center gap-2 mb-8 px-4 py-2.5 bg-blue-500/15 border border-blue-500/30 rounded-2xl text-blue-400 text-sm font-bold hover:bg-blue-500/25 transition-all w-fit">
+                  <Phone className="w-4 h-4" /> +998 97 740 74 77
+                </a>
 
                 <div className="flex flex-wrap gap-3">
                   <Link href="/academy/login"

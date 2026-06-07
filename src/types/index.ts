@@ -1,4 +1,5 @@
 export type ProductCategory = "shoes" | "apparel" | "accessories" | "merch";
+export type ProductStyle = "basketball" | "lifestyle";
 export type ProductBrand =
   | "Nike" | "Jordan" | "Adidas" | "Li-Ning" | "Anta"
   | "Travis Scott" | "UHA" | "Fear of God" | "Stussy"
@@ -36,6 +37,7 @@ export interface Product {
   estimatedDelivery?: string;   // original delivery
   replicaDelivery?: string;     // replica delivery (faster)
   badge?: "new" | "popular" | "limited" | "sale";
+  style?: ProductStyle;    // "basketball" | "lifestyle"
   tags: string[];
   descriptionRu: string;
   descriptionUz: string;

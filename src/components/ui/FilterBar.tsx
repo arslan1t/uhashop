@@ -12,6 +12,7 @@ export interface FilterState {
   search: string;
   brand: string;
   category: string;
+  style: "" | "basketball" | "lifestyle";
   version: VersionFilter;
   stockType: StockFilter;
   priceMin: number;
@@ -78,6 +79,7 @@ export function FilterBar({
   const activeCount = [
     state.brand,
     state.category,
+    state.style,
     state.version !== "all",
     state.stockType !== "all",
     state.size,
@@ -87,6 +89,7 @@ export function FilterBar({
   const chips: { label: string; clear: () => void }[] = [];
   if (state.brand) chips.push({ label: state.brand, clear: () => onChange({ brand: "" }) });
   if (state.category) chips.push({ label: catLabel(state.category), clear: () => onChange({ category: "" }) });
+  if (state.style) chips.push({ label: state.style === "basketball" ? "🏀 Баскетбол" : "👟 Лайфстайл", clear: () => onChange({ style: "" }) });
   if (state.version !== "all") chips.push({ label: state.version === "original" ? "Оригинал" : "Реплика", clear: () => onChange({ version: "all" }) });
   if (state.stockType !== "all") chips.push({ label: state.stockType === "instock" ? "В наличии" : "Предзаказ", clear: () => onChange({ stockType: "all" }) });
   if (state.size) chips.push({ label: `Размер ${state.size}`, clear: () => onChange({ size: "" }) });
@@ -259,6 +262,32 @@ export function FilterBar({
                 <div className="flex flex-wrap gap-2">
                   <Chip active={!state.category} onClick={() => onChange({ category: "" })} label="Все" />
                   {categories.map(c => <Chip key={c} active={state.category === c} onClick={() => onChange({ category: state.category === c ? "" : c })} label={catLabel(c)} />)}
+                </div>
+              </div>
+
+              {/* Style */}
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">Стиль</p>
+                <div className="flex gap-2">
+                  {[
+                    { value: "" as const, label: "Все" },
+                    { value: "basketball" as const, label: "🏀 Баскетбол" },
+                    { value: "lifestyle" as const, label: "👟 Лайфстайл" },
+                  ].map(opt => (
+                    <button key={opt.value} onClick={() => onChange({ style: opt.value })}
+                      className={cn(
+                        "flex-1 py-2 px-3 rounded-xl text-xs font-bold border transition-all",
+                        state.style === opt.value
+                          ? opt.value === "basketball"
+                            ? "bg-orange-500/15 text-orange-400 border-orange-500/30"
+                            : opt.value === "lifestyle"
+                            ? "bg-purple-500/15 text-purple-400 border-purple-500/30"
+                            : "bg-[rgb(var(--accent))] text-white border-[rgb(var(--accent))]"
+                          : "bg-[rgb(var(--background))] text-[rgb(var(--muted))] border-[rgb(var(--border))] hover:border-[rgb(var(--foreground)/0.25)]"
+                      )}>
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 

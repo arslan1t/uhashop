@@ -2,41 +2,76 @@
 
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
+const CATEGORIES = [
+  {
+    id: "shoes-basketball",
+    emoji: "🏀",
+    title: "Обувь",
+    sub: "Баскетбол",
+    href: "/marketplace?category=shoes&style=basketball",
+    gradient: "from-orange-500/20 to-red-500/10",
+    border: "border-orange-500/20 hover:border-orange-500/40",
+    accent: "text-orange-400",
+    accentBg: "bg-orange-500/10",
+    tag: "Performance",
+  },
+  {
+    id: "shoes-lifestyle",
+    emoji: "👟",
+    title: "Обувь",
+    sub: "Лайфстайл",
+    href: "/marketplace?category=shoes&style=lifestyle",
+    gradient: "from-purple-500/20 to-pink-500/10",
+    border: "border-purple-500/20 hover:border-purple-500/40",
+    accent: "text-purple-400",
+    accentBg: "bg-purple-500/10",
+    tag: "Street",
+  },
+  {
+    id: "apparel-basketball",
+    emoji: "🧤",
+    title: "Одежда",
+    sub: "Баскетбол",
+    href: "/marketplace?category=apparel&style=basketball",
+    gradient: "from-blue-500/20 to-cyan-500/10",
+    border: "border-blue-500/20 hover:border-blue-500/40",
+    accent: "text-blue-400",
+    accentBg: "bg-blue-500/10",
+    tag: "Sport",
+  },
+  {
+    id: "apparel-lifestyle",
+    emoji: "👕",
+    title: "Одежда",
+    sub: "Лайфстайл",
+    href: "/marketplace?category=apparel&style=lifestyle",
+    gradient: "from-emerald-500/20 to-teal-500/10",
+    border: "border-emerald-500/20 hover:border-emerald-500/40",
+    accent: "text-emerald-400",
+    accentBg: "bg-emerald-500/10",
+    tag: "Casual",
+  },
+  {
+    id: "merch",
+    emoji: "🔥",
+    title: "Мерч",
+    sub: "UHA Original",
+    href: "/merch",
+    gradient: "from-red-500/20 to-rose-500/10",
+    border: "border-red-500/20 hover:border-red-500/40",
+    accent: "text-red-400",
+    accentBg: "bg-red-500/10",
+    tag: "In Stock",
+    badge: true,
+  },
+];
+
 export function CategoriesSection() {
   const t = useTranslations("home");
-
-  const CATEGORIES = [
-    {
-      id: "shoes",
-      title: t("cat_shoes_title"),
-      subtitle: t("cat_shoes_sub"),
-      href: "/marketplace?category=shoes",
-      coverImage: "/images/branding/category-shoes.png",
-      accent: "from-red-800/20",
-    },
-    {
-      id: "apparel",
-      title: t("cat_apparel_title"),
-      subtitle: t("cat_apparel_sub"),
-      href: "/marketplace?category=apparel",
-      coverImage: "/images/branding/category-apparel.png",
-      accent: "from-purple-600/20",
-    },
-    {
-      id: "merch",
-      title: t("cat_merch_title"),
-      subtitle: t("cat_merch_sub"),
-      href: "/merch",
-      coverImage: "/images/branding/category-merch.png",
-      accent: "from-red-500/15",
-      badge: t("cat_merch_badge"),
-    },
-  ];
 
   return (
     <section className="py-20 md:py-28 bg-[rgb(var(--surface))]">
@@ -49,59 +84,44 @@ export function CategoriesSection() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
           {CATEGORIES.map((cat, i) => (
             <motion.div
               key={cat.id}
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
+              transition={{ duration: 0.4, delay: i * 0.07 }}
             >
               <Link
                 href={cat.href}
-                className="group relative block rounded-3xl overflow-hidden bg-[rgb(var(--surface-2))] border border-[rgb(var(--border))] hover:border-[rgb(var(--foreground)/0.2)] transition-all duration-300"
-                style={{ aspectRatio: "1086 / 1448" }}
+                className={`group relative flex flex-col items-center justify-center gap-3 p-5 md:p-6 rounded-2xl bg-gradient-to-br ${cat.gradient} border ${cat.border} transition-all duration-300 hover:scale-[1.03] hover:shadow-lg text-center h-full`}
               >
-                {/* Cover image */}
-                <div className="absolute inset-0 overflow-hidden">
-                  <Image
-                    src={cat.coverImage}
-                    alt={cat.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                </div>
-
-                {/* Gradient overlays */}
-                <div className={`absolute inset-0 bg-gradient-to-t ${cat.accent} to-transparent`} />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
-
                 {/* Badge */}
                 {cat.badge && (
-                  <div className="absolute top-4 left-4 z-10">
-                    <span className="bg-[rgb(var(--accent))] text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-lg">
-                      {cat.badge}
-                    </span>
-                  </div>
+                  <span className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest bg-[rgb(var(--accent))] text-white px-2 py-0.5 rounded-full">
+                    {cat.tag}
+                  </span>
                 )}
 
-                {/* Bottom text */}
-                <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <p className="text-white/55 text-xs uppercase tracking-widest mb-2">
-                        {cat.subtitle}
-                      </p>
-                      <h3 className="font-display text-4xl text-white tracking-wide leading-none drop-shadow-lg">
-                        {cat.title}
-                      </h3>
-                    </div>
-                    <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-[rgb(var(--accent))] group-hover:border-[rgb(var(--accent))] transition-all duration-300 flex-shrink-0">
-                      <ArrowUpRight className="w-5 h-5 text-white" />
-                    </div>
-                  </div>
+                {/* Emoji */}
+                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl ${cat.accentBg} flex items-center justify-center text-2xl md:text-3xl transition-transform duration-300 group-hover:scale-110`}>
+                  {cat.emoji}
+                </div>
+
+                {/* Text */}
+                <div>
+                  <p className="font-black text-base md:text-lg text-[rgb(var(--foreground))] leading-none mb-1">
+                    {cat.title}
+                  </p>
+                  <p className={`text-xs font-bold uppercase tracking-wider ${cat.accent}`}>
+                    {cat.sub}
+                  </p>
+                </div>
+
+                {/* Arrow */}
+                <div className={`w-7 h-7 rounded-xl ${cat.accentBg} flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5`}>
+                  <ArrowUpRight className={`w-3.5 h-3.5 ${cat.accent}`} />
                 </div>
               </Link>
             </motion.div>
