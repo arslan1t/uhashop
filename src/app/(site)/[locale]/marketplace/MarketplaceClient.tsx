@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send } from "lucide-react";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -19,8 +20,13 @@ const TG_URL = "https://t.me/uha_manager";
 
 export function MarketplaceClient() {
   const t = useTranslations("marketplace");
+  const searchParams = useSearchParams();
   const customProds = useCustomProducts(s => s.products);
   const metaMap     = useProductMeta(s => s.meta);
+
+  // Read initial filters from URL params (e.g. ?category=shoes&style=basketball)
+  const initCategory = searchParams?.get("category") ?? "";
+  const initStyle = (searchParams?.get("style") ?? "") as "" | "basketball" | "lifestyle";
 
   // Normalize product name for fuzzy deduplication
   // "NikeG.T. Cut 3 Turbo EP College Navy Mystic Navy" → "nikegt3turboepcollegenavy..."
@@ -87,7 +93,9 @@ export function MarketplaceClient() {
   }, [allProducts]);
 
   const defaultFilter: FilterState = {
-    search: "", brand: "", category: "",
+    search: "", brand: "",
+    category: initCategory,
+    style: initStyle,
     version: "all", stockType: "all",
     priceMin: PRICE_RANGE[0], priceMax: PRICE_RANGE[1],
     size: "", sort: "popular",
@@ -101,7 +109,7 @@ export function MarketplaceClient() {
   const clearFilters = () => setFilters(defaultFilter);
 
   const hasActiveFilters = !!(
-    filters.search || filters.brand || filters.category ||
+    filters.search || filters.brand || filters.category || filters.style ||
     filters.version !== "all" || filters.stockType !== "all" ||
     filters.size ||
     filters.priceMin > PRICE_RANGE[0] || filters.priceMax < PRICE_RANGE[1]
@@ -121,9 +129,10 @@ export function MarketplaceClient() {
       );
     }
 
-    // Brand & category
+    // Brand, category, style
     if (filters.brand) result = result.filter(p => p.brand === filters.brand);
     if (filters.category) result = result.filter(p => p.category === filters.category);
+    if (filters.style) result = result.filter(p => !p.style || p.style === filters.style);
 
     // Version
     if (filters.version === "replica") result = result.filter(p => !!p.replicaPrice);

@@ -42,6 +42,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
   const [type, setType] = useState(product?.type ?? "preorder");
   const [status, setStatus] = useState(product?.status ?? "published");
   const [badge, setBadge] = useState(product?.badge ?? "");
+  const [style, setStyle] = useState<"" | "basketball" | "lifestyle">((product as { style?: "basketball" | "lifestyle" })?.style ?? "");
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
   const [delivery, setDelivery] = useState(product?.estimatedDelivery ?? "14–21 дней");
   const [descRu, setDescRu] = useState(product?.descriptionRu ?? "");
@@ -233,6 +234,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
       category, type: type as AdminProduct["type"],
       status: status as AdminProduct["status"],
       badge: badge as AdminProduct["badge"],
+      style: style || undefined,
       isFeatured, estimatedDelivery: delivery,
       price: Number(price),
       replicaPrice: replicaPrice ? Number(replicaPrice) : undefined,
@@ -359,6 +361,13 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                       <option value="popular">Popular</option>
                       <option value="limited">Limited</option>
                       <option value="sale">Sale</option>
+                    </select>
+                  </Field>
+                  <Field label="Стиль">
+                    <select value={style} onChange={e => setStyle(e.target.value as "" | "basketball" | "lifestyle")} className={CLS}>
+                      <option value="">Не указан</option>
+                      <option value="basketball">🏀 Баскетбол</option>
+                      <option value="lifestyle">👟 Лайфстайл</option>
                     </select>
                   </Field>
                   <Field label="Доставка">
