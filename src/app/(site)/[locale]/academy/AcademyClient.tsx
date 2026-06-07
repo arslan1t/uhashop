@@ -78,9 +78,9 @@ export function AcademyClient() {
     {
       name: "Мусаев Самир Эркинович",
       role: "Игрок сборной Узбекистана",
-      bio: "Действующий игрок национальной сборной Узбекистана по баскетболу. Многолетний опыт выступлений на международных турнирах, тренер с глубоким пониманием тактики и физической подготовки.",
+      bio: "Бывший игрок сборной Ташкента по баскетболу. Многолетний опыт выступлений на городских и республиканских турнирах, тренер с глубоким пониманием тактики и физической подготовки.",
       flag: "🇺🇿",
-      badge: "Сборная Узбекистана",
+      badge: "Сборная Ташкента",
       gradient: "from-emerald-500/20 to-teal-500/10",
       border: "border-emerald-500/30",
       accent: "text-emerald-400",
@@ -138,14 +138,44 @@ export function AcademyClient() {
               </motion.div>
             </div>
 
-            {/* Large academy logo */}
-            <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
+            {/* Coaches cards — replace logo in hero */}
+            <motion.div
+              initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="hidden lg:block flex-shrink-0 relative w-[380px] h-[380px] xl:w-[440px] xl:h-[440px]">
-              <Image src="/images/branding/academy-black.png" alt="UHA Academy" fill
-                className="object-contain opacity-[0.08] dark:hidden select-none pointer-events-none" sizes="440px" />
-              <Image src="/images/branding/academy-white.png" alt="UHA Academy" fill
-                className="object-contain opacity-[0.10] hidden dark:block select-none pointer-events-none" sizes="440px" />
+              className="hidden lg:flex flex-col gap-4 flex-shrink-0 w-[380px] xl:w-[440px]"
+            >
+              {COACHES.map((coach, i) => (
+                <motion.div
+                  key={coach.name}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 + i * 0.15 }}
+                  className={`relative overflow-hidden rounded-2xl border ${coach.border} bg-gradient-to-br ${coach.gradient} p-5`}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-11 h-11 rounded-xl ${coach.accentBg} border ${coach.border} flex items-center justify-center text-xl flex-shrink-0`}>
+                      {coach.flag}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-sm text-[rgb(var(--foreground))] leading-snug truncate">{coach.name}</h3>
+                      <p className={`text-xs font-medium ${coach.accent} mt-0.5`}>{coach.role}</p>
+                    </div>
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${coach.accentBg} ${coach.accent} border ${coach.border} flex-shrink-0`}>
+                      {coach.badge}
+                    </span>
+                  </div>
+                  <p className="text-[rgb(var(--muted))] text-xs leading-relaxed mb-3">{coach.bio}</p>
+                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/10">
+                    {coach.stats.map(s => (
+                      <div key={s.label} className="text-center">
+                        <p className={`font-black text-sm ${coach.accent}`}>{s.value}</p>
+                        <p className="text-[rgb(var(--muted))] text-[9px] uppercase tracking-wider mt-0.5">{s.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className={`absolute -bottom-8 -right-8 w-32 h-32 rounded-full blur-3xl opacity-15 bg-current ${coach.accent}`} />
+                </motion.div>
+              ))}
             </motion.div>
           </div>
         </div>
@@ -269,64 +299,6 @@ export function AcademyClient() {
         </div>
       </div>
 
-      {/* ── COACHES ── */}
-      <div className="border-t border-[rgb(var(--border))]">
-        <div className="container-uha py-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="text-center mb-12"
-          >
-            <span className="text-xs font-bold text-blue-400 uppercase tracking-widest">{t("coaches_title")}</span>
-            <h2 className="font-display text-3xl md:text-4xl mt-2 tracking-tight">{t("coaches_heading")}</h2>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-            {COACHES.map((coach, i) => (
-              <motion.div
-                key={coach.name}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.15 }}
-                className={`relative overflow-hidden rounded-3xl border ${coach.border} bg-gradient-to-br ${coach.gradient} p-6 md:p-8`}
-              >
-                {/* Top row */}
-                <div className="flex items-start justify-between mb-5">
-                  <div className={`w-14 h-14 rounded-2xl ${coach.accentBg} border ${coach.border} flex items-center justify-center text-2xl`}>
-                    {coach.flag}
-                  </div>
-                  <span className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full ${coach.accentBg} ${coach.accent} border ${coach.border}`}>
-                    {coach.badge}
-                  </span>
-                </div>
-
-                {/* Name & role */}
-                <h3 className="font-bold text-xl text-[rgb(var(--foreground))] mb-1 leading-snug">{coach.name}</h3>
-                <p className={`text-sm font-medium ${coach.accent} mb-4`}>{coach.role}</p>
-
-                {/* Bio */}
-                <p className="text-[rgb(var(--muted))] text-sm leading-relaxed mb-6">{coach.bio}</p>
-
-                {/* Stats row */}
-                <div className="grid grid-cols-3 gap-3 pt-4 border-t border-white/10">
-                  {coach.stats.map(s => (
-                    <div key={s.label} className="text-center">
-                      <p className={`font-black text-lg ${coach.accent}`}>{s.value}</p>
-                      <p className="text-[rgb(var(--muted))] text-[10px] uppercase tracking-wider mt-0.5">{s.label}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Decorative orb */}
-                <div className={`absolute -bottom-10 -right-10 w-40 h-40 rounded-full blur-3xl opacity-20 bg-current ${coach.accent}`} />
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* CTA */}
       <div className="border-t border-[rgb(var(--border))]">
         <div className="container-uha py-16 text-center">
@@ -375,11 +347,17 @@ export function AcademyClient() {
                     <p className="text-[rgb(var(--muted))] text-sm mt-1">
                       {t("loc_street")}
                     </p>
-                    <a href="https://yandex.com/maps/?text=Ташкент+улица+Чамбил+1"
-                      target="_blank" rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-blue-400 text-xs mt-1.5 hover:text-blue-300 transition-colors">
-                      <Navigation className="w-3 h-3" /> {t("loc_yandex")}
-                    </a>
+                    <div className="flex items-center gap-3 mt-1.5 flex-wrap">
+                      <a href="https://yandex.com/maps/?text=Ташкент+улица+Чамбил+1"
+                        target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors">
+                        <Navigation className="w-3 h-3" /> {t("loc_yandex")}
+                      </a>
+                      <a href="tel:+998977407477"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/15 border border-blue-500/30 rounded-xl text-blue-400 text-xs font-bold hover:bg-blue-500/25 transition-all">
+                        <Phone className="w-3 h-3" /> +998 97 740 74 77
+                      </a>
+                    </div>
                   </div>
                 </div>
 
