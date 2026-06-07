@@ -121,9 +121,15 @@ export function AcademyClient() {
                 <p className="text-[rgb(var(--accent))] font-semibold text-lg mb-3">
                   {t("hero_tagline")}
                 </p>
-                <p className="text-[rgb(var(--muted))] text-base leading-relaxed mb-8 max-w-lg">
-                  {t("hero_desc")}
-                </p>
+                <div className="flex items-start gap-3 mb-8">
+                  <p className="text-[rgb(var(--muted))] text-base leading-relaxed max-w-lg">
+                    {t("hero_desc")}
+                  </p>
+                  <a href="tel:+998977407477"
+                    className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-blue-500/15 border border-blue-500/30 rounded-xl text-blue-400 text-xs font-bold hover:bg-blue-500/25 transition-all whitespace-nowrap">
+                    <Phone className="w-3.5 h-3.5" /> +998 97 740 74 77
+                  </a>
+                </div>
 
                 <div className="flex flex-wrap gap-3">
                   <Link href="/academy/login"
@@ -386,17 +392,11 @@ export function AcademyClient() {
                     <p className="text-[rgb(var(--muted))] text-sm mt-1">
                       {t("loc_street")}
                     </p>
-                    <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                      <a href="https://yandex.com/maps/?text=Ташкент+улица+Чамбил+1"
-                        target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-400 text-xs hover:text-blue-300 transition-colors">
-                        <Navigation className="w-3 h-3" /> {t("loc_yandex")}
-                      </a>
-                      <a href="tel:+998977407477"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/15 border border-blue-500/30 rounded-xl text-blue-400 text-xs font-bold hover:bg-blue-500/25 transition-all">
-                        <Phone className="w-3 h-3" /> +998 97 740 74 77
-                      </a>
-                    </div>
+                    <a href="https://yandex.com/maps/?text=Ташкент+улица+Чамбил+1"
+                      target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-blue-400 text-xs mt-1.5 hover:text-blue-300 transition-colors">
+                      <Navigation className="w-3 h-3" /> {t("loc_yandex")}
+                    </a>
                   </div>
                 </div>
 
