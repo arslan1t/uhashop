@@ -1,19 +1,31 @@
-import { createClient } from "@supabase/supabase-js";
+/**
+ * Orders API — backed by Firestore (collection: "orders").
+ * Also sends a Telegram notification to the admin on new orders.
+ */
 import { NextResponse } from "next/server";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import {
+  getFirestore, collection, addDoc, getDocs, doc, updateDoc,
+  query, where, orderBy,
+} from "firebase/firestore";
 import { sendTelegramMessage, escapeHtml } from "@/lib/telegram";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
-function getSupabase() {
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("Supabase not configured");
-  }
-  return createClient(supabaseUrl, supabaseAnonKey);
+function getDb() {
+  const cfg = {
+    apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
+    authDomain:        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
+    projectId:         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
+    storageBucket:     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "",
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "",
+    appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
+  };
+  if (!cfg.apiKey) return null;
+  const app = getApps().length > 0 ? getApp() : initializeApp(cfg);
+  return getFirestore(app);
 }
 
 // ── Telegram notification ───────────────────────────────────────────
-async function sendTelegramNotification(order: {
+async function sendOrderNotification(order: {
   order_number: string;
   customer_name: string;
   telegram: string;
@@ -54,30 +66,21 @@ async function sendTelegramNotification(order: {
 
 // ── POST — create order ─────────────────────────────────────────────
 export async function POST(req: Request) {
+  const db = getDb();
+  if (!db) {
+    return NextResponse.json({ error: "Firebase not configured" }, { status: 500 });
+  }
+
   try {
     const body = await req.json();
     const {
-      items,
-      total,
-      customer_name,
-      telegram,
-      phone,
-      city,
-      address,
-      notes,
-      promo_code,
-      discount,
-      user_id,
+      items, total, customer_name, telegram, phone, city, address,
+      notes, promo_code, discount, user_id,
     } = body;
 
     if (!items?.length || !customer_name || !telegram || !city) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
-
-    const supabase = getSupabase();
 
     // Generate order number: UHA-YYYYMMDD-XXXX
     const now = new Date();
@@ -93,109 +96,78 @@ export async function POST(req: Request) {
       status: "new",
       promo_code: promo_code || null,
       discount: discount || 0,
-      shipping_address: {
-        name: customer_name,
-        telegram,
-        phone,
-        city,
-        address,
-        notes,
-      },
+      shipping_address: { name: customer_name, telegram, phone: phone || null, city, address: address || null, notes: notes || null },
+      created_at: new Date().toISOString(),
     };
 
-    const { data, error } = await supabase
-      .from("orders")
-      .insert(orderData)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Supabase order insert error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const docRef = await addDoc(collection(db, "orders"), orderData);
 
     // Send Telegram notification (non-blocking)
-    sendTelegramNotification({
-      order_number: orderNumber,
-      customer_name,
-      telegram,
-      phone,
-      city,
-      address,
-      items,
-      total,
-      promo_code,
-      discount,
-      notes,
+    sendOrderNotification({
+      order_number: orderNumber, customer_name, telegram, phone, city, address,
+      items, total, promo_code, discount, notes,
     }).catch(console.error);
 
-    return NextResponse.json({ ok: true, order: data });
+    return NextResponse.json({ ok: true, order: { id: docRef.id, ...orderData } });
   } catch (e) {
     console.error("Order creation failed:", e);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Server error" }, { status: 500 });
   }
 }
 
 // ── GET — list orders ───────────────────────────────────────────────
 export async function GET(req: Request) {
+  const db = getDb();
+  if (!db) {
+    return NextResponse.json({ orders: [] });
+  }
+
   try {
-    const supabase = getSupabase();
     const { searchParams } = new URL(req.url);
     const userId = searchParams.get("user_id");
 
-    let query = supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const base = collection(db, "orders");
+    const q = userId
+      ? query(base, where("user_id", "==", userId))
+      : query(base, orderBy("created_at", "desc"));
 
+    const snap = await getDocs(q);
+    let orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // user-scoped query can't orderBy without composite index — sort in memory
     if (userId) {
-      query = query.eq("user_id", userId);
+      orders = orders.sort((a, b) =>
+        String((b as { created_at?: string }).created_at).localeCompare(String((a as { created_at?: string }).created_at))
+      );
     }
 
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("Supabase orders fetch error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ orders: data || [] });
+    return NextResponse.json({ orders });
   } catch (e) {
     console.error("Orders fetch failed:", e);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ orders: [], error: e instanceof Error ? e.message : "Server error" });
   }
 }
 
 // ── PATCH — update order status ─────────────────────────────────────
 export async function PATCH(req: Request) {
+  const db = getDb();
+  if (!db) {
+    return NextResponse.json({ error: "Firebase not configured" }, { status: 500 });
+  }
+
   try {
     const body = await req.json();
     const { id, status } = body;
 
     if (!id || !status) {
-      return NextResponse.json(
-        { error: "Missing id or status" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Missing id or status" }, { status: 400 });
     }
 
-    const supabase = getSupabase();
+    await updateDoc(doc(db, "orders", id), { status, updated_at: new Date().toISOString() });
 
-    const { data, error } = await supabase
-      .from("orders")
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Supabase order update error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ ok: true, order: data });
+    return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("Order update failed:", e);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Server error" }, { status: 500 });
   }
 }
