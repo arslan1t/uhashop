@@ -178,7 +178,7 @@ export default function AdminHomepagePage() {
             <h3 className="text-white font-semibold text-sm">Блок статистики (Hero)</h3>
           </div>
           <div className="p-5 grid grid-cols-2 gap-4">
-            {["200+ Брендов", "7–21 Дней доставки", "1000+ Позиций", "📷 Поиск по фото"].map((stat, i) => (
+            {["200+ Брендов", "7–14 Дней доставки", "1000+ Позиций", "📷 Поиск по фото"].map((stat, i) => (
               <input key={i} defaultValue={stat} className={inputCls} />
             ))}
           </div>

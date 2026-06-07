@@ -11,7 +11,7 @@ export function HeroSection() {
 
   const STATS = [
     { val: "200+",  label: t("stat_brands") },
-    { val: "7–21",  label: t("stat_delivery") },
+    { val: "7–14",  label: t("stat_delivery") },
     { val: "1000+", label: t("stat_items") },
     { val: "📷",    label: t("stat_photo") },
   ];
