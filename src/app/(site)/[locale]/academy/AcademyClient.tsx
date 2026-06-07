@@ -157,7 +157,7 @@ export function AcademyClient() {
                       {coach.flag}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-sm text-[rgb(var(--foreground))] leading-snug truncate">{coach.name}</h3>
+                      <h3 className="font-bold text-sm text-[rgb(var(--foreground))] leading-snug">{coach.name}</h3>
                       <p className={`text-xs font-medium ${coach.accent} mt-0.5`}>{coach.role}</p>
                     </div>
                     <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full ${coach.accentBg} ${coach.accent} border ${coach.border} flex-shrink-0`}>
@@ -177,6 +177,45 @@ export function AcademyClient() {
                 </motion.div>
               ))}
             </motion.div>
+          </div>
+        </div>
+      </div>
+
+      {/* Coaches — mobile only (desktop shows in hero) */}
+      <div className="lg:hidden border-t border-[rgb(var(--border))]">
+        <div className="container-uha py-10">
+          <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-5 text-center">{t("coaches_title")}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {COACHES.map((coach, i) => (
+              <motion.div
+                key={`mobile-${coach.name}`}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className={`relative overflow-hidden rounded-2xl border ${coach.border} bg-gradient-to-br ${coach.gradient} p-5`}
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-11 h-11 rounded-xl ${coach.accentBg} border ${coach.border} flex items-center justify-center text-xl flex-shrink-0`}>
+                    {coach.flag}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-sm text-[rgb(var(--foreground))] leading-snug">{coach.name}</h3>
+                    <p className={`text-xs font-medium ${coach.accent} mt-0.5`}>{coach.role}</p>
+                  </div>
+                </div>
+                <p className="text-[rgb(var(--muted))] text-xs leading-relaxed mb-3">{coach.bio}</p>
+                <div className="grid grid-cols-3 gap-2 pt-3 border-t border-white/10">
+                  {coach.stats.map(s => (
+                    <div key={s.label} className="text-center">
+                      <p className={`font-black text-sm ${coach.accent}`}>{s.value}</p>
+                      <p className="text-[rgb(var(--muted))] text-[9px] uppercase tracking-wider mt-0.5">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className={`absolute -bottom-8 -right-8 w-32 h-32 rounded-full blur-3xl opacity-15 bg-current ${coach.accent}`} />
+              </motion.div>
+            ))}
           </div>
         </div>
       </div>

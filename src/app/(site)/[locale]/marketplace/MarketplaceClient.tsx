@@ -22,10 +22,15 @@ export function MarketplaceClient() {
   const customProds = useCustomProducts(s => s.products);
   const metaMap     = useProductMeta(s => s.meta);
 
-  // Custom products override static ones with same ID or slug; hide deleted products
+  // Normalize product name for fuzzy deduplication
+  // "NikeG.T. Cut 3 Turbo EP College Navy Mystic Navy" → "nikegt3turboepcollegenavy..."
+  const normName = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  // Custom products override static ones with same ID, slug, or similar name; hide deleted products
   const allProducts = useMemo(() => {
     const customIds   = new Set(customProds.map(p => p.id));
     const customSlugs = new Set(customProds.map(p => p.slug));
+    const customNorms = customProds.map(p => normName(p.name));
     const deletedIds  = new Set(Object.entries(metaMap).filter(([, m]) => m.isDeleted).map(([id]) => id));
 
     // Deduplicate customProds itself by slug (keep last occurrence)
@@ -36,9 +41,22 @@ export function MarketplaceClient() {
       return true;
     }).reverse();
 
+    // Check if static product name is contained in (or contains) any Firestore product name
+    const isNameDuplicate = (name: string) => {
+      const norm = normName(name);
+      return norm.length > 8 && customNorms.some(cn =>
+        cn.length > 8 && (cn.includes(norm) || norm.includes(cn))
+      );
+    };
+
     const merged = [
       ...dedupedCustom.filter(p => !deletedIds.has(p.id)),
-      ...staticProducts.filter(p => !customIds.has(p.id) && !customSlugs.has(p.slug) && !deletedIds.has(p.id)),
+      ...staticProducts.filter(p =>
+        !customIds.has(p.id) &&
+        !customSlugs.has(p.slug) &&
+        !isNameDuplicate(p.name) &&
+        !deletedIds.has(p.id)
+      ),
     ];
     // Apply isFeatured overrides from meta
     return merged.map(p => ({
