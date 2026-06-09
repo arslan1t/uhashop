@@ -167,7 +167,7 @@ export const ProductCard = memo(function ProductCard({ product, priority = false
               {displayVersion === "replica" && product.replicaPrice ? (
                 <>
                   <span className="text-base font-bold text-purple-400">{formatPrice(product.replicaPrice)}</span>
-                  <span className="ml-1.5 text-[10px] font-bold text-purple-400/60 uppercase tracking-wider">Replica</span>
+                  <span className="ml-1.5 text-[10px] font-bold text-purple-400/60 uppercase tracking-wider">Реплика</span>
                 </>
               ) : (
                 <>
@@ -229,7 +229,7 @@ export const ProductCard = memo(function ProductCard({ product, priority = false
                           : "bg-[rgb(var(--accent)/0.15)] text-[rgb(var(--accent))] border border-[rgb(var(--accent)/0.3)]"
                         : "bg-[rgb(var(--surface-2))] text-[rgb(var(--muted))] border border-[rgb(var(--border))] hover:text-[rgb(var(--foreground))]"
                     }`}>
-                    {v === "original" ? `Оригинал ${formatPrice(product.price)}` : `Replica ${formatPrice(product.replicaPrice!)}`}
+                    {v === "original" ? `Оригинал ${formatPrice(product.price)}` : `Реплика ${formatPrice(product.replicaPrice!)}`}
                   </button>
                 ))}
               </div>

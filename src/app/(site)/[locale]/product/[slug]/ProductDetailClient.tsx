@@ -223,7 +223,7 @@ export function ProductDetailClient({ product }: Props) {
                           : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))]"
                       }`}>
                       <span className="text-xs font-bold uppercase tracking-widest mb-1">
-                        {v === "original" ? "Original" : "Replica"}
+                        {v === "original" ? "Оригинал" : "Реплика"}
                       </span>
                       <span className="text-xl font-bold">
                         {formatPrice(price)}
@@ -248,7 +248,7 @@ export function ProductDetailClient({ product }: Props) {
               </motion.span>
               {version === "replica" && product.replicaPrice && (
                 <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-bold rounded-full border border-emerald-500/20">
-                  -{Math.round((1 - product.replicaPrice / product.price) * 100)}% vs Original
+                  -{Math.round((1 - product.replicaPrice / product.price) * 100)}% vs Оригинал
                 </span>
               )}
             </div>
@@ -332,7 +332,7 @@ export function ProductDetailClient({ product }: Props) {
             <div className="grid grid-cols-3 gap-2">
               {[
                 { icon: Clock,   label: t("delivery"),       value: activeDelivery },
-                { icon: Package, label: version === "replica" ? "Replica" : "Original", value: version === "replica" ? "Реплика" : "Оригинал" },
+                { icon: Package, label: version === "replica" ? "Реплика" : "Оригинал", value: version === "replica" ? "Реплика" : "Оригинал" },
                 { icon: Shield,  label: "Гарантия",          value: "Фото при отправке" },
               ].map(({ icon: Icon, label, value }) => (
                 <div key={label}
