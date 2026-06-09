@@ -116,7 +116,15 @@ export default function AdminProductsPage() {
   };
 
   const toggleStatus = (id: string) => {
-    if (customProds.some(c => c.id === id)) return; // custom products always published for now
+    // Custom products: toggle via updateCustom + meta store (M-3 fix)
+    const customProd = customProds.find(c => c.id === id);
+    if (customProd) {
+      const newStatus = (customProd.status ?? "published") === "published" ? "draft" : "published";
+      updateCustom(id, { status: newStatus });
+      setStatus(id, newStatus as "published" | "draft");
+      return;
+    }
+    // Static products
     const cur = staticProducts.find(p => p.id === id);
     const newStatus = cur?.status === "published" ? "draft" as const : "published" as const;
     setStatus(id, newStatus);
@@ -128,7 +136,8 @@ export default function AdminProductsPage() {
     apparelSizes?: Record<string, boolean>;
     descriptionRu?: string;
     replicaDelivery?: string;
-    image?: string; // uploaded main image path
+    image?: string;
+    style?: "basketball" | "lifestyle";
   }) => {
     const product = buildProductFromForm({
       nameRu: data.nameRu ?? "",
@@ -138,8 +147,9 @@ export default function AdminProductsPage() {
       type: data.type ?? "preorder",
       status: data.status ?? "published",
       badge: data.badge ?? "",
+      style: data.style,
       isFeatured: data.isFeatured ?? false,
-      estimatedDelivery: data.estimatedDelivery ?? "14–21 дней",
+      estimatedDelivery: data.estimatedDelivery ?? "7–14 дней",
       price: data.price ?? 0,
       replicaPrice: data.replicaPrice,
       replicaDelivery: data.replicaDelivery,
@@ -147,7 +157,7 @@ export default function AdminProductsPage() {
       descriptionRu: data.descriptionRu ?? "",
       shoeSizes: data.shoeSizes ?? {},
       apparelSizes: data.apparelSizes ?? {},
-      image: data.image, // ← was missing — the uploaded image path
+      image: data.image,
     });
     addProduct(product);
     setShowAddModal(false);
@@ -160,6 +170,7 @@ export default function AdminProductsPage() {
     descriptionRu?: string;
     replicaDelivery?: string;
     image?: string;
+    style?: "basketball" | "lifestyle";
   }) => {
     if (!selectedProduct) return;
 
@@ -175,6 +186,7 @@ export default function AdminProductsPage() {
         brand:            (data.brand as Product["brand"]) ?? cur.brand,
         category:         (data.category as Product["category"]) ?? cur.category,
         type:             (data.type as Product["type"]) ?? cur.type,
+        style:            data.style            ?? cur.style,
         price:            data.price            ?? cur.price,
         replicaPrice:     data.replicaPrice     ?? cur.replicaPrice,
         estimatedDelivery:data.estimatedDelivery?? cur.estimatedDelivery,
@@ -205,6 +217,7 @@ export default function AdminProductsPage() {
         type:              (data.type as string) ?? staticProd.type,
         status:            "published",
         badge:             data.badge            ?? staticProd.badge ?? "",
+        style:             data.style,
         isFeatured:        data.isFeatured       ?? staticProd.isFeatured ?? false,
         estimatedDelivery: data.estimatedDelivery?? staticProd.estimatedDelivery,
         price:             data.price            ?? staticProd.price,
