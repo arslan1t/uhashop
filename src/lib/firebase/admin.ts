@@ -35,8 +35,22 @@ function getAdminApp(): App {
   });
 }
 
+let _db: Firestore | null = null;
+
 export function getAdminDb(): Firestore {
-  return getFirestore(getAdminApp());
+  if (_db) return _db;
+  const db = getFirestore(getAdminApp());
+  // CRITICAL: without this, saving a product that has any `undefined` field
+  // (e.g. a ball with no replicaPrice/style/badge) makes .set() THROW
+  // "Cannot use undefined as a Firestore value" → write silently fails →
+  // product only lives in localStorage and never syncs to other devices.
+  try {
+    db.settings({ ignoreUndefinedProperties: true });
+  } catch {
+    // settings() may only be called once per Firestore instance — safe to ignore
+  }
+  _db = db;
+  return _db;
 }
 
 export function getAdminStorage(): Storage {

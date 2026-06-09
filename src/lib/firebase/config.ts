@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { initializeApp, getApps, getApp, type FirebaseApp } from "firebase/app";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { initializeFirestore, getFirestore, type Firestore } from "firebase/firestore";
 import { getAuth, type Auth } from "firebase/auth";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 
@@ -46,7 +46,15 @@ function getFirebaseApp(): FirebaseApp {
 export function getFirebaseInstances() {
   if (!_app) {
     _app = getFirebaseApp();
-    _db  = getFirestore(_app);
+    // ignoreUndefinedProperties: drop undefined fields instead of throwing
+    // "Unsupported field value: undefined" — protects every client write
+    // (products, overrides, meta) from failing to sync.
+    try {
+      _db = initializeFirestore(_app, { ignoreUndefinedProperties: true });
+    } catch {
+      // Already started (e.g. dev hot-reload) — fall back to the existing instance
+      _db = getFirestore(_app);
+    }
     _auth = getAuth(_app);
     _storage = getStorage(_app);
   }
