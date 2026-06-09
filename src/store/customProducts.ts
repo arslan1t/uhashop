@@ -133,6 +133,7 @@ export function buildProductFromForm(data: {
   replicaDelivery?: string;
   stock?: number;
   descriptionRu?: string;
+  tags?: string[];
   shoeSizes: Record<number, boolean>;
   apparelSizes: Record<string, boolean>;
   mainImage?: string;
@@ -176,7 +177,9 @@ export function buildProductFromForm(data: {
     sizes: sizes as Product["sizes"],
     estimatedDelivery: data.estimatedDelivery,
     badge: (data.badge as Product["badge"]) || undefined,
-    tags: [data.brand.toLowerCase(), data.category, data.nameRu.toLowerCase()],
+    tags: data.tags?.length
+      ? data.tags
+      : [data.brand.toLowerCase(), data.category, data.nameRu.toLowerCase()],
     descriptionRu: data.descriptionRu || data.nameRu,
     descriptionUz: data.nameRu,
     inStock: data.stock || undefined,
