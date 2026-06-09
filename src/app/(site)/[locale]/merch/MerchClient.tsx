@@ -34,7 +34,7 @@ export function MerchClient() {
             <motion.div initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.6 }}>
               <span className="text-xs font-bold uppercase tracking-[0.35em] text-[rgb(var(--accent))] block mb-6">
-                Original Collection · In Stock
+                Оригинальная коллекция · В наличии
               </span>
               <h1 className="font-display text-[clamp(2rem,6vw,5rem)] tracking-tight leading-[1.05] text-[rgb(var(--foreground))] mb-6">
                 UHA<br />
@@ -47,7 +47,7 @@ export function MerchClient() {
                 {[
                   { icon: Package, label: "Всё в наличии" },
                   { icon: Zap,     label: "Быстрая отправка" },
-                  { icon: Star,    label: "UHA Original" },
+                  { icon: Star,    label: "UHA Оригинал" },
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} className="flex items-center gap-2.5 text-sm text-[rgb(var(--muted))]">
                     <Icon className="w-4 h-4 text-[rgb(var(--accent))]" />

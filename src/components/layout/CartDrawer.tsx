@@ -162,11 +162,11 @@ export function CartDrawer() {
                           <span className="text-xs bg-[rgb(var(--surface-2))] px-2 py-0.5 rounded-full font-medium">{item.size}</span>
                           <span className="text-[rgb(var(--border))]">·</span>
                           <span className={`text-xs font-bold ${item.version === "replica" ? "text-purple-400" : "text-emerald-400"}`}>
-                            {item.version === "replica" ? "Replica" : "Original"}
+                            {item.version === "replica" ? "Реплика" : "Оригинал"}
                           </span>
                           {item.product.type === "preorder" && (
                             <><span className="text-[rgb(var(--border))]">·</span>
-                            <span className="text-xs text-[rgb(var(--accent))] font-medium">Preorder</span></>
+                            <span className="text-xs text-[rgb(var(--accent))] font-medium">{t("preorder_badge")}</span></>
                           )}
                         </div>
 

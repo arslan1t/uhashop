@@ -88,7 +88,7 @@ export default function CartPage() {
                         {item.product.type === "preorder" && (
                           <>
                             <span className="text-[rgb(var(--border))]">·</span>
-                            <span className="text-xs text-[rgb(var(--accent))] font-medium">Preorder • {item.product.estimatedDelivery}</span>
+                            <span className="text-xs text-[rgb(var(--accent))] font-medium">{t("preorder_badge")} • {item.product.estimatedDelivery}</span>
                           </>
                         )}
                       </div>

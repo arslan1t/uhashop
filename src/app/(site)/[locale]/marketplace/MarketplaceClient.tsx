@@ -202,7 +202,7 @@ export function MarketplaceClient() {
         <div className="container-uha py-12 md:py-16">
           <div className="flex items-center gap-3 mb-2">
             <span className="text-xs font-semibold uppercase tracking-[0.25em] text-[rgb(var(--accent))]">
-              Preorder Marketplace
+              Маркетплейс предзаказов
             </span>
           </div>
           <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl tracking-wide mb-3">
