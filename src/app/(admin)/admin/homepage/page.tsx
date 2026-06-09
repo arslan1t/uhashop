@@ -8,6 +8,7 @@ import { adminProducts } from "@/data/adminData";
 import { useProductMeta } from "@/store/productMeta";
 import { useProductOverrides } from "@/store/productOverrides";
 import { useCustomProducts } from "@/store/customProducts";
+import { useHeroContent } from "@/store/heroContent";
 
 const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
 
@@ -15,6 +16,20 @@ export default function AdminHomepagePage() {
   const { featuredOrder, setFeaturedOrder, setFeatured, meta: savedMeta } = useProductMeta();
   const overrides = useProductOverrides(s => s.overrides);
   const customProds = useCustomProducts(s => s.products);
+  const { hero, setHero, setStat } = useHeroContent();
+
+  // Local draft so hero changes only persist on Save
+  const [heroDraft, setHeroDraft] = useState({ ...hero });
+  const setHeroField =
+    (key: keyof typeof heroDraft) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setHeroDraft((prev) => ({ ...prev, [key]: e.target.value }));
+  const setStatDraft = (i: number) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const stats = [...heroDraft.stats] as typeof heroDraft.stats;
+      stats[i as 0 | 1 | 2 | 3] = e.target.value;
+      setHeroDraft((prev) => ({ ...prev, stats }));
+    };
 
   // Convert custom products to AdminProduct-like shape for display
   const customAsAdmin = customProds.map(p => ({
@@ -56,12 +71,15 @@ export default function AdminHomepagePage() {
   const remove = (id: string) => setFeaturedList(prev => prev.filter(p => p.id !== id));
 
   const handleSave = () => {
+    const featuredIds = new Set(featuredList.map(f => f.id));
     // Save ordered IDs to persistent store
     setFeaturedOrder(featuredList.map(p => p.id));
-    // Sync isFeatured meta for each product
-    adminProducts.forEach(p => {
-      setFeatured(p.id, featuredList.some(f => f.id === p.id));
+    // Sync isFeatured meta for ALL products (static + custom) — M-14 fix
+    allAdminProducts.forEach(p => {
+      setFeatured(p.id, featuredIds.has(p.id));
     });
+    // Persist hero content (H-4 fix)
+    setHero(heroDraft);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -85,30 +103,30 @@ export default function AdminHomepagePage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-semibold text-[#555] uppercase tracking-wider mb-1.5">Бейдж (RU)</label>
-                <input defaultValue="Basketball Ecosystem" className={inputCls} />
+                <input value={heroDraft.badgeRu} onChange={setHeroField("badgeRu")} className={inputCls} />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-[#555] uppercase tracking-wider mb-1.5">Бейдж (UZ)</label>
-                <input defaultValue="Basketball Ecosystem" className={inputCls} />
+                <input value={heroDraft.badgeUz} onChange={setHeroField("badgeUz")} className={inputCls} />
               </div>
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-[#555] uppercase tracking-wider mb-1.5">Заголовок (RU)</label>
-              <input defaultValue="Новая эра баскетбольной культуры" className={inputCls} />
+              <input value={heroDraft.titleRu} onChange={setHeroField("titleRu")} className={inputCls} />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-[#555] uppercase tracking-wider mb-1.5">Заголовок (UZ)</label>
-              <input defaultValue="Basketbol madaniyatining yangi davri" className={inputCls} />
+              <input value={heroDraft.titleUz} onChange={setHeroField("titleUz")} className={inputCls} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[10px] font-semibold text-[#555] uppercase tracking-wider mb-1.5">Описание (RU)</label>
-                <textarea rows={3} defaultValue="Эксклюзивные кроссовки, одежда и мерч — только для тех, кто живёт баскетболом."
+                <textarea rows={3} value={heroDraft.descRu} onChange={setHeroField("descRu")}
                   className={`${inputCls} resize-none h-auto py-2.5`} />
               </div>
               <div>
                 <label className="block text-[10px] font-semibold text-[#555] uppercase tracking-wider mb-1.5">Описание (UZ)</label>
-                <textarea rows={3} defaultValue="Ekskluziv krossovkalar, kiyimlar va merch — faqat basketbol bilan yashaydigan uchun."
+                <textarea rows={3} value={heroDraft.descUz} onChange={setHeroField("descUz")}
                   className={`${inputCls} resize-none h-auto py-2.5`} />
               </div>
             </div>
@@ -178,8 +196,8 @@ export default function AdminHomepagePage() {
             <h3 className="text-white font-semibold text-sm">Блок статистики (Hero)</h3>
           </div>
           <div className="p-5 grid grid-cols-2 gap-4">
-            {["200+ Брендов", "7–14 Дней доставки", "1000+ Позиций", "📷 Поиск по фото"].map((stat, i) => (
-              <input key={i} defaultValue={stat} className={inputCls} />
+            {heroDraft.stats.map((stat, i) => (
+              <input key={i} value={stat} onChange={setStatDraft(i)} className={inputCls} />
             ))}
           </div>
         </div>

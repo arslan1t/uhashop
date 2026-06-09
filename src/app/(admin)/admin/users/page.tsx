@@ -35,9 +35,7 @@ export default function AdminUsersPage() {
     try {
       const res = await fetch("/api/admin/users");
       const data = await res.json();
-      if (data.error === "table_not_found") {
-        setError("table_not_found");
-      } else if (data.error) {
+      if (data.error) {
         setError(data.error);
       } else {
         setShopUsers(data.users || []);

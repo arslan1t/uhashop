@@ -7,7 +7,7 @@ import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react";
 import { useAdminStore } from "@/store/admin";
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState("admin@uhashop.uz");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
@@ -99,7 +99,7 @@ export default function AdminLoginPage() {
           </form>
 
           <div className="mt-6 pt-5 border-t border-[#1a1a1a]">
-            <p className="text-[#2e2e2e] text-[11px] text-center">admin@uhashop.uz · uha2024admin</p>
+            <p className="text-[#2e2e2e] text-[11px] text-center">UHA Shop Admin Panel</p>
           </div>
         </div>
       </motion.div>

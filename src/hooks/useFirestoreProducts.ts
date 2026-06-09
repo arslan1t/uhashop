@@ -5,14 +5,15 @@ import { useCustomProducts } from "@/store/customProducts";
 import { useProductOverrides } from "@/store/productOverrides";
 import { useProductMeta } from "@/store/productMeta";
 import { isFirebaseConfigured } from "@/lib/firebase/config";
+import type { Product } from "@/types";
 
 /**
  * Subscribes to Firestore "shop_products" and keeps Zustand in sync.
  *
  * Logic:
  * 1. On mount: if localStorage has products not yet in Firestore → migrate them up
- * 2. Firestore subscription: MERGE incoming products with local ones
- *    (Firestore wins for same ID, keeps local-only products too)
+ * 2. Firestore subscription: MERGE — Firestore wins for same ID, local-only products preserved
+ *    (prevents race condition where async save hasn't completed yet)
  * 3. Never wipe the store with an empty Firestore response
  */
 export function useFirestoreProducts() {
@@ -23,7 +24,12 @@ export function useFirestoreProducts() {
   const localProducts      = useCustomProducts(s => s.products);
   const mergeOverrides     = useProductOverrides(s => s.mergeOverrides);
   const mergeMeta          = useProductMeta(s => s.mergeMeta);
+  const meta               = useProductMeta(s => s.meta);
   const migrated           = useRef(false);
+
+  // Always-fresh meta ref — the onSnapshot callback can't directly close over reactive state
+  const metaRef = useRef(meta);
+  metaRef.current = meta;
 
   const MIGRATION_DONE_KEY = "uha-firestore-migrated-v2";
 
@@ -59,13 +65,23 @@ export function useFirestoreProducts() {
     import("@/lib/firebase/productFirestore").then(({ subscribeToProducts }) => {
       unsubscribe = subscribeToProducts((firestoreProducts) => {
         if (firstFire && firestoreProducts.length === 0) {
-          // Firestore is empty on first fire → wait for migration to populate it
+          // Firestore empty on first fire → keep local (migration may not be done yet)
           firstFire = false;
           return;
         }
         firstFire = false;
-        // Firestore is authoritative: replace local completely
-        setProducts(firestoreProducts);
+
+        // MERGE: Firestore wins for same ID, preserve pending-local,
+        // but exclude products marked as deleted in local meta (fix delete race condition)
+        setProducts((prev: Product[]) => {
+          const firestoreIds = new Set(firestoreProducts.map((p: Product) => p.id));
+          const pendingLocal = prev.filter((p: Product) => !firestoreIds.has(p.id));
+          // Filter out Firestore products already deleted locally (before Firestore confirms)
+          const filteredFirestore = firestoreProducts.filter(
+            (p: Product) => !metaRef.current[p.id]?.isDeleted
+          );
+          return [...filteredFirestore, ...pendingLocal];
+        });
         setFirestoreSynced();
       });
     }).catch(console.error);

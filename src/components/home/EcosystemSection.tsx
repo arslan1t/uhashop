@@ -24,8 +24,8 @@ const ECOSYSTEM = [
   {
     icon: Trophy,
     key: "league",
-    href: "/league-coming-soon",
-    active: false,
+    href: "/league",
+    active: true,
     accent: "#f59e0b",
   },
   {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShoppingBag, Trash2, Plus, Minus, ArrowRight, ArrowLeft } from "lucide-react";
@@ -103,7 +103,11 @@ export default function CartPage() {
                             <Plus className="w-3 h-3" />
                           </button>
                         </div>
-                        <span className="font-bold text-lg">{formatPrice(item.product.price * item.quantity)}</span>
+                        <span className="font-bold text-lg">{formatPrice(
+                          (item.version === "replica" && item.product.replicaPrice
+                            ? item.product.replicaPrice
+                            : item.product.price) * item.quantity
+                        )}</span>
                       </div>
                     </div>
                   </motion.div>

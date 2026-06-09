@@ -1,12 +1,40 @@
 /**
  * Store for admin-created products.
- * Synced with Firebase Firestore — changes visible on ALL devices in real time.
- * Falls back to localStorage if Firebase is not configured.
+ * Synced with Firebase Firestore via server-side API route (/api/admin/products).
+ * Changes are visible on ALL devices in real time.
  */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Product, ProductBrand, ProductCategory, ProductType } from "@/types";
-import { isFirebaseConfigured } from "@/lib/firebase/config";
+import type { Product, ProductBrand, ProductCategory, ProductType, ProductStyle } from "@/types";
+import { safeStorage } from "@/lib/storage";
+
+const TOKEN_KEY = "uha-admin-token";
+function getAdminToken() { return safeStorage.getItem(TOKEN_KEY) ?? ""; }
+
+/** Save a product via server-side API (reliable — works regardless of client Firebase init) */
+async function apiSaveProduct(product: Product): Promise<void> {
+  const res = await fetch("/api/admin/products", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-admin-token": getAdminToken() },
+    body: JSON.stringify(product),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error ?? `HTTP ${res.status}`);
+  }
+}
+
+/** Delete a product via server-side API */
+async function apiDeleteProduct(id: string): Promise<void> {
+  const res = await fetch("/api/admin/products", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json", "x-admin-token": getAdminToken() },
+    body: JSON.stringify({ id }),
+  });
+  if (!res.ok && res.status !== 404) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+}
 
 interface CustomProductsStore {
   products: Product[];
@@ -39,11 +67,11 @@ export const useCustomProducts = create<CustomProductsStore>()(
 
       addProduct: (p) => {
         set((state) => ({ products: [...state.products, p] }));
-        // Sync to Firestore if configured
-        if (typeof window !== "undefined" && isFirebaseConfigured()) {
-          import("@/lib/firebase/productFirestore").then(({ saveProductToFirestore }) => {
-            saveProductToFirestore(p).catch(console.error);
-          });
+        // Reliable server-side save — works on all devices
+        if (typeof window !== "undefined") {
+          apiSaveProduct(p).catch(err =>
+            console.error("[UHA] Product save failed:", err)
+          );
         }
       },
 
@@ -53,13 +81,13 @@ export const useCustomProducts = create<CustomProductsStore>()(
             p.id === id ? { ...p, ...data } : p
           ),
         }));
-        // Sync to Firestore
-        if (typeof window !== "undefined" && isFirebaseConfigured()) {
+        // Sync updated product to Firestore
+        if (typeof window !== "undefined") {
           const updated = get().products.find(p => p.id === id);
           if (updated) {
-            import("@/lib/firebase/productFirestore").then(({ saveProductToFirestore }) => {
-              saveProductToFirestore(updated).catch(console.error);
-            });
+            apiSaveProduct({ ...updated, ...data }).catch(err =>
+              console.error("[UHA] Product update failed:", err)
+            );
           }
         }
       },
@@ -68,11 +96,11 @@ export const useCustomProducts = create<CustomProductsStore>()(
         set((state) => ({
           products: state.products.filter((p) => p.id !== id),
         }));
-        // Delete from Firestore
-        if (typeof window !== "undefined" && isFirebaseConfigured()) {
-          import("@/lib/firebase/productFirestore").then(({ deleteProductFromFirestore }) => {
-            deleteProductFromFirestore(id).catch(console.error);
-          });
+        // Delete from Firestore via API
+        if (typeof window !== "undefined") {
+          apiDeleteProduct(id).catch(err =>
+            console.error("[UHA] Product delete failed:", err)
+          );
         }
       },
 
@@ -97,6 +125,7 @@ export function buildProductFromForm(data: {
   type: string;
   status: string;
   badge?: string;
+  style?: ProductStyle;
   isFeatured: boolean;
   estimatedDelivery: string;
   price: number;
@@ -137,6 +166,7 @@ export function buildProductFromForm(data: {
     brand: data.brand as ProductBrand,
     category: data.category as ProductCategory,
     type: data.type as ProductType,
+    style: data.style || undefined,
     price: data.price,
     replicaPrice: data.replicaPrice || undefined,
     replicaDelivery: data.replicaDelivery || undefined,
