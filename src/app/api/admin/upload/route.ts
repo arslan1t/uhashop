@@ -1,44 +1,52 @@
 /**
- * Product image upload — saves to Firebase Storage (permanent, cross-device).
- * Returns Firebase Storage download URLs.
+ * Product / media image upload — uses Firebase Admin Storage SDK.
+ * Returns permanent Firebase Storage download URLs (token-based, no public ACL needed).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-
-function getFirebaseStorageServer() {
-  const cfg = {
-    apiKey:            process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
-    authDomain:        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
-    projectId:         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
-    storageBucket:     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "",
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "",
-    appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
-  };
-  const app = getApps().length > 0 ? getApp() : initializeApp(cfg);
-  return getStorage(app);
-}
+import { randomUUID } from "crypto";
+import { getAdminStorage } from "@/lib/firebase/admin";
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const slug  = formData.get("slug") as string;
-    const files = formData.getAll("files") as File[];
+    const slug     = formData.get("slug") as string | null;
+    const files    = formData.getAll("files") as File[];
 
     if (!slug || !files.length) {
-      return NextResponse.json({ error: "slug and files required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "slug and files are required" },
+        { status: 400 }
+      );
     }
 
-    const storage = getFirebaseStorageServer();
+    const storage = getAdminStorage();
+    const bucket  = storage.bucket();
     const urls: string[] = [];
 
     for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const file   = files[i];
+      const ext    = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const path   = `product-images/${slug}/${i + 1}.${ext}`;
       const buffer = Buffer.from(await file.arrayBuffer());
-      const storageRef = ref(storage, `product-images/${slug}/${i + 1}.${ext}`);
-      await uploadBytes(storageRef, buffer, { contentType: file.type || "image/jpeg" });
-      const url = await getDownloadURL(storageRef);
+
+      // Generate a permanent download token — this works regardless of bucket
+      // access policy (Uniform or Fine-grained) and without Firebase Storage rules changes.
+      const downloadToken = randomUUID();
+
+      const fileRef = bucket.file(path);
+      await fileRef.save(buffer, {
+        metadata: {
+          contentType: file.type || "image/jpeg",
+          // Embedding token makes the file permanently accessible via Firebase URL
+          metadata: {
+            firebaseStorageDownloadTokens: downloadToken,
+          },
+        },
+      });
+
+      // Permanent Firebase Storage download URL (no expiry, no public ACL required)
+      const encodedPath = encodeURIComponent(path);
+      const url = `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encodedPath}?alt=media&token=${downloadToken}`;
       urls.push(url);
     }
 

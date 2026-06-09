@@ -1,9 +1,20 @@
-export type ProductCategory = "shoes" | "apparel" | "accessories" | "merch";
+export type ProductCategory =
+  | "shoes"
+  | "apparel"
+  | "accessories"
+  | "backpacks"
+  | "jerseys"
+  | "socks"
+  | "sets"
+  | "thermals"
+  | "merch";    // kept for backward compatibility with existing products
 export type ProductStyle = "basketball" | "lifestyle";
 export type ProductBrand =
   | "Nike" | "Jordan" | "Adidas" | "Li-Ning" | "Anta"
   | "Travis Scott" | "UHA" | "Fear of God" | "Stussy"
-  | "Supreme" | "KAWS" | "Vlone";
+  | "Supreme" | "KAWS" | "Vlone"
+  | "Wilson" | "Spalding" | "Molten"  // ball brands
+  | (string & {});  // allows custom admin-added brands without losing autocomplete
 export type ProductType = "preorder" | "in_stock";
 export type SortOption = "popular" | "price_asc" | "price_desc" | "new";
 export type ProductVersion = "original" | "replica";
@@ -45,6 +56,7 @@ export interface Product {
   sku: string;
   isFeatured?: boolean;
   isNew?: boolean;
+  status?: "published" | "draft";
 }
 
 export interface CartItem {
@@ -54,12 +66,4 @@ export interface CartItem {
   version: ProductVersion;
 }
 
-export interface FilterState {
-  brand: string;
-  category: string;
-  size: string;
-  minPrice: number;
-  maxPrice: number;
-  sort: SortOption;
-  search: string;
-}
+// FilterState is defined and exported from @/components/ui/FilterBar — do not duplicate here.
