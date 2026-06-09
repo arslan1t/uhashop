@@ -11,6 +11,7 @@ import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 import { getMarketplaceProducts } from "@/data/products";
 import { useCustomProducts } from "@/store/customProducts";
 import { useProductMeta } from "@/store/productMeta";
+import type { ProductCategory } from "@/types";
 
 const staticProducts = getMarketplaceProducts();
 
@@ -73,7 +74,17 @@ export function MarketplaceClient() {
 
   // Derived lists for filter options
   const BRANDS = useMemo(() => [...new Set(allProducts.map(p => p.brand))].sort(), [allProducts]);
-  const CATEGORIES = useMemo(() => [...new Set(allProducts.map(p => p.category))].filter(c => c !== "merch"), [allProducts]);
+  // Always show all standard categories regardless of product availability
+  const STANDARD_CATEGORIES: ProductCategory[] = [
+    "shoes", "apparel", "accessories", "backpacks", "jerseys", "socks", "sets", "thermals",
+  ];
+  const CATEGORIES = useMemo(() => {
+    const fromProducts = new Set(allProducts.map(p => p.category));
+    // Merge: standard order first, then any extra from products (excl. merch)
+    const extra = [...fromProducts].filter(c => c !== "merch" && !STANDARD_CATEGORIES.includes(c as ProductCategory));
+    return [...STANDARD_CATEGORIES, ...extra] as ProductCategory[];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allProducts]);
 
   // All EU sizes across all products
   const ALL_SIZES = useMemo(() => {
@@ -92,16 +103,18 @@ export function MarketplaceClient() {
     return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))];
   }, [allProducts]);
 
-  const defaultFilter: FilterState = {
+  // M-6 fix: use useMemo so defaultFilter is not recreated every render
+  const defaultFilter = useMemo<FilterState>(() => ({
     search: "", brand: "",
     category: initCategory,
     style: initStyle,
     version: "all", stockType: "all",
     priceMin: PRICE_RANGE[0], priceMax: PRICE_RANGE[1],
     size: "", sort: "popular",
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [PRICE_RANGE[0], PRICE_RANGE[1]]);
 
-  const [filters, setFilters] = useState<FilterState>(defaultFilter);
+  const [filters, setFilters] = useState<FilterState>(() => defaultFilter);
 
   const updateFilter = (patch: Partial<FilterState>) =>
     setFilters(f => ({ ...f, ...patch }));
@@ -211,6 +224,38 @@ export function MarketplaceClient() {
       </div>
 
       <div className="container-uha py-8">
+
+        {/* ── Quick category chips ── */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {[
+            { label: "Все товары",    emoji: "🔍", value: "" },
+            { label: "Кроссовки",     emoji: "👟", value: "shoes" },
+            { label: "Одежда",        emoji: "🧤", value: "apparel" },
+            { label: "Аксессуары",    emoji: "💎", value: "accessories" },
+            { label: "Рюкзаки",       emoji: "🎒", value: "backpacks" },
+            { label: "Джерси",        emoji: "🏀", value: "jerseys" },
+            { label: "Носки",         emoji: "🧦", value: "socks" },
+            { label: "Комплекты",     emoji: "📦", value: "sets" },
+            { label: "Термо бельё",   emoji: "🌡️", value: "thermals" },
+          ].map(chip => {
+            const active = filters.category === chip.value;
+            return (
+              <button
+                key={chip.value}
+                onClick={() => updateFilter({ category: chip.value })}
+                className={`flex items-center gap-1.5 h-9 px-4 rounded-xl text-sm font-semibold border transition-all ${
+                  active
+                    ? "bg-[rgb(var(--accent))] border-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent)/0.25)]"
+                    : "bg-[rgb(var(--surface))] border-[rgb(var(--border))] text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:border-[rgb(var(--accent)/0.4)]"
+                }`}
+              >
+                <span>{chip.emoji}</span>
+                <span>{chip.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Filters */}
         <div className="mb-8">
           <FilterBar
