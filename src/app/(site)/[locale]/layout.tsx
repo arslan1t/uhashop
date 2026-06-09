@@ -9,6 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { CartDrawer } from "@/components/layout/CartDrawer";
 import { TelegramWidget } from "@/components/layout/TelegramWidget";
+import { NavigationProgress } from "@/components/ui/NavigationProgress";
 import "../../globals.css";
 
 const unbounded = Unbounded({
@@ -103,6 +104,7 @@ export default async function LocaleLayout({
       <body>
         <NextIntlClientProvider messages={messages}>
           <Providers>
+            <NavigationProgress />
             <Navbar />
             <CartDrawer />
             <main className="min-h-screen pt-16 md:pt-[72px] overflow-x-hidden">{children}</main>
