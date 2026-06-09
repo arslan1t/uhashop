@@ -36,7 +36,7 @@ export default function AdminHomepagePage() {
     id: p.id, slug: p.slug, name: p.name, nameRu: p.nameRu, nameUz: p.nameRu,
     brand: p.brand, category: p.category, price: p.price, replicaPrice: p.replicaPrice,
     status: "published" as const, type: p.type, isFeatured: p.isFeatured ?? false,
-    stock: p.inStock, estimatedDelivery: p.estimatedDelivery ?? "14–21 дней",
+    stock: p.inStock, estimatedDelivery: p.estimatedDelivery ?? "7–14 дней",
     image: p.image, imageCount: 1, createdAt: "", badge: p.badge,
   }));
 

@@ -55,7 +55,7 @@ export const adminProducts: AdminProduct[] = products.map((p) => ({
   type: p.type,
   isFeatured: p.isFeatured ?? false,
   stock: p.inStock,
-  estimatedDelivery: p.estimatedDelivery ?? "14–21 дней",
+  estimatedDelivery: p.estimatedDelivery ?? "7–14 дней",
   replicaDelivery: p.replicaDelivery,
   image: p.image,
   images: p.images,

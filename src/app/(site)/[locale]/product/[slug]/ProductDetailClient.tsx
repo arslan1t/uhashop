@@ -68,7 +68,7 @@ export function ProductDetailClient({ product }: Props) {
     : product.price;
   const activeDelivery = version === "replica" && product.replicaDelivery
     ? product.replicaDelivery
-    : product.estimatedDelivery ?? "14–21 дней";
+    : product.estimatedDelivery ?? "7–14 дней";
 
   const prev = () => setActiveImg((i) => (i - 1 + sortedGallery.length) % sortedGallery.length);
   const next = () => setActiveImg((i) => (i + 1) % sortedGallery.length);
@@ -229,7 +229,7 @@ export function ProductDetailClient({ product }: Props) {
                         {formatPrice(price)}
                       </span>
                       <span className="text-[10px] mt-1 opacity-60">
-                        {delivery ?? "14–21 дней"}
+                        {delivery ?? "7–14 дней"}
                       </span>
                     </button>
                   );
