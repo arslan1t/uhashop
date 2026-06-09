@@ -135,6 +135,7 @@ export default function AdminProductsPage() {
     shoeSizes?: Record<number, boolean>;
     apparelSizes?: Record<string, boolean>;
     descriptionRu?: string;
+    tags?: string[];
     replicaDelivery?: string;
     image?: string;
     style?: "basketball" | "lifestyle";
@@ -155,6 +156,7 @@ export default function AdminProductsPage() {
       replicaDelivery: data.replicaDelivery,
       stock: data.stock,
       descriptionRu: data.descriptionRu ?? "",
+      tags: data.tags,
       shoeSizes: data.shoeSizes ?? {},
       apparelSizes: data.apparelSizes ?? {},
       image: data.image,
@@ -168,6 +170,7 @@ export default function AdminProductsPage() {
     shoeSizes?: Record<number, boolean>;
     apparelSizes?: Record<string, boolean>;
     descriptionRu?: string;
+    tags?: string[];
     replicaDelivery?: string;
     image?: string;
     style?: "basketball" | "lifestyle";
@@ -194,6 +197,7 @@ export default function AdminProductsPage() {
         isFeatured:       data.isFeatured       ?? cur.isFeatured ?? false,
         badge:            (data.badge as Product["badge"]) ?? cur.badge,
         descriptionRu:    data.descriptionRu    ?? cur.descriptionRu,
+        tags:             data.tags             ?? cur.tags,
         ...(data.image && !data.image.startsWith("blob:") ? { image: data.image, images: [data.image] } : {}),
       });
     } else {
@@ -224,6 +228,7 @@ export default function AdminProductsPage() {
         replicaPrice:      data.replicaPrice     ?? staticProd.replicaPrice,
         replicaDelivery:   data.replicaDelivery,
         descriptionRu:     data.descriptionRu    ?? "",
+        tags:              data.tags             ?? staticProd.tags,
         shoeSizes:         data.shoeSizes        ?? {},
         apparelSizes:      data.apparelSizes     ?? {},
         image:             updatedImage,

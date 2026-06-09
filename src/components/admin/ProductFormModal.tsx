@@ -47,7 +47,19 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
   const [delivery, setDelivery] = useState(product?.estimatedDelivery ?? "7–14 дней");
   const [descRu, setDescRu] = useState(product?.descriptionRu ?? "");
+  const [tags, setTags] = useState<string[]>(product?.tags ?? []);
+  const [tagInput, setTagInput] = useState("");
   const [saved, setSaved] = useState(false);
+
+  const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter" && e.key !== ",") return;
+    e.preventDefault();
+    const trimmed = tagInput.trim().toLowerCase();
+    if (!trimmed || tags.includes(trimmed)) { setTagInput(""); return; }
+    setTags(prev => [...prev, trimmed]);
+    setTagInput("");
+  };
+  const removeTag = (tag: string) => setTags(prev => prev.filter(t => t !== tag));
 
   // Override store
   const { setOverride } = useProductOverrides();
@@ -248,6 +260,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
       replicaDelivery,
       stock: stock ? Number(stock) : undefined,
       descriptionRu: descRu,
+      tags,
       shoeSizes,
       apparelSizes,
       // pass the first uploaded image as the main image for new products
@@ -433,6 +446,31 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                   <textarea value={descRu} onChange={e => setDescRu(e.target.value)}
                     rows={3} placeholder="Описание товара..."
                     className={`${CLS} h-auto py-2.5 resize-none`} />
+                </Field>
+                {/* Tags */}
+                <Field label="Теги (для поиска)">
+                  <div className="space-y-2">
+                    {tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {tags.map(tag => (
+                          <span key={tag} className="flex items-center gap-1 px-2.5 py-1 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-[11px] text-[#bbb]">
+                            {tag}
+                            <button type="button" onClick={() => removeTag(tag)}
+                              className="text-[#555] hover:text-red-400 transition-colors ml-0.5">
+                              <X className="w-2.5 h-2.5" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <input
+                      value={tagInput}
+                      onChange={e => setTagInput(e.target.value)}
+                      onKeyDown={addTag}
+                      placeholder="Введите тег → Enter или запятая"
+                      className={CLS}
+                    />
+                  </div>
                 </Field>
                 {/* Featured toggle */}
                 <button onClick={() => setIsFeatured(!isFeatured)}

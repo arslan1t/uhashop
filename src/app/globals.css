@@ -39,6 +39,11 @@
     margin: 0;
   }
 
+  /* iOS Safari: fire click on first tap — eliminates 300ms delay and hover-activation tap */
+  a, button, [role="button"], input, label, select {
+    touch-action: manipulation;
+  }
+
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;

@@ -23,6 +23,7 @@ export interface AdminProduct {
   createdAt: string;
   badge?: string;
   descriptionRu?: string;
+  tags?: string[];
 }
 
 export interface AdminOrder {
