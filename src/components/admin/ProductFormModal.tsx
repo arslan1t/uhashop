@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Star, Upload, Trash2, Check, ImageIcon, GripVertical, CheckCircle2 } from "lucide-react";
 import type { AdminProduct } from "@/data/adminData";
 import { useProductOverrides } from "@/store/productOverrides";
+import { useCustomBrands } from "@/store/customBrands";
 
 const CLS = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
 
@@ -44,12 +45,18 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
   const [badge, setBadge] = useState(product?.badge ?? "");
   const [style, setStyle] = useState<"" | "basketball" | "lifestyle">((product as { style?: "basketball" | "lifestyle" })?.style ?? "");
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
-  const [delivery, setDelivery] = useState(product?.estimatedDelivery ?? "14–21 дней");
+  const [delivery, setDelivery] = useState(product?.estimatedDelivery ?? "7–14 дней");
   const [descRu, setDescRu] = useState(product?.descriptionRu ?? "");
   const [saved, setSaved] = useState(false);
 
   // Override store
   const { setOverride } = useProductOverrides();
+
+  // Custom brands store
+  const { brands: customBrandsList, addBrand: saveNewBrand } = useCustomBrands();
+  const allBrands = [...BRANDS, ...customBrandsList.filter(b => !BRANDS.includes(b))];
+  const [addingBrand, setAddingBrand] = useState(false);
+  const [newBrandInput, setNewBrandInput] = useState("");
 
   // Build full gallery for a product, reading overrides directly from store state
   const buildGallery = (
@@ -327,16 +334,63 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                 </Field>
                 <div className="grid grid-cols-3 gap-3">
                   <Field label="Бренд">
-                    <select value={brand} onChange={e => setBrand(e.target.value)} className={CLS}>
-                      {BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
-                    </select>
+                    {addingBrand ? (
+                      <div className="flex gap-1.5">
+                        <input
+                          autoFocus
+                          value={newBrandInput}
+                          onChange={e => setNewBrandInput(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              const v = newBrandInput.trim();
+                              if (v) { saveNewBrand(v); setBrand(v); }
+                              setAddingBrand(false); setNewBrandInput("");
+                            }
+                            if (e.key === "Escape") { setAddingBrand(false); setNewBrandInput(""); }
+                          }}
+                          placeholder="Wilson"
+                          className={CLS}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const v = newBrandInput.trim();
+                            if (v) { saveNewBrand(v); setBrand(v); }
+                            setAddingBrand(false); setNewBrandInput("");
+                          }}
+                          className="h-10 px-3 bg-[rgb(var(--accent))] text-white rounded-xl text-xs font-bold shrink-0 hover:opacity-90"
+                        >OK</button>
+                        <button
+                          type="button"
+                          onClick={() => { setAddingBrand(false); setNewBrandInput(""); }}
+                          className="h-10 px-3 bg-[#2a2a2a] text-white/50 rounded-xl text-xs shrink-0"
+                        >✕</button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-1.5">
+                        <select value={brand} onChange={e => setBrand(e.target.value)} className={`${CLS} flex-1`}>
+                          {allBrands.map(b => <option key={b} value={b}>{b}</option>)}
+                        </select>
+                        <button
+                          type="button"
+                          title="Добавить новый бренд"
+                          onClick={() => setAddingBrand(true)}
+                          className="h-10 px-3 bg-[#2a2a2a] hover:bg-[#333] text-white/60 hover:text-white rounded-xl text-lg font-bold shrink-0 transition-colors"
+                        >+</button>
+                      </div>
+                    )}
                   </Field>
                   <Field label="Категория">
                     <select value={category} onChange={e => setCategory(e.target.value)} className={CLS}>
-                      <option value="shoes">Кроссовки</option>
-                      <option value="apparel">Одежда</option>
-                      <option value="accessories">Аксессуары</option>
-                      <option value="merch">Мерч</option>
+                      <option value="shoes">👟 Кроссовки</option>
+                      <option value="apparel">🧤 Одежда</option>
+                      <option value="accessories">💎 Аксессуары</option>
+                      <option value="backpacks">🎒 Рюкзаки</option>
+                      <option value="jerseys">🏀 Джерси</option>
+                      <option value="socks">🧦 Носки</option>
+                      <option value="sets">📦 Комплекты</option>
+                      <option value="thermals">🌡️ Термо бельё</option>
                     </select>
                   </Field>
                   <Field label="Тип">
@@ -372,7 +426,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                   </Field>
                   <Field label="Доставка">
                     <input value={delivery} onChange={e => setDelivery(e.target.value)}
-                      placeholder="14–21 дней" className={CLS} />
+                      placeholder="7–14 дней" className={CLS} />
                   </Field>
                 </div>
                 <Field label="Описание RU">
@@ -553,103 +607,122 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
             {tab === "sizes" && (
               <motion.div key="sizes" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                 className="space-y-6">
-                {/* Shoe sizes */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-white text-sm font-semibold">Размеры обуви (EU)</p>
-                    <div className="flex gap-2">
-                      <button onClick={() => {
-                        const all: Record<number, boolean> = {};
-                        SHOE_SIZES.forEach(s => { all[s] = true; });
-                        setShoeSizes(all);
-                      }} className="text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold uppercase tracking-wider">
-                        Все
-                      </button>
-                      <span className="text-[#333]">·</span>
-                      <button onClick={() => {
-                        const none: Record<number, boolean> = {};
-                        SHOE_SIZES.forEach(s => { none[s] = false; });
-                        setShoeSizes(none);
-                      }} className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-wider">
-                        Сбросить
-                      </button>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {SHOE_SIZES.map(size => {
-                      const avail = shoeSizes[size] ?? true;
-                      return (
-                        <button key={size}
-                          onClick={() => setShoeSizes(prev => ({ ...prev, [size]: !prev[size] }))}
-                          className={`w-14 h-10 rounded-xl text-sm font-semibold border-2 transition-all ${
-                            avail
-                              ? "bg-red-800/10 border-red-800/50 text-red-500 hover:bg-red-800/20"
-                              : "bg-[#1a1a1a] border-[#252525] text-[#444] hover:border-[#333] line-through"
-                          }`}>
-                          {size}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <p className="text-[#444] text-xs mt-2">
-                    Оранжевый = в наличии · Серый = нет в наличии (перечёркнуто)
-                  </p>
-                </div>
 
-                {/* Apparel sizes */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <p className="text-white text-sm font-semibold">Размеры одежды</p>
-                    <div className="flex gap-2">
-                      <button onClick={() => {
-                        const all: Record<string, boolean> = {};
-                        APPAREL_SIZES.forEach(s => { all[s] = true; });
-                        setApparelSizes(all);
-                      }} className="text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold uppercase tracking-wider">
-                        Все
-                      </button>
-                      <span className="text-[#333]">·</span>
-                      <button onClick={() => {
-                        const none: Record<string, boolean> = {};
-                        APPAREL_SIZES.forEach(s => { none[s] = false; });
-                        setApparelSizes(none);
-                      }} className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-wider">
-                        Сбросить
-                      </button>
+                {/* No-size categories: accessories, backpacks, socks, sets */}
+                {["accessories", "backpacks", "socks", "sets"].includes(category) && (
+                  <div className="py-12 flex flex-col items-center gap-3 text-center">
+                    <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-2xl">
+                      {{ accessories: "💎", backpacks: "🎒", socks: "🧦", sets: "📦" }[category] ?? "📦"}
                     </div>
+                    <p className="text-white font-semibold">Размеры не требуются</p>
+                    <p className="text-[#555] text-sm max-w-xs">
+                      Для этой категории размеры не нужны. Перейди на вкладку Цены.
+                    </p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {APPAREL_SIZES.map(size => {
-                      const avail = apparelSizes[size] ?? true;
-                      return (
-                        <button key={size}
-                          onClick={() => setApparelSizes(prev => ({ ...prev, [size]: !prev[size] }))}
-                          className={`w-16 h-10 rounded-xl text-sm font-semibold border-2 transition-all ${
-                            avail
-                              ? "bg-red-800/10 border-red-800/50 text-red-500 hover:bg-red-800/20"
-                              : "bg-[#1a1a1a] border-[#252525] text-[#444] hover:border-[#333] line-through"
-                          }`}>
-                          {size}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+                )}
 
-                {/* Summary */}
-                <div className="p-4 bg-[#181818] rounded-xl border border-[#222]">
-                  <p className="text-[#888] text-xs mb-2 font-semibold uppercase tracking-wider">Активные размеры обуви</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {SHOE_SIZES.filter(s => shoeSizes[s]).map(s => (
-                      <span key={s} className="px-2 py-0.5 bg-red-800/10 border border-red-800/25 text-red-500 text-xs rounded-lg font-medium">
-                        EU {s}
-                      </span>
-                    ))}
-                    {SHOE_SIZES.filter(s => shoeSizes[s]).length === 0 && (
-                      <span className="text-[#444] text-xs">Нет активных размеров</span>
-                    )}
-                  </div>
-                </div>
+                {/* Shoes + Apparel sizes — hidden for no-size categories */}
+                {!["accessories", "backpacks", "socks", "sets"].includes(category) && (
+                  <>
+                    {/* Shoe sizes */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-white text-sm font-semibold">Размеры обуви (EU)</p>
+                        <div className="flex gap-2">
+                          <button onClick={() => {
+                            const all: Record<number, boolean> = {};
+                            SHOE_SIZES.forEach(s => { all[s] = true; });
+                            setShoeSizes(all);
+                          }} className="text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold uppercase tracking-wider">
+                            Все
+                          </button>
+                          <span className="text-[#333]">·</span>
+                          <button onClick={() => {
+                            const none: Record<number, boolean> = {};
+                            SHOE_SIZES.forEach(s => { none[s] = false; });
+                            setShoeSizes(none);
+                          }} className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-wider">
+                            Сбросить
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {SHOE_SIZES.map(size => {
+                          const avail = shoeSizes[size] ?? true;
+                          return (
+                            <button key={size}
+                              onClick={() => setShoeSizes(prev => ({ ...prev, [size]: !prev[size] }))}
+                              className={`w-14 h-10 rounded-xl text-sm font-semibold border-2 transition-all ${
+                                avail
+                                  ? "bg-red-800/10 border-red-800/50 text-red-500 hover:bg-red-800/20"
+                                  : "bg-[#1a1a1a] border-[#252525] text-[#444] hover:border-[#333] line-through"
+                              }`}>
+                              {size}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[#444] text-xs mt-2">
+                        Оранжевый = в наличии · Серый = нет в наличии (перечёркнуто)
+                      </p>
+                    </div>
+
+                    {/* Apparel sizes */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-white text-sm font-semibold">Размеры одежды</p>
+                        <div className="flex gap-2">
+                          <button onClick={() => {
+                            const all: Record<string, boolean> = {};
+                            APPAREL_SIZES.forEach(s => { all[s] = true; });
+                            setApparelSizes(all);
+                          }} className="text-[10px] text-emerald-400 hover:text-emerald-300 font-semibold uppercase tracking-wider">
+                            Все
+                          </button>
+                          <span className="text-[#333]">·</span>
+                          <button onClick={() => {
+                            const none: Record<string, boolean> = {};
+                            APPAREL_SIZES.forEach(s => { none[s] = false; });
+                            setApparelSizes(none);
+                          }} className="text-[10px] text-red-500 hover:text-red-400 font-semibold uppercase tracking-wider">
+                            Сбросить
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {APPAREL_SIZES.map(size => {
+                          const avail = apparelSizes[size] ?? true;
+                          return (
+                            <button key={size}
+                              onClick={() => setApparelSizes(prev => ({ ...prev, [size]: !prev[size] }))}
+                              className={`w-16 h-10 rounded-xl text-sm font-semibold border-2 transition-all ${
+                                avail
+                                  ? "bg-red-800/10 border-red-800/50 text-red-500 hover:bg-red-800/20"
+                                  : "bg-[#1a1a1a] border-[#252525] text-[#444] hover:border-[#333] line-through"
+                              }`}>
+                              {size}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="p-4 bg-[#181818] rounded-xl border border-[#222]">
+                      <p className="text-[#888] text-xs mb-2 font-semibold uppercase tracking-wider">Активные размеры обуви</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {SHOE_SIZES.filter(s => shoeSizes[s]).map(s => (
+                          <span key={s} className="px-2 py-0.5 bg-red-800/10 border border-red-800/25 text-red-500 text-xs rounded-lg font-medium">
+                            EU {s}
+                          </span>
+                        ))}
+                        {SHOE_SIZES.filter(s => shoeSizes[s]).length === 0 && (
+                          <span className="text-[#444] text-xs">Нет активных размеров</span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </motion.div>
             )}
 
@@ -671,7 +744,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                 <div className="grid grid-cols-2 gap-4">
                   <Field label="Доставка (оригинал)">
                     <input value={delivery} onChange={e => setDelivery(e.target.value)}
-                      placeholder="14–21 дней" className={CLS} />
+                      placeholder="7–14 дней" className={CLS} />
                   </Field>
                   <Field label="Доставка (реплика)">
                     <input value={replicaDelivery} onChange={e => setReplicaDelivery(e.target.value)}
