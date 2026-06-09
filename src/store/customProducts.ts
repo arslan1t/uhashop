@@ -24,6 +24,15 @@ async function apiSaveProduct(product: Product): Promise<void> {
   }
 }
 
+/**
+ * Re-push a local product to the server. Used to self-heal products that
+ * exist in localStorage but never made it to Firestore (e.g. an earlier
+ * save failed). Safe to call repeatedly — the server upserts with merge.
+ */
+export async function resyncProductToServer(product: Product): Promise<void> {
+  return apiSaveProduct(product);
+}
+
 /** Delete a product via server-side API */
 async function apiDeleteProduct(id: string): Promise<void> {
   const res = await fetch("/api/admin/products", {

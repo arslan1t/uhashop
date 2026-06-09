@@ -11,11 +11,24 @@ import type { Product } from "@/types";
 
 const COLLECTION = "shop_products";
 
+/**
+ * Remove keys whose value is `undefined`. The client Firestore SDK throws
+ * "Unsupported field value: undefined" on setDoc — a ball with no
+ * replicaPrice/style/badge would otherwise fail to save and never sync.
+ */
+function stripUndefined<T extends object>(obj: T): Partial<T> {
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) out[k] = v;
+  }
+  return out as Partial<T>;
+}
+
 /** Save (create or overwrite) a product */
 export async function saveProductToFirestore(product: Product): Promise<void> {
   const db = getDb();
   const ref = doc(collection(db, COLLECTION), product.id);
-  await setDoc(ref, { ...product, _updatedAt: serverTimestamp() });
+  await setDoc(ref, { ...stripUndefined(product), _updatedAt: serverTimestamp() });
 }
 
 /** Delete a product */
