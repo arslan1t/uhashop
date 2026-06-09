@@ -51,8 +51,19 @@ const STOCK_OPTIONS: { value: StockFilter; label: string }[] = [
   { value: "preorder", label: "Предзаказ" },
 ];
 
+const CAT_LABELS: Record<string, string> = {
+  shoes:       "Кроссовки",
+  apparel:     "Одежда",
+  accessories: "Аксессуары",
+  backpacks:   "Рюкзаки",
+  jerseys:     "Джерси",
+  socks:       "Носки",
+  sets:        "Комплекты",
+  thermals:    "Термо бельё",
+  merch:       "Мерч",
+};
 function catLabel(cat: string) {
-  return cat === "shoes" ? "Кроссовки" : cat === "apparel" ? "Одежда" : cat === "accessories" ? "Аксессуары" : cat;
+  return CAT_LABELS[cat] ?? cat;
 }
 
 function Chip({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
