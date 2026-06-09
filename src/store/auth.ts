@@ -3,6 +3,9 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { safeStorage } from "@/lib/storage";
 import { isFirebaseConfigured } from "@/lib/firebase/config";
 
+// Guard against multiple onAuthStateChanged listeners (H-9 fix)
+let _firebaseAuthUnsubscribe: (() => void) | null = null;
+
 export interface UserProfile {
   id: string;
   name: string;
@@ -56,11 +59,15 @@ export const useAuthStore = create<AuthStore>()((set) => ({
         }
       }).catch(() => set({ loading: false }));
     } else if (typeof window !== "undefined" && isFirebaseConfigured()) {
-      // Firebase Auth mode
+      // Firebase Auth mode — unsubscribe any previous listener first to prevent leaks (H-9 fix)
+      if (_firebaseAuthUnsubscribe) {
+        _firebaseAuthUnsubscribe();
+        _firebaseAuthUnsubscribe = null;
+      }
       import("firebase/auth").then(({ getAuth, onAuthStateChanged }) => {
         import("@/lib/firebase/config").then(({ getFirebaseApp }) => {
           const auth = getAuth(getFirebaseApp());
-          onAuthStateChanged(auth, (fbUser) => {
+          _firebaseAuthUnsubscribe = onAuthStateChanged(auth, (fbUser) => {
             if (fbUser && fbUser.emailVerified) {
               set({
                 user: {

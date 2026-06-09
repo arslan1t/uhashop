@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
@@ -15,8 +16,12 @@ export default function LoginPage() {
   const [showPass, setShowPass] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { login } = useAuthStore();
   const router = useRouter();
+  const { theme } = useTheme();
+  useEffect(() => setMounted(true), []);
+  const isDark = !mounted || theme === "dark";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,7 +43,10 @@ export default function LoginPage() {
         </Link>
         <div className="flex flex-col items-center mb-8">
           <div className="relative h-8 w-28 mb-4">
-            <Image src="/images/branding/logo-white.png" alt="UHA SHOP" fill className="object-contain" />
+            <Image
+              src={isDark ? "/images/branding/logo-white.png" : "/images/branding/logo-black.png"}
+              alt="UHA SHOP" fill className="object-contain"
+            />
           </div>
         </div>
         <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl p-8">

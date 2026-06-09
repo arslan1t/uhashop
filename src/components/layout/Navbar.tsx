@@ -13,10 +13,10 @@ import { Link, useRouter, usePathname } from "@/i18n/navigation";
 
 const NAV_LINKS = [
   { key: "marketplace", href: "/marketplace" },
+  { key: "uha",         href: "/uha" },
   { key: "merch",       href: "/merch" },
   { key: "league",      href: "/league" },
   { key: "academy",     href: "/academy" },
-  { key: "uha",         href: "/uha" },
 ] as const;
 
 export function Navbar() {

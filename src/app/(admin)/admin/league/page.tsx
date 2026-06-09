@@ -166,7 +166,7 @@ export default function AdminLeaguePage() {
             />
             <select
               value={formData.status || "upcoming"}
-              onChange={e => setFormData({ ...formData, status: e.target.value as any })}
+              onChange={e => setFormData({ ...formData, status: e.target.value as "upcoming" | "live" | "completed" })}
               className="px-4 py-2 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg text-white focus:outline-none focus:border-[rgb(var(--accent))]"
             >
               <option value="upcoming">Предстоящее</option>

@@ -131,12 +131,13 @@ export function ProductCard({ product, priority = false, displayVersion }: Props
             animate={{ opacity: hovered ? 1 : 0 }}
             transition={{ duration: 0.18 }}
             className="absolute inset-0 bg-black/25 flex items-center justify-center gap-2.5">
-            <button
-              onClick={(e) => { e.preventDefault(); }}
+            <Link
+              href={`/product/${product.slug}`}
+              onClick={(e) => e.stopPropagation()}
               className="w-9 h-9 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center text-black hover:bg-white transition-colors shadow-lg"
-              title="Просмотр товара">
+              title="Открыть товар">
               <Eye className="w-4 h-4" />
-            </button>
+            </Link>
             <button onClick={openPicker}
               className={`w-9 h-9 backdrop-blur-sm rounded-xl flex items-center justify-center transition-colors shadow-lg ${
                 added

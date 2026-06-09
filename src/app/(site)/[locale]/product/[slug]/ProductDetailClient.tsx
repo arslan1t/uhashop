@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingBag, ChevronRight, Clock, Package, Shield, Check,
-  ZoomIn, ChevronLeft, ChevronRight as ChevronRightIcon, X, Heart
+  ZoomIn, ChevronLeft, ChevronRight as ChevronRightIcon, X, Heart, Send
 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -31,6 +31,7 @@ export function ProductDetailClient({ product }: Props) {
   const [added, setAdded] = useState(false);
   const [lightbox, setLightbox] = useState(false);
   const [likeAnim, setLikeAnim] = useState(false);
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
 
   const liked = isLiked(product.slug);
   const handleLike = () => {
@@ -258,7 +259,9 @@ export function ProductDetailClient({ product }: Props) {
                 <span className="text-sm font-semibold uppercase tracking-wide">
                   {t("select_size")}
                 </span>
-                <button className="text-xs text-[rgb(var(--accent))] hover:underline">
+                <button
+                  onClick={() => setShowSizeGuide(true)}
+                  className="text-xs text-[rgb(var(--accent))] hover:underline">
                   {t("size_guide")}
                 </button>
               </div>
@@ -350,6 +353,27 @@ export function ProductDetailClient({ product }: Props) {
                 {product.descriptionRu}
               </p>
             </div>
+
+            {/* Telegram — ask for another colorway */}
+            <a
+              href={`https://t.me/uha_manager?text=${encodeURIComponent(`Привет! Хочу уточнить наличие другой расцветки: ${product.nameRu}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 p-4 bg-[#2AABEE]/8 border border-[#2AABEE]/20 rounded-2xl hover:bg-[#2AABEE]/14 hover:border-[#2AABEE]/35 transition-all group"
+            >
+              <div className="w-10 h-10 rounded-xl bg-[#2AABEE]/15 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                <Send className="w-4.5 h-4.5 text-[#2AABEE]" style={{ width: 18, height: 18 }} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-[rgb(var(--foreground))]">
+                  Нужна другая расцветка?
+                </p>
+                <p className="text-xs text-[rgb(var(--muted))] mt-0.5">
+                  Напишите менеджеру — подберём нужный вариант
+                </p>
+              </div>
+              <ChevronRightIcon className="w-4 h-4 text-[#2AABEE] opacity-60 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+            </a>
           </div>
         </div>
 
@@ -422,6 +446,113 @@ export function ProductDetailClient({ product }: Props) {
                 ))}
               </div>
             )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Size Guide Modal (M-2 fix) ── */}
+      <AnimatePresence>
+        {showSizeGuide && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+            onClick={() => setShowSizeGuide(false)}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 12 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-lg bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl overflow-hidden shadow-2xl">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-[rgb(var(--border))]">
+                <h2 className="font-bold text-base">{t("size_guide")}</h2>
+                <button onClick={() => setShowSizeGuide(false)}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface-2))] transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-5 overflow-y-auto max-h-[70vh]">
+                {isShoes ? (
+                  <>
+                    <p className="text-[rgb(var(--muted))] text-sm mb-4">Размеры кроссовок (мужские)</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm border-collapse">
+                        <thead>
+                          <tr className="border-b border-[rgb(var(--border))]">
+                            {["EU", "US", "UK", "CM"].map(h => (
+                              <th key={h} className="text-left py-2 px-3 text-[rgb(var(--muted))] text-xs font-bold uppercase tracking-wide">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[rgb(var(--border))]">
+                          {[
+                            ["36", "4", "3.5", "22.5"],
+                            ["37", "5", "4",   "23.0"],
+                            ["38", "5.5","4.5","23.5"],
+                            ["38.5","6", "5",  "24.0"],
+                            ["39", "6.5","5.5","24.5"],
+                            ["40", "7",  "6",  "25.0"],
+                            ["40.5","7.5","6.5","25.5"],
+                            ["41", "8",  "7",  "26.0"],
+                            ["42", "8.5","7.5","26.5"],
+                            ["42.5","9", "8",  "27.0"],
+                            ["43", "9.5","8.5","27.5"],
+                            ["44", "10", "9",  "28.0"],
+                            ["44.5","10.5","9.5","28.5"],
+                            ["45", "11", "10", "29.0"],
+                            ["45.5","11.5","10.5","29.5"],
+                            ["46", "12", "11", "30.0"],
+                          ].map(([eu, us, uk, cm]) => (
+                            <tr key={eu} className="hover:bg-[rgb(var(--surface-2))] transition-colors">
+                              <td className="py-2 px-3 font-semibold">{eu}</td>
+                              <td className="py-2 px-3 text-[rgb(var(--muted))]">{us}</td>
+                              <td className="py-2 px-3 text-[rgb(var(--muted))]">{uk}</td>
+                              <td className="py-2 px-3 text-[rgb(var(--muted))]">{cm}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[rgb(var(--muted))] text-sm mb-4">Размеры одежды</p>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm border-collapse">
+                        <thead>
+                          <tr className="border-b border-[rgb(var(--border))]">
+                            {["Размер", "Грудь (см)", "Талия (см)", "Бёдра (см)"].map(h => (
+                              <th key={h} className="text-left py-2 px-3 text-[rgb(var(--muted))] text-xs font-bold uppercase tracking-wide">{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[rgb(var(--border))]">
+                          {[
+                            ["XS", "84–88",  "66–70",  "90–94"],
+                            ["S",  "88–92",  "70–74",  "94–98"],
+                            ["M",  "92–96",  "74–78",  "98–102"],
+                            ["L",  "96–100", "78–82",  "102–106"],
+                            ["XL", "100–104","82–86",  "106–110"],
+                            ["2XL","104–110","86–92",  "110–116"],
+                            ["3XL","110–116","92–98",  "116–122"],
+                          ].map(([size, chest, waist, hip]) => (
+                            <tr key={size} className="hover:bg-[rgb(var(--surface-2))] transition-colors">
+                              <td className="py-2 px-3 font-semibold">{size}</td>
+                              <td className="py-2 px-3 text-[rgb(var(--muted))]">{chest}</td>
+                              <td className="py-2 px-3 text-[rgb(var(--muted))]">{waist}</td>
+                              <td className="py-2 px-3 text-[rgb(var(--muted))]">{hip}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
+                <p className="text-[rgb(var(--muted))] text-xs mt-4">
+                  * Размеры являются ориентировочными. При сомнениях рекомендуем заказать размер больше или уточнить у менеджера.
+                </p>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

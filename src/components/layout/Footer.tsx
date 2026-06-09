@@ -16,7 +16,7 @@ const footerLinks = {
   ],
   brand: [
     { labelKey: "about", href: "/uha" },
-    { labelKey: "league", href: "/league-coming-soon" },
+    { labelKey: "league", href: "/league" },
     { labelKey: "academy", href: "/academy" },
   ],
 };

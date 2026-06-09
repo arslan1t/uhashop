@@ -1,37 +1,26 @@
 /**
- * Admin users API — reads from Firestore shop_users.
+ * Admin users API — reads from Firestore shop_users via Admin SDK.
+ * Protected by x-admin-token header.
  */
-import { NextResponse } from "next/server";
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, collection, getDocs, query, orderBy } from "firebase/firestore";
+import { NextRequest, NextResponse } from "next/server";
+import { isAdminAuthorized, unauthorizedResponse } from "@/lib/admin-auth";
+import { getAdminDb } from "@/lib/firebase/admin";
 
-function getDb() {
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-  if (!apiKey) return null;
-  const cfg = {
-    apiKey,
-    authDomain:        process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
-    projectId:         process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
-    storageBucket:     process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "",
-    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "",
-    appId:             process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
-  };
-  const app = getApps().length > 0 ? getApp() : initializeApp(cfg);
-  return getFirestore(app);
-}
+export async function GET(req: NextRequest) {
+  if (!isAdminAuthorized(req)) return unauthorizedResponse();
 
-export async function GET() {
-  const db = getDb();
-  if (!db) {
-    return NextResponse.json({ users: [], message: "Firebase not configured" });
-  }
   try {
-    const snap = await getDocs(
-      query(collection(db, "shop_users"), orderBy("createdAt", "desc"))
-    );
-    const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const db   = getAdminDb();
+    const snap = await db
+      .collection("shop_users")
+      .orderBy("createdAt", "desc")
+      .get();
+
+    const users = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     return NextResponse.json({ users });
   } catch (e) {
-    return NextResponse.json({ users: [], error: e instanceof Error ? e.message : String(e) });
+    return NextResponse.json(
+      { users: [], error: e instanceof Error ? e.message : String(e) }
+    );
   }
 }

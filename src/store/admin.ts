@@ -1,3 +1,8 @@
+/**
+ * Admin authentication store.
+ * Credentials are validated server-side via /api/admin/auth.
+ * The session token is stored in localStorage (client-only guard only).
+ */
 import { create } from "zustand";
 import { safeStorage } from "@/lib/storage";
 
@@ -9,8 +14,8 @@ interface AdminState {
   checkAuth: () => void;
 }
 
-const ADMIN_KEY = "uha-admin-auth";
-const VALID_ADMIN = { email: "admin@uhashop.uz", password: "uha2024admin", name: "UHA Admin" };
+const ADMIN_KEY  = "uha-admin-auth";
+const TOKEN_KEY  = "uha-admin-token";
 
 export const useAdminStore = create<AdminState>()((set) => ({
   isAuthenticated: false,
@@ -27,18 +32,33 @@ export const useAdminStore = create<AdminState>()((set) => ({
   },
 
   login: async (email, password) => {
-    await new Promise((r) => setTimeout(r, 800));
-    if (email === VALID_ADMIN.email && password === VALID_ADMIN.password) {
-      const user = { email, name: VALID_ADMIN.name };
+    try {
+      const res = await fetch("/api/admin/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!data.ok) return false;
+
+      const user = { email, name: "UHA Admin" };
       safeStorage.setItem(ADMIN_KEY, JSON.stringify(user));
+      safeStorage.setItem(TOKEN_KEY, data.token);
       set({ isAuthenticated: true, adminUser: user });
       return true;
+    } catch {
+      return false;
     }
-    return false;
   },
 
   logout: () => {
     safeStorage.removeItem(ADMIN_KEY);
+    safeStorage.removeItem(TOKEN_KEY);
     set({ isAuthenticated: false, adminUser: null });
   },
 }));
+
+/** Helper: get the stored admin token for API request headers */
+export function getAdminToken(): string {
+  return safeStorage.getItem(TOKEN_KEY) ?? "";
+}

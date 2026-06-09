@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -11,7 +11,8 @@ import {
 import { useAuthStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
-import { products } from "@/data/products";
+import { useCustomProducts } from "@/store/customProducts";
+import { products as staticProducts } from "@/data/products";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { formatPrice } from "@/lib/utils";
 
@@ -81,6 +82,8 @@ function OrderTracker({ order, onClose }: { order: MockOrder; onClose: () => voi
   const { addItem, openCart } = useCartStore();
   const [copied, setCopied] = useState(false);
   const [repeating, setRepeating] = useState(false);
+  const customProdsLocal = useCustomProducts(s => s.products);
+  const products = [...customProdsLocal, ...staticProducts.filter(sp => !customProdsLocal.some(cp => cp.id === sp.id))];
 
   const handleCopyOrderNumber = () => {
     navigator.clipboard.writeText(order.orderNumber).then(() => {
@@ -275,6 +278,9 @@ export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const { items } = useCartStore();
   const { slugs: wishlistSlugs } = useWishlist();
+  const customProds = useCustomProducts(s => s.products);
+  // Merge static + Firestore products for lookups
+  const products = [...customProds, ...staticProducts.filter(sp => !customProds.some(cp => cp.id === sp.id))];
   const router = useRouter();
   const [selectedOrder, setSelectedOrder] = useState<MockOrder | null>(null);
   const [orders, setOrders] = useState<MockOrder[]>([]);

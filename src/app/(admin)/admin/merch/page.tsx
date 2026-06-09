@@ -7,8 +7,9 @@ import { Film, Upload, Plus, Edit2, Eye, Save } from "lucide-react";
 import { adminProducts, type AdminProduct } from "@/data/adminData";
 import { formatPrice } from "@/lib/utils";
 import { useProductOverrides } from "@/store/productOverrides";
-import { useCustomProducts } from "@/store/customProducts";
+import { useCustomProducts, buildProductFromForm } from "@/store/customProducts";
 import { ProductFormModal } from "@/components/admin/ProductFormModal";
+import type { Product } from "@/types";
 
 const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
 
@@ -18,8 +19,66 @@ export default function AdminMerchPage() {
   const [showAddModal, setShowAddModal] = useState(false);
 
   const overrides    = useProductOverrides(s => s.overrides);
-  const customProds  = useCustomProducts(s => s.products);
+  const { products: customProds, addProduct, updateProduct: updateCustom } = useCustomProducts();
   const [brokenImgs, setBrokenImgs] = useState<Set<string>>(new Set());
+
+  // Save handler for Add modal (preset to merch category)
+  const handleSaveNew = (data: Partial<AdminProduct> & {
+    shoeSizes?: Record<number, boolean>;
+    apparelSizes?: Record<string, boolean>;
+    descriptionRu?: string;
+    replicaDelivery?: string;
+    image?: string;
+    style?: "basketball" | "lifestyle";
+  }) => {
+    const product = buildProductFromForm({
+      nameRu: data.nameRu ?? "",
+      slug: data.slug ?? `merch-${Date.now()}`,
+      brand: data.brand ?? "UHA",
+      category: "merch",
+      type: data.type ?? "in_stock",
+      status: "published",
+      badge: data.badge ?? "",
+      isFeatured: data.isFeatured ?? false,
+      estimatedDelivery: data.estimatedDelivery ?? "В наличии",
+      price: data.price ?? 0,
+      replicaPrice: data.replicaPrice,
+      stock: data.stock,
+      descriptionRu: data.descriptionRu ?? "",
+      shoeSizes: {},
+      apparelSizes: data.apparelSizes ?? {},
+      image: data.image,
+    });
+    addProduct(product);
+    setShowAddModal(false);
+  };
+
+  // Save handler for Edit modal
+  const handleSaveEdit = (data: Partial<AdminProduct> & {
+    shoeSizes?: Record<number, boolean>;
+    apparelSizes?: Record<string, boolean>;
+    descriptionRu?: string;
+    replicaDelivery?: string;
+    image?: string;
+  }) => {
+    if (!editProduct) return;
+    const isCustom = customProds.some(c => c.id === editProduct.id);
+    if (isCustom) {
+      const cur = customProds.find(c => c.id === editProduct.id)!;
+      updateCustom(editProduct.id, {
+        nameRu:           data.nameRu           ?? cur.nameRu,
+        name:             data.nameRu           ?? cur.nameRu,
+        price:            data.price            ?? cur.price,
+        replicaPrice:     data.replicaPrice     ?? cur.replicaPrice,
+        estimatedDelivery:data.estimatedDelivery?? cur.estimatedDelivery,
+        isFeatured:       data.isFeatured       ?? cur.isFeatured ?? false,
+        badge:            (data.badge as Product["badge"]) ?? cur.badge,
+        descriptionRu:    data.descriptionRu    ?? cur.descriptionRu,
+        ...(data.image && !data.image.startsWith("blob:") ? { image: data.image, images: [data.image] } : {}),
+      });
+    }
+    setEditProduct(null);
+  };
 
   // Merge static merch + custom merch
   const staticMerch  = adminProducts.filter(p => p.category === "merch");
@@ -167,13 +226,12 @@ export default function AdminMerchPage() {
         </button>
       </div>
 
-      {/* Add new merch modal — preset category to merch */}
+      {/* Add new merch modal */}
       <AnimatePresence>
         {showAddModal && (
           <ProductFormModal
             onClose={() => setShowAddModal(false)}
-            // Pass a fake "template" product to preset the category
-            product={{ ...adminProducts[0], id: "", slug: "", nameRu: "", nameUz: "", category: "merch", status: "published", isFeatured: false, images: [], imageCount: 0, createdAt: "" } as AdminProduct}
+            onSave={handleSaveNew as (data: Partial<AdminProduct>) => void}
           />
         )}
       </AnimatePresence>
@@ -184,6 +242,7 @@ export default function AdminMerchPage() {
           <ProductFormModal
             product={editProduct}
             onClose={() => setEditProduct(null)}
+            onSave={handleSaveEdit as (data: Partial<AdminProduct>) => void}
           />
         )}
       </AnimatePresence>
