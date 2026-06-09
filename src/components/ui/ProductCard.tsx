@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { memo, useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingBag, Eye, Clock, Check, Heart, X } from "lucide-react";
 import { Badge } from "./Badge";
 import { useCartStore } from "@/store/cart";
@@ -18,10 +18,11 @@ interface Props {
   displayVersion?: "original" | "replica";
 }
 
+// Hidden on mobile (pointer:coarse) — saves 12-24 concurrent GPU animation threads
 function UhaLogoMark() {
   return (
     <div
-      className="absolute bottom-2.5 right-2.5 z-10 w-8 h-8 animate-spin-slow"
+      className="absolute bottom-2.5 right-2.5 z-10 w-8 h-8 animate-spin-slow hidden sm:block"
       style={{ filter: "drop-shadow(0 0 6px rgba(153,27,27,0.55)) drop-shadow(0 0 12px rgba(153,27,27,0.25))" }}
     >
       <Image src="/images/branding/logo-spinning.png" alt="UHA" fill className="object-contain" sizes="32px" />
@@ -29,12 +30,11 @@ function UhaLogoMark() {
   );
 }
 
-export function ProductCard({ product, priority = false, displayVersion }: Props) {
+export const ProductCard = memo(function ProductCard({ product, priority = false, displayVersion }: Props) {
   const { addItem } = useCartStore();
   const overrides = useProductOverrides(s => s.overrides);
   const { has: isLiked, toggle: toggleLike } = useWishlist();
 
-  const [hovered, setHovered] = useState(false);
   const [added, setAdded] = useState(false);
   const [likeAnim, setLikeAnim] = useState(false);
   const [showPicker, setShowPicker] = useState(false);
@@ -86,11 +86,9 @@ export function ProductCard({ product, priority = false, displayVersion }: Props
     "eu" in s ? `EU ${s.eu}` : s.label;
 
   return (
-    <motion.article
-      onHoverStart={() => setHovered(true)}
-      onHoverEnd={() => setHovered(false)}
-      className="group bg-[rgb(var(--card-bg))] border border-[rgb(var(--card-border))] rounded-2xl overflow-hidden product-card-hover relative"
-    >
+    // Plain article — hover detection is pure CSS via `group` + media query
+    // No framer-motion wrapper = no JS event listeners per card
+    <article className="group bg-[rgb(var(--card-bg))] border border-[rgb(var(--card-border))] rounded-2xl overflow-hidden product-card-hover relative">
       <Link href={`/product/${product.slug}`}>
         {/* Image */}
         <div className="relative aspect-square overflow-hidden bg-[rgb(var(--surface-2))]">
@@ -99,7 +97,7 @@ export function ProductCard({ product, priority = false, displayVersion }: Props
             alt={product.name}
             fill
             priority={priority}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover transition-transform duration-500 [@media(hover:hover)]:group-hover:scale-105"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
           <UhaLogoMark />
@@ -110,7 +108,7 @@ export function ProductCard({ product, priority = false, displayVersion }: Props
             </div>
           )}
 
-          {/* Like */}
+          {/* Like button */}
           <button onClick={handleLike}
             className="absolute top-2.5 right-2.5 z-20 w-8 h-8 rounded-xl flex items-center justify-center transition-all"
             style={{
@@ -125,12 +123,9 @@ export function ProductCard({ product, priority = false, displayVersion }: Props
             </motion.div>
           </button>
 
-          {/* Hover overlay actions */}
-          <motion.div
-            initial={false}
-            animate={{ opacity: hovered ? 1 : 0 }}
-            transition={{ duration: 0.18 }}
-            className="absolute inset-0 bg-black/25 flex items-center justify-center gap-2.5">
+          {/* Hover overlay — pure CSS, hidden on touch devices (pointer:coarse) */}
+          {/* [@media(hover:none)] hides this on touch screens — zero JS overhead on mobile */}
+          <div className="absolute inset-0 bg-black/25 opacity-0 transition-opacity duration-200 group-hover:opacity-100 [@media(hover:none)]:hidden flex items-center justify-center gap-2.5 pointer-events-none group-hover:pointer-events-auto">
             <Link
               href={`/product/${product.slug}`}
               onClick={(e) => e.stopPropagation()}
@@ -146,7 +141,7 @@ export function ProductCard({ product, priority = false, displayVersion }: Props
               }`}>
               {added ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
             </button>
-          </motion.div>
+          </div>
         </div>
 
         {/* Info */}
@@ -163,7 +158,7 @@ export function ProductCard({ product, priority = false, displayVersion }: Props
             )}
           </div>
 
-          <h3 className="text-sm font-semibold leading-snug mb-2.5 line-clamp-2 group-hover:text-[rgb(var(--accent))] transition-colors">
+          <h3 className="text-sm font-semibold leading-snug mb-2.5 line-clamp-2 [@media(hover:hover)]:group-hover:text-[rgb(var(--accent))] transition-colors">
             {product.nameRu}
           </h3>
 
@@ -206,7 +201,7 @@ export function ProductCard({ product, priority = false, displayVersion }: Props
             initial={{ opacity: 0, y: 8, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.97 }}
-            transition={{ duration: 0.18 }}
+            transition={{ duration: 0.15 }}
             onClick={e => e.stopPropagation()}
             className="absolute inset-x-0 bottom-0 z-30 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl shadow-2xl p-4"
             style={{ boxShadow: "0 -4px 32px rgba(0,0,0,0.35)" }}
@@ -222,7 +217,7 @@ export function ProductCard({ product, priority = false, displayVersion }: Props
               </button>
             </div>
 
-            {/* Version toggle (original / replica) */}
+            {/* Version toggle */}
             {hasReplica && (
               <div className="flex gap-1.5 mb-3">
                 {(["original", "replica"] as const).map(v => (
@@ -270,6 +265,6 @@ export function ProductCard({ product, priority = false, displayVersion }: Props
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.article>
+    </article>
   );
-}
+});
