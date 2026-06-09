@@ -62,28 +62,21 @@ export function Navbar() {
 
             {/* ── Logo ── */}
             <Link href="/" className="flex items-center gap-3 group flex-shrink-0">
-              <div className="relative h-12 w-auto">
-                {mounted ? (
-                  <Image
-                    src={isDark
-                      ? "/images/branding/logo-white.png"
-                      : "/images/branding/logo-black.png"}
-                    alt="UHA SHOP"
-                    width={160}
-                    height={48}
-                    className="h-12 w-auto object-contain"
-                    priority
-                  />
-                ) : (
-                  <Image
-                    src="/images/branding/logo-white.png"
-                    alt="UHA SHOP"
-                    width={160}
-                    height={48}
-                    className="h-12 w-auto object-contain"
-                    priority
-                  />
-                )}
+              {/* Single Image element — src changes via prop, no unmount/remount flash.
+                  Before hydration (mounted=false) we default to dark logo (white) since
+                  defaultTheme="dark". Container is w-12 h-12 (logo is square 1254×1254). */}
+              <div className="h-12 w-12 flex-shrink-0">
+                <Image
+                  src={mounted && !isDark
+                    ? "/images/branding/logo-black.png"
+                    : "/images/branding/logo-white.png"}
+                  alt="UHA SHOP"
+                  width={48}
+                  height={48}
+                  className="h-12 w-12 object-contain"
+                  priority
+                  unoptimized
+                />
               </div>
             </Link>
 

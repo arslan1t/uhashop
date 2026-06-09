@@ -13,12 +13,12 @@ const variantStyles: Record<BadgeVariant, string> = {
 };
 
 const variantLabels: Record<BadgeVariant, string> = {
-  preorder: "Preorder",
-  new:      "New",
-  popular:  "Popular",
-  limited:  "Limited",
-  sale:     "Sale",
-  in_stock: "In Stock",
+  preorder: "Предзаказ",
+  new:      "Новинка",
+  popular:  "Хит",
+  limited:  "Лимит",
+  sale:     "Скидка",
+  in_stock: "В наличии",
   default:  "",
 };
 

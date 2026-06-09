@@ -80,7 +80,15 @@ export function useFirestoreProducts() {
           const filteredFirestore = firestoreProducts.filter(
             (p: Product) => !metaRef.current[p.id]?.isDeleted
           );
-          return [...filteredFirestore, ...pendingLocal];
+          // Normalize legacy delivery dates — old Firestore data had "14–21 дней"
+          // before the store-wide update to "7–14 дней"
+          const normalizedFirestore = filteredFirestore.map((p: Product) => ({
+            ...p,
+            estimatedDelivery: p.estimatedDelivery === "14–21 дней"
+              ? "7–14 дней"
+              : p.estimatedDelivery,
+          }));
+          return [...normalizedFirestore, ...pendingLocal];
         });
         setFirestoreSynced();
       });
