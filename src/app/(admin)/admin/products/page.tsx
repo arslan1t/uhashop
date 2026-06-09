@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Plus, Star, StarOff, Eye, Edit2, Trash2,
-  Package, CheckCircle2, Clock, EyeOff
+  Package, CheckCircle2, Clock, EyeOff, CloudUpload, Loader2
 } from "lucide-react";
 import { adminProducts, type AdminProduct } from "@/data/adminData";
 import { formatPrice } from "@/lib/utils";
@@ -43,6 +43,8 @@ export default function AdminProductsPage() {
   );
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<AdminProduct | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const overrides = useProductOverrides(s => s.overrides);
   const { isHidden, toggleHidden } = useProductVisibility();
   const { products: customProds, addProduct, removeProduct: removeCustom, updateProduct: updateCustom } = useCustomProducts();
@@ -243,6 +245,32 @@ export default function AdminProductsPage() {
     setSelectedProduct(null);
   };
 
+  // Force-push every local product to Firestore. Run this on the device where
+  // a product was added if it isn't showing up on other devices.
+  const handleSyncToCloud = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const { saveProductToFirestore } = await import("@/lib/firebase/productFirestore");
+      const results = await Promise.allSettled(
+        customProds.map(p => saveProductToFirestore(p))
+      );
+      const failed = results.filter(r => r.status === "rejected").length;
+      const ok = customProds.length - failed;
+      setSyncMsg(
+        failed === 0
+          ? { ok: true, text: `Синхронизировано: ${ok} товар(ов) в облаке` }
+          : { ok: false, text: `Синхронизировано ${ok}, ошибок: ${failed}. Проверьте интернет и повторите.` }
+      );
+    } catch (e) {
+      setSyncMsg({ ok: false, text: `Ошибка синхронизации: ${String(e)}` });
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMsg(null), 6000);
+    }
+  };
+
   return (
     <div className="p-6 max-w-[1400px]">
       {/* Toolbar */}
@@ -271,6 +299,16 @@ export default function AdminProductsPage() {
           ))}
         </div>
 
+        {/* Sync to cloud button */}
+        <button onClick={handleSyncToCloud} disabled={syncing}
+          title="Отправить все товары в облако (если не видны на других устройствах)"
+          className="h-10 px-4 bg-[#141414] border border-[#222] text-[#999] text-xs font-bold rounded-xl hover:text-white hover:border-[#333] transition-colors flex items-center gap-2 uppercase tracking-wide flex-shrink-0 disabled:opacity-60">
+          {syncing
+            ? <Loader2 className="w-4 h-4 animate-spin" />
+            : <CloudUpload className="w-4 h-4" />}
+          {syncing ? "Синхрон..." : "В облако"}
+        </button>
+
         {/* Add button */}
         <button onClick={() => setShowAddModal(true)}
           className="h-10 px-5 bg-red-800 text-white text-xs font-bold rounded-xl hover:bg-red-900 transition-colors flex items-center gap-2 uppercase tracking-wide flex-shrink-0">
@@ -278,6 +316,17 @@ export default function AdminProductsPage() {
           Добавить товар
         </button>
       </div>
+
+      {/* Sync result message */}
+      {syncMsg && (
+        <div className={`mb-4 px-4 py-2.5 rounded-xl text-xs font-medium border ${
+          syncMsg.ok
+            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+            : "bg-red-500/10 text-red-400 border-red-500/20"
+        }`}>
+          {syncMsg.text}
+        </div>
+      )}
 
       {/* Count */}
       <p className="text-[#444] text-xs mb-4">
