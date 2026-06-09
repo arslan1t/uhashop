@@ -101,9 +101,11 @@ export function useFirestoreProducts() {
         // Recovers products whose original save failed (e.g. the old
         // undefined-field bug) so they auto-sync instead of staying local-only.
         //
-        // Uses the CLIENT Firestore SDK (saveProductToFirestore) — the same path
-        // the migration uses. It needs NO admin token (works even if the admin
-        // session expired) and is now undefined-safe via ignoreUndefinedProperties.
+        // Uses the ADMIN API (resyncProductToServer) — direct CLIENT Firestore
+        // writes are blocked by security rules, so only the server Admin SDK can
+        // write. Needs a valid admin token, so this only succeeds while logged
+        // into the admin panel; on public pages the 401 is caught harmlessly.
+        // The admin "В облако" button is the reliable manual trigger.
         const firestoreIds = new Set(firestoreProducts.map((p: Product) => p.id));
         const localOnly = useCustomProducts.getState().products.filter((p: Product) =>
           !firestoreIds.has(p.id) &&
@@ -111,16 +113,11 @@ export function useFirestoreProducts() {
           !resyncedIds.current.has(p.id)
         );
         if (localOnly.length > 0) {
-          import("@/lib/firebase/productFirestore").then(({ saveProductToFirestore }) => {
-            localOnly.forEach((p: Product) => {
-              resyncedIds.current.add(p.id);
-              console.warn(`[UHA] Self-heal: re-pushing local-only product "${p.id}" to Firestore`);
-              // Client SDK first (no auth). If rules block it, fall back to the admin API.
-              saveProductToFirestore(p).catch(() =>
-                resyncProductToServer(p).catch(err =>
-                  console.error(`[UHA] Self-heal failed for ${p.id}:`, err)
-                )
-              );
+          localOnly.forEach((p: Product) => {
+            resyncedIds.current.add(p.id);
+            resyncProductToServer(p).catch(() => {
+              // Not logged in / offline — allow a later attempt to retry this id
+              resyncedIds.current.delete(p.id);
             });
           });
         }

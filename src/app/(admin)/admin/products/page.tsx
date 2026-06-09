@@ -245,29 +245,35 @@ export default function AdminProductsPage() {
     setSelectedProduct(null);
   };
 
-  // Force-push every local product to Firestore. Run this on the device where
-  // a product was added if it isn't showing up on other devices.
+  // Force-push every local product to Firestore via the ADMIN API.
+  // The admin API uses the server Admin SDK, which bypasses Firestore security
+  // rules (direct client writes are blocked by rules → that's why they failed).
+  // Run this on the device where a product was added if it isn't showing up
+  // on other devices.
   const handleSyncToCloud = async () => {
     if (syncing) return;
     setSyncing(true);
     setSyncMsg(null);
     try {
-      const { saveProductToFirestore } = await import("@/lib/firebase/productFirestore");
+      const { resyncProductToServer } = await import("@/store/customProducts");
       const results = await Promise.allSettled(
-        customProds.map(p => saveProductToFirestore(p))
+        customProds.map(p => resyncProductToServer(p))
       );
       const failed = results.filter(r => r.status === "rejected").length;
       const ok = customProds.length - failed;
-      setSyncMsg(
-        failed === 0
-          ? { ok: true, text: `Синхронизировано: ${ok} товар(ов) в облаке` }
-          : { ok: false, text: `Синхронизировано ${ok}, ошибок: ${failed}. Проверьте интернет и повторите.` }
-      );
+      if (failed === 0) {
+        setSyncMsg({ ok: true, text: `Синхронизировано: ${ok} товар(ов) в облаке` });
+      } else {
+        // Surface the first error so the cause is visible (e.g. 401 = not logged in)
+        const firstErr = results.find(r => r.status === "rejected") as PromiseRejectedResult | undefined;
+        const reason = firstErr ? String(firstErr.reason?.message ?? firstErr.reason) : "";
+        setSyncMsg({ ok: false, text: `Синхронизировано ${ok}, ошибок: ${failed}. ${reason}` });
+      }
     } catch (e) {
       setSyncMsg({ ok: false, text: `Ошибка синхронизации: ${String(e)}` });
     } finally {
       setSyncing(false);
-      setTimeout(() => setSyncMsg(null), 6000);
+      setTimeout(() => setSyncMsg(null), 8000);
     }
   };
 
