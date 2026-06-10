@@ -51,13 +51,16 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
   const [tagInput, setTagInput] = useState("");
   const [saved, setSaved] = useState(false);
 
-  const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key !== "Enter" && e.key !== ",") return;
-    e.preventDefault();
+  const commitTag = () => {
     const trimmed = tagInput.trim().toLowerCase();
     if (!trimmed || tags.includes(trimmed)) { setTagInput(""); return; }
     setTags(prev => [...prev, trimmed]);
     setTagInput("");
+  };
+  const addTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter" && e.key !== ",") return;
+    e.preventDefault();
+    commitTag();
   };
   const removeTag = (tag: string) => setTags(prev => prev.filter(t => t !== tag));
 
@@ -203,6 +206,12 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
     const currentSlug = slug || product?.slug || `product-${Date.now()}`;
     setUploading(true);
 
+    // Flush any tag still typed in the input but not yet committed with Enter/comma.
+    // Without this, a user who types a tag and clicks Save (without pressing Enter)
+    // would lose it — which made tags look like they "weren't saved".
+    const pending = tagInput.trim().toLowerCase();
+    const finalTags = pending && !tags.includes(pending) ? [...tags, pending] : tags;
+
     // ── Upload any new local files to server ──
     let finalGallery = gallery;
     const localFiles = gallery.filter(img => img.isLocal && img.file);
@@ -260,7 +269,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
       replicaDelivery,
       stock: stock ? Number(stock) : undefined,
       descriptionRu: descRu,
-      tags,
+      tags: finalTags,
       shoeSizes,
       apparelSizes,
       // pass the first uploaded image as the main image for new products
@@ -463,13 +472,20 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                         ))}
                       </div>
                     )}
-                    <input
-                      value={tagInput}
-                      onChange={e => setTagInput(e.target.value)}
-                      onKeyDown={addTag}
-                      placeholder="Введите тег → Enter или запятая"
-                      className={CLS}
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        value={tagInput}
+                        onChange={e => setTagInput(e.target.value)}
+                        onKeyDown={addTag}
+                        placeholder="Введите тег и нажмите Добавить"
+                        className={`${CLS} flex-1`}
+                      />
+                      <button type="button" onClick={commitTag}
+                        disabled={!tagInput.trim()}
+                        className="px-4 rounded-xl bg-red-800 text-white text-xs font-bold uppercase tracking-wide hover:bg-red-900 transition-colors disabled:opacity-40 flex-shrink-0">
+                        Добавить
+                      </button>
+                    </div>
                   </div>
                 </Field>
                 {/* Featured toggle */}
