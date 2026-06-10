@@ -245,6 +245,21 @@ export default function AdminProductsPage() {
     setSelectedProduct(null);
   };
 
+  // Turn any thrown value (Error, plain object, string) into readable text —
+  // avoids the useless "[object Object]" when the reason isn't an Error.
+  const readErr = (e: unknown): string => {
+    if (!e) return "неизвестная ошибка";
+    if (typeof e === "string") return e;
+    if (e instanceof Error) return e.message;
+    if (typeof e === "object") {
+      const o = e as Record<string, unknown>;
+      if (typeof o.message === "string") return o.message;
+      if (typeof o.error === "string") return o.error;
+      try { return JSON.stringify(e); } catch { return String(e); }
+    }
+    return String(e);
+  };
+
   // Force-push every local product to Firestore via the ADMIN API.
   // The admin API uses the server Admin SDK, which bypasses Firestore security
   // rules (direct client writes are blocked by rules → that's why they failed).
@@ -256,21 +271,32 @@ export default function AdminProductsPage() {
     setSyncMsg(null);
     try {
       const { resyncProductToServer } = await import("@/store/customProducts");
+      // Sequential map so results[i] reliably maps to customProds[i]
       const results = await Promise.allSettled(
         customProds.map(p => resyncProductToServer(p))
       );
-      const failed = results.filter(r => r.status === "rejected").length;
-      const ok = customProds.length - failed;
-      if (failed === 0) {
+      const failedItems = results
+        .map((r, i) => ({ r, p: customProds[i] }))
+        .filter(({ r }) => r.status === "rejected");
+      const ok = customProds.length - failedItems.length;
+
+      if (failedItems.length === 0) {
         setSyncMsg({ ok: true, text: `Синхронизировано: ${ok} товар(ов) в облаке` });
       } else {
-        // Surface the first error so the cause is visible (e.g. 401 = not logged in)
-        const firstErr = results.find(r => r.status === "rejected") as PromiseRejectedResult | undefined;
-        const reason = firstErr ? String(firstErr.reason?.message ?? firstErr.reason) : "";
-        setSyncMsg({ ok: false, text: `Синхронизировано ${ok}, ошибок: ${failed}. ${reason}` });
+        // Identify the failing product(s) and a readable reason
+        const first = failedItems[0];
+        const reason = readErr((first.r as PromiseRejectedResult).reason);
+        const names = failedItems.map(f => f.p?.nameRu || f.p?.name || f.p?.id || "?").join(", ");
+        console.error("[UHA] Sync failures:", failedItems.map(f => ({
+          id: f.p?.id, reason: (f.r as PromiseRejectedResult).reason,
+        })));
+        setSyncMsg({
+          ok: false,
+          text: `Синхронизировано ${ok}, ошибок: ${failedItems.length}. Проблема: «${names}» — ${reason}`,
+        });
       }
     } catch (e) {
-      setSyncMsg({ ok: false, text: `Ошибка синхронизации: ${String(e)}` });
+      setSyncMsg({ ok: false, text: `Ошибка синхронизации: ${readErr(e)}` });
     } finally {
       setSyncing(false);
       setTimeout(() => setSyncMsg(null), 8000);
