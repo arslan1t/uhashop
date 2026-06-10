@@ -456,38 +456,6 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                     rows={3} placeholder="Описание товара..."
                     className={`${CLS} h-auto py-2.5 resize-none`} />
                 </Field>
-                {/* Tags */}
-                <Field label="Теги (для поиска)">
-                  <div className="space-y-2">
-                    {tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5">
-                        {tags.map(tag => (
-                          <span key={tag} className="flex items-center gap-1 px-2.5 py-1 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-[11px] text-[#bbb]">
-                            {tag}
-                            <button type="button" onClick={() => removeTag(tag)}
-                              className="text-[#555] hover:text-red-400 transition-colors ml-0.5">
-                              <X className="w-2.5 h-2.5" />
-                            </button>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex gap-2">
-                      <input
-                        value={tagInput}
-                        onChange={e => setTagInput(e.target.value)}
-                        onKeyDown={addTag}
-                        placeholder="Введите тег и нажмите Добавить"
-                        className={`${CLS} flex-1`}
-                      />
-                      <button type="button" onClick={commitTag}
-                        disabled={!tagInput.trim()}
-                        className="px-4 rounded-xl bg-red-800 text-white text-xs font-bold uppercase tracking-wide hover:bg-red-900 transition-colors disabled:opacity-40 flex-shrink-0">
-                        Добавить
-                      </button>
-                    </div>
-                  </div>
-                </Field>
                 {/* Featured toggle */}
                 <button onClick={() => setIsFeatured(!isFeatured)}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl border w-full text-left transition-all ${
@@ -843,8 +811,36 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                   </div>
                 )}
 
-                <Field label="Теги (через запятую)">
-                  <input placeholder="jordan, basketball, og, fire red" className={CLS} />
+                <Field label="Теги (для поиска)">
+                  <div className="space-y-2">
+                    {tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5">
+                        {tags.map(tag => (
+                          <span key={tag} className="flex items-center gap-1 px-2.5 py-1 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-[11px] text-[#bbb]">
+                            {tag}
+                            <button type="button" onClick={() => removeTag(tag)}
+                              className="text-[#555] hover:text-red-400 transition-colors ml-0.5">
+                              <X className="w-2.5 h-2.5" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <input
+                        value={tagInput}
+                        onChange={e => setTagInput(e.target.value)}
+                        onKeyDown={addTag}
+                        placeholder="Введите тег → Enter, запятая или «Добавить»"
+                        className={`${CLS} flex-1`}
+                      />
+                      <button type="button" onClick={commitTag}
+                        disabled={!tagInput.trim()}
+                        className="px-4 rounded-xl bg-red-800 text-white text-xs font-bold uppercase tracking-wide hover:bg-red-900 transition-colors disabled:opacity-40 flex-shrink-0">
+                        Добавить
+                      </button>
+                    </div>
+                  </div>
                 </Field>
               </motion.div>
             )}
