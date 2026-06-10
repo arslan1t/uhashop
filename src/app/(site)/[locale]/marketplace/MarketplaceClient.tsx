@@ -90,7 +90,7 @@ export function MarketplaceClient() {
   const ALL_SIZES = useMemo(() => {
     const sizes = new Set<string>();
     allProducts.forEach(p => {
-      p.sizes.forEach(s => {
+      (p.sizes ?? []).forEach(s => {
         if ("eu" in s) sizes.add(String(s.eu));
       });
     });
@@ -163,7 +163,7 @@ export function MarketplaceClient() {
     // Size
     if (filters.size) {
       result = result.filter(p =>
-        p.sizes.some(s => "eu" in s && String(s.eu) === filters.size)
+        (p.sizes ?? []).some(s => "eu" in s && String(s.eu) === filters.size)
       );
     }
 
