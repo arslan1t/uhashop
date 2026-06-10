@@ -6,6 +6,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { isAdminAuthorized, unauthorizedResponse } from "@/lib/admin-auth";
 import { getAdminDb } from "@/lib/firebase/admin";
 
+/**
+ * Recursively drop values Firestore rejects:
+ *  - NaN / Infinity numbers (e.g. a price field cleared to "" → Number("") chains to NaN)
+ *  - undefined (also handled by ignoreUndefinedProperties, dropped here for safety)
+ * Invalid fields are removed so .set({merge:true}) keeps the existing valid value
+ * instead of throwing "Cannot use NaN as a Firestore value" and failing the whole save.
+ */
+function sanitizeForFirestore<T>(value: T): T {
+  if (typeof value === "number") {
+    return (Number.isFinite(value) ? value : undefined) as T;
+  }
+  if (Array.isArray(value)) {
+    return value
+      .map(sanitizeForFirestore)
+      .filter(v => v !== undefined) as T;
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      const clean = sanitizeForFirestore(v);
+      if (clean !== undefined) out[k] = clean;
+    }
+    return out as T;
+  }
+  return value;
+}
+
 // ── GET — list all products ──────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
   if (!isAdminAuthorized(req)) return unauthorizedResponse();
@@ -34,7 +61,8 @@ export async function POST(req: NextRequest) {
     }
 
     const db = getAdminDb();
-    await db.collection("shop_products").doc(id).set({ id, ...rest }, { merge: true });
+    const clean = sanitizeForFirestore(rest);
+    await db.collection("shop_products").doc(id).set({ id, ...clean }, { merge: true });
     return NextResponse.json({ ok: true, id });
   } catch (e) {
     console.error("Admin POST product:", e);

@@ -6,10 +6,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number, currency: "USD" | "UZS" = "USD") {
+  // Guard against NaN/Infinity/undefined so a bad value never renders "≈$NaN"
+  const safe = Number.isFinite(price) ? price : 0;
   if (currency === "USD") {
-    return `≈$${price.toLocaleString("en-US")}`;
+    return `≈$${safe.toLocaleString("en-US")}`;
   }
-  return `≈${(price * 12500).toLocaleString("ru-RU")} сум`;
+  return `≈${(safe * 12500).toLocaleString("ru-RU")} сум`;
 }
 
 export function slugify(str: string) {
