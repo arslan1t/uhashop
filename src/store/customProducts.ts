@@ -147,6 +147,7 @@ export function buildProductFromForm(data: {
   apparelSizes: Record<string, boolean>;
   mainImage?: string;
   image?: string;
+  images?: string[];
 }, existingId?: string): Product {
   const id = existingId ?? `custom-${Date.now()}`;
   // Normalize slug: replace spaces with hyphens, lowercase
@@ -166,7 +167,15 @@ export function buildProductFromForm(data: {
         .map(([label, available]) => ({ label: label as "XS"|"S"|"M"|"L"|"XL"|"XXL", available: available !== false }));
 
   const catFolder = isShoes ? "shoes" : "apparel";
-  const image = data.image || data.mainImage || `/images/products/${catFolder}/${cleanSlug}/1.jpg`;
+  // Keep only real uploaded URLs (drop unfinished blob: previews and empties)
+  const cleanImages = (data.images ?? []).filter(s => !!s && !s.startsWith("blob:"));
+  const image = data.image || data.mainImage || cleanImages[0]
+    || `/images/products/${catFolder}/${cleanSlug}/1.jpg`;
+  // Full gallery with the main image first, de-duplicated. Falls back to the
+  // single main image when no gallery was provided.
+  const images = cleanImages.length > 0
+    ? [image, ...cleanImages.filter(s => s !== image)]
+    : [image];
 
   return {
     id,
@@ -182,7 +191,7 @@ export function buildProductFromForm(data: {
     replicaDelivery: data.replicaDelivery || undefined,
     currency: "USD",
     image,
-    images: [image],
+    images,
     sizes: sizes as Product["sizes"],
     estimatedDelivery: data.estimatedDelivery,
     badge: (data.badge as Product["badge"]) || undefined,

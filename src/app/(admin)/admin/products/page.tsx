@@ -141,6 +141,7 @@ export default function AdminProductsPage() {
     tags?: string[];
     replicaDelivery?: string;
     image?: string;
+    images?: string[];
     style?: "basketball" | "lifestyle";
   }) => {
     const product = buildProductFromForm({
@@ -163,6 +164,7 @@ export default function AdminProductsPage() {
       shoeSizes: data.shoeSizes ?? {},
       apparelSizes: data.apparelSizes ?? {},
       image: data.image,
+      images: data.images,
     });
     addProduct(product);
     setShowAddModal(false);
@@ -176,6 +178,7 @@ export default function AdminProductsPage() {
     tags?: string[];
     replicaDelivery?: string;
     image?: string;
+    images?: string[];
     style?: "basketball" | "lifestyle";
   }) => {
     if (!selectedProduct) return;
@@ -185,6 +188,12 @@ export default function AdminProductsPage() {
     if (isCustom) {
       // Update existing custom product — all fields from modal
       const cur = customProds.find(c => c.id === selectedProduct.id)!;
+      // Build the full gallery from the modal (real URLs only), main image first
+      const cleanImages = (data.images ?? []).filter(s => !!s && !s.startsWith("blob:"));
+      const mainImg = data.image && !data.image.startsWith("blob:") ? data.image : cleanImages[0];
+      const imagePatch = cleanImages.length > 0
+        ? { image: mainImg ?? cleanImages[0], images: [mainImg ?? cleanImages[0], ...cleanImages.filter(s => s !== (mainImg ?? cleanImages[0]))] }
+        : (mainImg ? { image: mainImg, images: [mainImg] } : {});
       updateCustom(selectedProduct.id, {
         nameRu:           data.nameRu           ?? cur.nameRu,
         name:             data.nameRu           ?? cur.nameRu,
@@ -201,19 +210,25 @@ export default function AdminProductsPage() {
         badge:            (data.badge as Product["badge"]) ?? cur.badge,
         descriptionRu:    data.descriptionRu    ?? cur.descriptionRu,
         tags:             data.tags             ?? cur.tags,
-        ...(data.image && !data.image.startsWith("blob:") ? { image: data.image, images: [data.image] } : {}),
+        ...imagePatch,
       });
     } else {
       // Static product → convert to custom with same ID (overrides static)
       const staticProd = staticProducts.find(p => p.id === selectedProduct.id);
       if (!staticProd) { setSelectedProduct(null); return; }
 
-      const updatedImage = (data.image && !data.image.startsWith("blob:"))
-        ? data.image
+      // New uploads from the modal (real URLs only)
+      const newImages = (data.images ?? []).filter(s => !!s && !s.startsWith("blob:"));
+      const hasNewUpload = newImages.length > 0 || (!!data.image && !data.image.startsWith("blob:"));
+
+      const updatedImage = hasNewUpload
+        ? (data.image && !data.image.startsWith("blob:") ? data.image : newImages[0])
         : (staticProd.images?.[0] ?? staticProd.image);
 
-      const updatedImages = (data.image && !data.image.startsWith("blob:"))
-        ? [data.image]
+      const updatedImages = hasNewUpload
+        ? (newImages.length > 0
+            ? [updatedImage, ...newImages.filter(s => s !== updatedImage)]
+            : [updatedImage])
         : (staticProd.images ?? [staticProd.image]);
 
       const product = buildProductFromForm({

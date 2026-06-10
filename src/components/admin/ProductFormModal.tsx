@@ -274,6 +274,12 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
       apparelSizes,
       // pass the first uploaded image as the main image for new products
       image: finalGallery.find(img => img.isMain)?.src ?? finalGallery[0]?.src,
+      // pass the FULL gallery (real URLs only) so all photos persist on the product,
+      // not just the main one — main image first, then the rest in order
+      images: [
+        ...finalGallery.filter(img => img.isMain),
+        ...finalGallery.filter(img => !img.isMain),
+      ].map(img => img.src).filter(src => !!src && !src.startsWith("blob:")),
     } as Partial<AdminProduct>);
 
     setSaved(true);
