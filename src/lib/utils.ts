@@ -5,6 +5,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/** Single source of truth for the standard delivery time shown on every item. */
+export const DELIVERY_TIME = "7–14 дней";
+
 export function formatPrice(price: number, currency: "USD" | "UZS" = "USD") {
   // Guard against NaN/Infinity/undefined so a bad value never renders "≈$NaN"
   const safe = Number.isFinite(price) ? price : 0;
