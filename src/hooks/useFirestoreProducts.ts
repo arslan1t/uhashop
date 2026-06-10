@@ -80,7 +80,11 @@ export function useFirestoreProducts() {
         // but exclude products marked as deleted in local meta (fix delete race condition)
         setProducts((prev: Product[]) => {
           const firestoreIds = new Set(firestoreProducts.map((p: Product) => p.id));
-          const pendingLocal = prev.filter((p: Product) => !firestoreIds.has(p.id));
+          // Pending-local = local-only products not yet in Firestore, EXCLUDING any
+          // marked deleted — otherwise a just-deleted product resurfaces from local state
+          const pendingLocal = prev.filter(
+            (p: Product) => !firestoreIds.has(p.id) && !metaRef.current[p.id]?.isDeleted
+          );
           // Filter out Firestore products already deleted locally (before Firestore confirms)
           const filteredFirestore = firestoreProducts.filter(
             (p: Product) => !metaRef.current[p.id]?.isDeleted
