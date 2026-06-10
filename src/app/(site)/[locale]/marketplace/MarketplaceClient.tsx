@@ -80,12 +80,12 @@ export function MarketplaceClient() {
   const BRANDS = useMemo(() => [...new Set(allProducts.map(p => p.brand))].sort(), [allProducts]);
   // Always show all standard categories regardless of product availability
   const STANDARD_CATEGORIES: ProductCategory[] = [
-    "shoes", "apparel", "accessories", "backpacks", "jerseys", "socks", "sets", "thermals",
+    "sets", "shoes", "apparel", "accessories", "backpacks", "jerseys", "thermals",
   ];
   const CATEGORIES = useMemo(() => {
     const fromProducts = new Set(allProducts.map(p => p.category));
-    // Merge: standard order first, then any extra from products (excl. merch)
-    const extra = [...fromProducts].filter(c => c !== "merch" && !STANDARD_CATEGORIES.includes(c as ProductCategory));
+    // Merge: standard order first, then any extra from products (excl. merch + removed socks)
+    const extra = [...fromProducts].filter(c => c !== "merch" && c !== "socks" && !STANDARD_CATEGORIES.includes(c as ProductCategory));
     return [...STANDARD_CATEGORIES, ...extra] as ProductCategory[];
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allProducts]);
@@ -233,13 +233,12 @@ export function MarketplaceClient() {
         <div className="flex flex-wrap gap-2 mb-6">
           {[
             { label: "Все товары",    emoji: "🔍", value: "" },
+            { label: "Комплекты",     emoji: "📦", value: "sets" },
             { label: "Кроссовки",     emoji: "👟", value: "shoes" },
             { label: "Одежда",        emoji: "🧤", value: "apparel" },
             { label: "Мячи",          emoji: "🏀", value: "accessories" },
             { label: "Рюкзаки",       emoji: "🎒", value: "backpacks" },
             { label: "Джерси",        emoji: "🏀", value: "jerseys" },
-            { label: "Носки",         emoji: "🧦", value: "socks" },
-            { label: "Комплекты",     emoji: "📦", value: "sets" },
             { label: "Термо бельё",   emoji: "🌡️", value: "thermals" },
           ].map(chip => {
             const active = filters.category === chip.value;
