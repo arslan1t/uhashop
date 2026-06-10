@@ -65,10 +65,14 @@ export function MarketplaceClient() {
         !deletedIds.has(p.id)
       ),
     ];
-    // Apply isFeatured overrides from meta
+    // Apply isFeatured overrides from meta + normalize style:
+    // every sneaker is either basketball (manually chosen) or lifestyle (the rest).
     return merged.map(p => ({
       ...p,
       isFeatured: metaMap[p.id]?.isFeatured ?? p.isFeatured,
+      style: p.category === "shoes"
+        ? (p.style === "basketball" ? "basketball" : "lifestyle")
+        : p.style,
     }));
   }, [customProds, metaMap]);
 
@@ -145,7 +149,7 @@ export function MarketplaceClient() {
     // Brand, category, style
     if (filters.brand) result = result.filter(p => p.brand === filters.brand);
     if (filters.category) result = result.filter(p => p.category === filters.category);
-    if (filters.style) result = result.filter(p => !p.style || p.style === filters.style);
+    if (filters.style) result = result.filter(p => p.style === filters.style);
 
     // Version
     if (filters.version === "replica") result = result.filter(p => !!p.replicaPrice);
