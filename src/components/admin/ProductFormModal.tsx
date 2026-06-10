@@ -422,7 +422,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                     <select value={category} onChange={e => setCategory(e.target.value)} className={CLS}>
                       <option value="shoes">👟 Кроссовки</option>
                       <option value="apparel">🧤 Одежда</option>
-                      <option value="accessories">💎 Аксессуары</option>
+                      <option value="accessories">🏀 Мячи</option>
                       <option value="backpacks">🎒 Рюкзаки</option>
                       <option value="jerseys">🏀 Джерси</option>
                       <option value="socks">🧦 Носки</option>
@@ -649,7 +649,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
                 {["accessories", "backpacks", "socks", "sets"].includes(category) && (
                   <div className="py-12 flex flex-col items-center gap-3 text-center">
                     <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-2xl">
-                      {{ accessories: "💎", backpacks: "🎒", socks: "🧦", sets: "📦" }[category] ?? "📦"}
+                      {{ accessories: "🏀", backpacks: "🎒", socks: "🧦", sets: "📦" }[category] ?? "📦"}
                     </div>
                     <p className="text-white font-semibold">Размеры не требуются</p>
                     <p className="text-[#555] text-sm max-w-xs">

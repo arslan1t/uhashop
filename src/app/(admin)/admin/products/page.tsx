@@ -74,6 +74,7 @@ export default function AdminProductsPage() {
     badge: p.badge,
     descriptionRu: p.descriptionRu,
     tags: p.tags,
+    style: p.style,
   }));
 
   // Deduplicate: custom product with same ID overrides static

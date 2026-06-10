@@ -11,7 +11,7 @@ import { useCustomCategories, type CustomCategory } from "@/store/customCategori
 const DEFAULT_CATS = [
   { id: "1", name: "Кроссовки",  nameUz: "Krossovkalar", slug: "shoes",       defaultImage: "/images/products/shoes/jordan-4-fire-red/1.jpg",  count: 20 },
   { id: "2", name: "Одежда",     nameUz: "Kiyim",         slug: "apparel",     defaultImage: "/images/products/apparel/fog-tee-1/1.jpg",         count: 7  },
-  { id: "3", name: "Аксессуары", nameUz: "Aksessuarlar",  slug: "accessories", defaultImage: "/images/products/shoes/adidas-samba-black/1.jpg",  count: 0  },
+  { id: "3", name: "Мячи",       nameUz: "To'plar",        slug: "accessories", defaultImage: "/images/products/shoes/adidas-samba-black/1.jpg",  count: 0  },
   { id: "4", name: "UHA Мерч",   nameUz: "UHA Merch",     slug: "merch",       defaultImage: "/images/products/shoes/jordan-1-lucky-green/1.jpg", count: 1  },
 ];
 
