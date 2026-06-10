@@ -89,15 +89,19 @@ export function useFirestoreProducts() {
           const filteredFirestore = firestoreProducts.filter(
             (p: Product) => !metaRef.current[p.id]?.isDeleted
           );
-          // Normalize legacy delivery dates — old Firestore data had "14–21 дней"
-          // before the store-wide update to "7–14 дней"
+          // Uniform delivery time for every item: "7–14 дней" (also fixes
+          // wrong-dash / double-space / longer-range variants in old data)
           const normalizedFirestore = filteredFirestore.map((p: Product) => ({
             ...p,
-            estimatedDelivery: p.estimatedDelivery === "14–21 дней"
-              ? "7–14 дней"
-              : p.estimatedDelivery,
+            estimatedDelivery: "7–14 дней",
+            replicaDelivery: p.replicaDelivery ? "7–14 дней" : p.replicaDelivery,
           }));
-          return [...normalizedFirestore, ...pendingLocal];
+          const normalizedLocal = pendingLocal.map((p: Product) => ({
+            ...p,
+            estimatedDelivery: "7–14 дней",
+            replicaDelivery: p.replicaDelivery ? "7–14 дней" : p.replicaDelivery,
+          }));
+          return [...normalizedFirestore, ...normalizedLocal];
         });
         setFirestoreSynced();
 
