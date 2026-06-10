@@ -271,10 +271,12 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
       badge: badge as AdminProduct["badge"],
       style: style || undefined,
       isFeatured, estimatedDelivery: delivery,
-      price: Number(price),
-      replicaPrice: replicaPrice ? Number(replicaPrice) : undefined,
+      // Coerce to safe numbers — never emit NaN (Firestore rejects it and a
+      // blank/typo'd field would otherwise crash the save)
+      price: Number.isFinite(Number(price)) ? Number(price) : 0,
+      replicaPrice: Number(replicaPrice) > 0 ? Number(replicaPrice) : undefined,
       replicaDelivery,
-      stock: stock ? Number(stock) : undefined,
+      stock: Number(stock) > 0 ? Number(stock) : undefined,
       descriptionRu: descRu,
       tags: finalTags,
       shoeSizes,
