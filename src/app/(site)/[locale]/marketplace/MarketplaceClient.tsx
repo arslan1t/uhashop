@@ -231,7 +231,7 @@ export function MarketplaceClient() {
             { label: "Все товары",    emoji: "🔍", value: "" },
             { label: "Кроссовки",     emoji: "👟", value: "shoes" },
             { label: "Одежда",        emoji: "🧤", value: "apparel" },
-            { label: "Аксессуары",    emoji: "💎", value: "accessories" },
+            { label: "Мячи",          emoji: "🏀", value: "accessories" },
             { label: "Рюкзаки",       emoji: "🎒", value: "backpacks" },
             { label: "Джерси",        emoji: "🏀", value: "jerseys" },
             { label: "Носки",         emoji: "🧦", value: "socks" },

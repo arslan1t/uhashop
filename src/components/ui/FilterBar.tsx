@@ -54,7 +54,7 @@ const STOCK_OPTIONS: { value: StockFilter; label: string }[] = [
 const CAT_LABELS: Record<string, string> = {
   shoes:       "Кроссовки",
   apparel:     "Одежда",
-  accessories: "Аксессуары",
+  accessories: "Мячи",
   backpacks:   "Рюкзаки",
   jerseys:     "Джерси",
   socks:       "Носки",

@@ -24,6 +24,7 @@ export interface AdminProduct {
   badge?: string;
   descriptionRu?: string;
   tags?: string[];
+  style?: "basketball" | "lifestyle";
 }
 
 export interface AdminOrder {
