@@ -26,12 +26,13 @@ export async function POST(req: NextRequest) {
     for (let i = 0; i < files.length; i++) {
       const file   = files[i];
       const ext    = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const path   = `product-images/${slug}/${i + 1}.${ext}`;
-      const buffer = Buffer.from(await file.arrayBuffer());
-
       // Generate a permanent download token — this works regardless of bucket
       // access policy (Uniform or Fine-grained) and without Firebase Storage rules changes.
       const downloadToken = randomUUID();
+      // Unique filename per file (token-based) so uploads never overwrite each
+      // other — important now that the client uploads one file per request.
+      const path   = `product-images/${slug}/${downloadToken}.${ext}`;
+      const buffer = Buffer.from(await file.arrayBuffer());
 
       const fileRef = bucket.file(path);
       await fileRef.save(buffer, {
