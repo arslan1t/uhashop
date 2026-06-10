@@ -13,7 +13,7 @@ import { useFirestoreProducts } from "@/hooks/useFirestoreProducts";
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [ready, setReady] = useState(false);
-  const { isAuthenticated, checkAuth } = useAdminStore();
+  const { isAuthenticated, checkAuth, validateToken } = useAdminStore();
   const hydrateOverrides = useProductOverrides(s => s.hydrate);
   const hydrateVisibility = useProductVisibility(s => s.hydrate);
   const setHydrated = useCustomProducts(s => s.setHydrated);
@@ -30,6 +30,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     hydrateVisibility();
     setHydrated();
     setReady(true);
+    // Confirm the stored token is still accepted by the server. If it's stale
+    // (e.g. session secret rotated), this clears the session → redirect to login,
+    // instead of leaving the admin able to browse but every save 401-ing.
+    validateToken();
   }, []);
 
   useEffect(() => {
