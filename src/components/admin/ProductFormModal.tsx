@@ -212,39 +212,46 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
     const pending = tagInput.trim().toLowerCase();
     const finalTags = pending && !tags.includes(pending) ? [...tags, pending] : tags;
 
-    // ── Upload any new local files to server ──
+    // ── Upload any new local files to server, ONE REQUEST PER FILE ──
+    // Batching all photos into a single POST hits Vercel's ~4.5MB body limit
+    // (a few phone photos exceed it → the whole upload fails). Uploading each
+    // file separately keeps every request small and lets the rest succeed even
+    // if one fails.
     let finalGallery = gallery;
+    let uploadFailures = 0;
     const localFiles = gallery.filter(img => img.isLocal && img.file);
 
     if (localFiles.length > 0) {
-      try {
-        const fd = new FormData();
-        fd.append("slug", currentSlug);
-        fd.append("category", category);
-
-        // Reorder: put main image first among locals
-        const orderedLocals = [
-          ...localFiles.filter(img => img.isMain),
-          ...localFiles.filter(img => !img.isMain),
-        ];
-        orderedLocals.forEach(img => fd.append("files", img.file!));
-
-        const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-        const data = await res.json();
-
-        if (data.paths?.length) {
-          // Replace blob URLs with real server paths
-          let pathIdx = 0;
-          finalGallery = gallery.map(img => {
-            if (img.isLocal && img.file) {
-              return { ...img, src: data.paths[pathIdx++] ?? img.src, isLocal: false };
-            }
-            return img;
-          });
+      const uploadedSrc = new Map<string, string>(); // gallery img.id → real URL
+      await Promise.all(localFiles.map(async (img) => {
+        try {
+          const fd = new FormData();
+          fd.append("slug", currentSlug);
+          fd.append("category", category);
+          fd.append("files", img.file!);
+          const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          const url = data.paths?.[0];
+          if (url) uploadedSrc.set(img.id, url);
+          else throw new Error("no url returned");
+        } catch (e) {
+          uploadFailures++;
+          console.error(`Upload failed for ${img.file?.name}:`, e);
         }
-      } catch (e) {
-        console.error("Upload failed:", e);
-      }
+      }));
+
+      // Swap blob previews for the real uploaded URLs (keep blob if its upload failed)
+      finalGallery = gallery.map(img =>
+        uploadedSrc.has(img.id)
+          ? { ...img, src: uploadedSrc.get(img.id)!, isLocal: false }
+          : img
+      );
+    }
+
+    if (uploadFailures > 0) {
+      // Don't silently drop photos — let the admin know some didn't upload
+      alert(`Внимание: ${uploadFailures} фото не загрузилось. Попробуйте сохранить ещё раз или уменьшите размер файлов.`);
     }
 
     // ── Persist image order & main to shared override store ──

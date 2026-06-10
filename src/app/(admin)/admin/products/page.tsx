@@ -287,17 +287,41 @@ export default function AdminProductsPage() {
     setSyncMsg(null);
     try {
       const { resyncProductToServer } = await import("@/store/customProducts");
-      // Sequential map so results[i] reliably maps to customProds[i]
+      const isValid = (s?: string) => !!s && !s.startsWith("blob:") && !s.startsWith("data:");
+
+      // Enrich each product with the FULL gallery saved in the local override
+      // store (imageOrder). Products added before multi-image support saved only
+      // the main photo to images[], but the override kept the whole gallery —
+      // so this recovers all photos and re-pushes them to the cloud.
+      let recovered = 0;
+      const toPush = customProds.map(p => {
+        const order = (overrides[p.slug]?.imageOrder ?? []).filter(isValid);
+        const current = (p.images ?? []).filter(isValid);
+        if (order.length > current.length) {
+          recovered++;
+          const main = isValid(overrides[p.slug]?.mainImage) ? overrides[p.slug]!.mainImage! : order[0];
+          const images = [main, ...order.filter(s => s !== main)];
+          // Persist the recovered gallery locally too, so the admin list updates
+          updateCustom(p.id, { image: main, images });
+          return { ...p, image: main, images };
+        }
+        return p;
+      });
+
+      // Sequential map so results[i] reliably maps to toPush[i]
       const results = await Promise.allSettled(
-        customProds.map(p => resyncProductToServer(p))
+        toPush.map(p => resyncProductToServer(p))
       );
       const failedItems = results
-        .map((r, i) => ({ r, p: customProds[i] }))
+        .map((r, i) => ({ r, p: toPush[i] }))
         .filter(({ r }) => r.status === "rejected");
-      const ok = customProds.length - failedItems.length;
+      const ok = toPush.length - failedItems.length;
 
       if (failedItems.length === 0) {
-        setSyncMsg({ ok: true, text: `Синхронизировано: ${ok} товар(ов) в облаке` });
+        setSyncMsg({
+          ok: true,
+          text: `Синхронизировано: ${ok} товар(ов)${recovered > 0 ? `, восстановлено фото у ${recovered}` : ""}`,
+        });
       } else {
         // Identify the failing product(s) and a readable reason
         const first = failedItems[0];
