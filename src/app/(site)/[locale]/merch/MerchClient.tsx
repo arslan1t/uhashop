@@ -173,7 +173,7 @@ export function MerchClient() {
 
                   {/* Sizes */}
                   <div className="flex flex-wrap gap-1.5 mb-5">
-                    {product.sizes.map((s) => {
+                    {(product.sizes ?? []).map((s) => {
                       const label = "label" in s ? s.label : `${s.eu}`;
                       return (
                         <span key={label}
@@ -191,7 +191,7 @@ export function MerchClient() {
                     <button
                       onClick={(e) => {
                         e.preventDefault();
-                        const s = product.sizes.find((s) => s.available);
+                        const s = (product.sizes ?? []).find((s) => s.available);
                         const size = s ? ("label" in s ? s.label : `EU ${s.eu}`) : "";
                         addItem(product, size, "original");
                       }}

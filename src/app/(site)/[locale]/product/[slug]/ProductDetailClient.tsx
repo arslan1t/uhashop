@@ -269,7 +269,7 @@ export function ProductDetailClient({ product }: Props) {
                 <p className="text-xs text-red-400 mb-2">{t("size_required")}</p>
               )}
               <div className="flex flex-wrap gap-2">
-                {product.sizes.map((s) => {
+                {(product.sizes ?? []).map((s) => {
                   const label = isShoes
                     ? `EU ${(s as ProductSize).eu}`
                     : (s as ApparelSize).label;

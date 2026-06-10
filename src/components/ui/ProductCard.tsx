@@ -45,7 +45,8 @@ export const ProductCard = memo(function ProductCard({ product, priority = false
   const overrideMain = overrides[product.slug]?.mainImage;
   const displayImage = overrideMain && !overrideMain.startsWith("blob:") ? overrideMain : product.image;
   const hasReplica = !!product.replicaPrice;
-  const hasSizes = product.sizes.length > 0;
+  const productSizes = product.sizes ?? [];
+  const hasSizes = productSizes.length > 0;
 
   // Close picker on outside click/touch
   useEffect(() => {
@@ -248,7 +249,7 @@ export const ProductCard = memo(function ProductCard({ product, priority = false
             {/* Size grid */}
             {hasSizes ? (
               <div className="grid grid-cols-4 gap-1.5 max-h-32 overflow-y-auto">
-                {product.sizes.map((s) => {
+                {productSizes.map((s) => {
                   const label = getSizeLabel(s);
                   const inStock = "inStock" in s ? s.inStock !== false : true;
                   return (
