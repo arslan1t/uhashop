@@ -124,6 +124,17 @@ export const useCustomProducts = create<CustomProductsStore>()(
   )
 );
 
+/** Normalize a slug: lowercase, spaces→hyphens, strip everything but a-z0-9- */
+export function normalizeSlug(raw: string): string {
+  return raw
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-zA-Z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .toLowerCase();
+}
+
 /** Convert admin form data → full Product object */
 export function buildProductFromForm(data: {
   nameRu: string;
@@ -150,12 +161,7 @@ export function buildProductFromForm(data: {
   images?: string[];
 }, existingId?: string): Product {
   const id = existingId ?? `custom-${Date.now()}`;
-  // Normalize slug: replace spaces with hyphens, lowercase
-  const cleanSlug = data.slug
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9-]/g, "")
-    .toLowerCase();
+  const cleanSlug = normalizeSlug(data.slug);
   const isShoes = data.category === "shoes";
 
   const sizes = isShoes
