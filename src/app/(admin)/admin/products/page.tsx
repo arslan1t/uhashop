@@ -73,6 +73,7 @@ export default function AdminProductsPage() {
     createdAt: new Date().toISOString().split("T")[0],
     badge: p.badge,
     descriptionRu: p.descriptionRu,
+    tags: p.tags,
   }));
 
   // Deduplicate: custom product with same ID overrides static

@@ -138,7 +138,7 @@ export function MarketplaceClient() {
         p.name.toLowerCase().includes(q) ||
         p.nameRu?.toLowerCase().includes(q) ||
         p.brand.toLowerCase().includes(q) ||
-        p.tags.some(tag => tag.includes(q))
+        p.tags?.some(tag => tag.includes(q))
       );
     }
 
