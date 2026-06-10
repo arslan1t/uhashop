@@ -21,10 +21,16 @@ export function CustomProductFallback({ slug }: { slug: string }) {
     );
   }
 
-  // Case-insensitive slug match, skip deleted products
-  const product = products.find(
+  // Case-insensitive slug match, skip deleted products.
+  // If duplicates share a slug (from repeated re-adds), prefer the most
+  // complete one — the copy with the most images — so the visitor never
+  // lands on an empty/single-photo duplicate.
+  const matches = products.filter(
     p => p.slug.toLowerCase() === normalized.toLowerCase() && !meta[p.id]?.isDeleted
   );
+  const product = matches
+    .slice()
+    .sort((a, b) => (b.images?.length ?? 0) - (a.images?.length ?? 0))[0];
 
   if (product) {
     return <ProductDetailClient product={product} />;

@@ -13,7 +13,7 @@ import { formatPrice } from "@/lib/utils";
 import { ProductFormModal } from "@/components/admin/ProductFormModal";
 import { useProductOverrides } from "@/store/productOverrides";
 import { useProductVisibility } from "@/store/productVisibility";
-import { useCustomProducts, buildProductFromForm } from "@/store/customProducts";
+import { useCustomProducts, buildProductFromForm, normalizeSlug } from "@/store/customProducts";
 import type { Product } from "@/types";
 import { useProductMeta } from "@/store/productMeta";
 
@@ -134,6 +134,21 @@ export default function AdminProductsPage() {
     setStaticProducts(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
   };
 
+  // Build a slug that doesn't collide with any existing product (custom or
+  // static). Re-adding the same item no longer creates same-slug duplicates
+  // that fight over the same product URL.
+  const makeUniqueSlug = (raw: string, selfId?: string): string => {
+    const base = normalizeSlug(raw || "") || `product-${Date.now()}`;
+    const taken = new Set<string>([
+      ...customProds.filter(p => p.id !== selfId).map(p => p.slug.toLowerCase()),
+      ...staticProducts.map(p => p.slug.toLowerCase()),
+    ]);
+    if (!taken.has(base)) return base;
+    let i = 2;
+    while (taken.has(`${base}-${i}`)) i++;
+    return `${base}-${i}`;
+  };
+
   const handleSaveNew = (data: Partial<AdminProduct> & {
     shoeSizes?: Record<number, boolean>;
     apparelSizes?: Record<string, boolean>;
@@ -146,7 +161,7 @@ export default function AdminProductsPage() {
   }) => {
     const product = buildProductFromForm({
       nameRu: data.nameRu ?? "",
-      slug: data.slug ?? `product-${Date.now()}`,
+      slug: makeUniqueSlug(data.slug ?? `product-${Date.now()}`),
       brand: data.brand ?? "Nike",
       category: data.category ?? "shoes",
       type: data.type ?? "preorder",
@@ -197,7 +212,7 @@ export default function AdminProductsPage() {
       updateCustom(selectedProduct.id, {
         nameRu:           data.nameRu           ?? cur.nameRu,
         name:             data.nameRu           ?? cur.nameRu,
-        slug:             data.slug             ?? cur.slug,
+        slug:             data.slug ? makeUniqueSlug(data.slug, selectedProduct.id) : cur.slug,
         brand:            (data.brand as Product["brand"]) ?? cur.brand,
         category:         (data.category as Product["category"]) ?? cur.category,
         type:             (data.type as Product["type"]) ?? cur.type,
