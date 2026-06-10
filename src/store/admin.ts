@@ -12,6 +12,8 @@ interface AdminState {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAuth: () => void;
+  /** Verify the stored token with the server; clears the session if it's stale. */
+  validateToken: () => Promise<boolean>;
 }
 
 const ADMIN_KEY  = "uha-admin-auth";
@@ -55,6 +57,29 @@ export const useAdminStore = create<AdminState>()((set) => ({
     safeStorage.removeItem(ADMIN_KEY);
     safeStorage.removeItem(TOKEN_KEY);
     set({ isAuthenticated: false, adminUser: null });
+  },
+
+  validateToken: async () => {
+    const token = safeStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      set({ isAuthenticated: false, adminUser: null });
+      return false;
+    }
+    try {
+      const res = await fetch("/api/admin/auth", { headers: { "x-admin-token": token } });
+      if (res.status === 401) {
+        // Stale/invalid token (e.g. server secret rotated) — force a real re-login
+        // instead of letting every write silently fail with 401.
+        safeStorage.removeItem(ADMIN_KEY);
+        safeStorage.removeItem(TOKEN_KEY);
+        set({ isAuthenticated: false, adminUser: null });
+        return false;
+      }
+      return true;
+    } catch {
+      // Network error — don't lock the admin out; keep the cached session
+      return true;
+    }
   },
 }));
 
