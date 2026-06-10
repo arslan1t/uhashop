@@ -9,7 +9,7 @@ import { Badge } from "./Badge";
 import { useCartStore } from "@/store/cart";
 import { useProductOverrides } from "@/store/productOverrides";
 import { useWishlist } from "@/store/wishlist";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, DELIVERY_TIME } from "@/lib/utils";
 import type { Product } from "@/types";
 
 interface Props {
@@ -140,10 +140,10 @@ export const ProductCard = memo(function ProductCard({ product, priority = false
             <span className="text-[10px] font-bold text-[rgb(var(--accent))] uppercase tracking-wider">
               {product.brand}
             </span>
-            {product.type === "preorder" && product.estimatedDelivery && (
+            {product.type === "preorder" && (
               <div className="flex items-center gap-1 text-[9px] text-[rgb(var(--muted))]">
                 <Clock className="w-2.5 h-2.5" />
-                <span>{product.estimatedDelivery}</span>
+                <span>{DELIVERY_TIME}</span>
               </div>
             )}
           </div>

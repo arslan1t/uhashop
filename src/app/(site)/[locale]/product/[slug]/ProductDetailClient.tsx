@@ -15,7 +15,7 @@ import { useCartStore } from "@/store/cart";
 import { useProductOverrides } from "@/store/productOverrides";
 import { useWishlist } from "@/store/wishlist";
 import { getRelatedProducts } from "@/data/products";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, DELIVERY_TIME } from "@/lib/utils";
 import type { Product, ProductSize, ApparelSize, ProductVersion } from "@/types";
 
 interface Props { product: Product }
@@ -68,7 +68,7 @@ export function ProductDetailClient({ product }: Props) {
     : product.price;
   const activeDelivery = version === "replica" && product.replicaDelivery
     ? product.replicaDelivery
-    : product.estimatedDelivery ?? "7–14 дней";
+    : DELIVERY_TIME;
 
   const prev = () => setActiveImg((i) => (i - 1 + sortedGallery.length) % sortedGallery.length);
   const next = () => setActiveImg((i) => (i + 1) % sortedGallery.length);
@@ -213,7 +213,7 @@ export function ProductDetailClient({ product }: Props) {
                   const active = version === v;
                   const price = v === "original" ? product.price : product.replicaPrice!;
                   const delivery = v === "original"
-                    ? product.estimatedDelivery
+                    ? DELIVERY_TIME
                     : product.replicaDelivery;
                   return (
                     <button key={v} onClick={() => setVersion(v)}
