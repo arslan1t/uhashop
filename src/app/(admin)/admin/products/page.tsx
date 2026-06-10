@@ -537,14 +537,18 @@ export default function AdminProductsPage() {
                           <Eye className="w-3.5 h-3.5" />
                         </Link>
                         <button
-                          onClick={() => {
+                          onClick={async () => {
                             if (!confirm(`Удалить «${product.nameRu}»?`)) return;
-                            // ALWAYS mark as deleted in shop_meta (Firestore)
-                            // This prevents the static version from resurfacing
+                            // Hide locally + mark deleted in meta (covers static products)
                             setDeleted(product.id, true);
-                            // Also remove from customProducts if it's a custom product
-                            if (customProds.some(c => c.id === product.id)) {
-                              removeCustom(product.id);
+                            removeCustom(product.id);
+                            // ALWAYS delete from Firestore via the admin API — reliable
+                            // and cross-device, even if the local store was out of sync.
+                            try {
+                              const { deleteProductFromServer } = await import("@/store/customProducts");
+                              await deleteProductFromServer(product.id);
+                            } catch (e) {
+                              alert(`Не удалось удалить из облака: ${readErr(e)}. Товар скрыт локально — нажмите ещё раз или проверьте вход в админку.`);
                             }
                           }}
                           className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-[#666] hover:text-red-500 transition-colors"

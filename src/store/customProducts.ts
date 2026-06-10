@@ -45,6 +45,15 @@ async function apiDeleteProduct(id: string): Promise<void> {
   }
 }
 
+/**
+ * Reliably delete a product from Firestore via the admin API, regardless of
+ * whether it's currently in the local store. Throws on failure so the caller
+ * can surface it (instead of a delete silently not propagating to other devices).
+ */
+export async function deleteProductFromServer(id: string): Promise<void> {
+  return apiDeleteProduct(id);
+}
+
 interface CustomProductsStore {
   products: Product[];
   _hydrated: boolean;
