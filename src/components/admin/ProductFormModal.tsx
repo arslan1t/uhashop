@@ -8,6 +8,7 @@ import type { AdminProduct } from "@/data/adminData";
 import { useProductOverrides } from "@/store/productOverrides";
 import { useCustomBrands } from "@/store/customBrands";
 import { getAdminToken } from "@/store/admin";
+import { compressImage } from "@/lib/image";
 
 const CLS = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
 
@@ -123,33 +124,7 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
   const [stock, setStock] = useState(String(product?.stock ?? ""));
 
   // ── Media handlers ──
-
-  // Compress/resize image to max 1800px, JPEG 85% — keeps requests under Vercel's 4.5MB limit
-  const compressImage = (file: File): Promise<File> =>
-    new Promise((resolve) => {
-      const MAX = 1800;
-      const img = new window.Image();
-      const blobUrl = URL.createObjectURL(file);
-      img.onload = () => {
-        URL.revokeObjectURL(blobUrl);
-        let w = img.naturalWidth, h = img.naturalHeight;
-        if (w > MAX || h > MAX) {
-          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
-          else { w = Math.round(w * MAX / h); h = MAX; }
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = w; canvas.height = h;
-        canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
-        canvas.toBlob(
-          blob => resolve(blob
-            ? new File([blob], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" })
-            : file),
-          "image/jpeg", 0.85
-        );
-      };
-      img.onerror = () => { URL.revokeObjectURL(blobUrl); resolve(file); };
-      img.src = blobUrl;
-    });
+  // compressImage (shared util) keeps requests under Vercel's 4.5MB limit.
 
   const handleFiles = useCallback((files: FileList | File[]) => {
     const arr = Array.from(files).filter(f => f.type.startsWith("image/"));

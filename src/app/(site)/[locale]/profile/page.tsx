@@ -20,6 +20,7 @@ import { products as staticProducts } from "@/data/products";
 import { getMarketplaceProducts } from "@/data/products";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { formatPrice } from "@/lib/utils";
+import { compressImage } from "@/lib/image";
 import type { PlayerSet, Product } from "@/types";
 
 const mktProducts = getMarketplaceProducts();
@@ -232,9 +233,10 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
     if (!user?.id) return;
     setUploadingAvatar(true);
     try {
+      const compressed = await compressImage(file, 800, 0.85); // avatars don't need to be large
       const fd = new FormData();
       fd.append("userId", user.id);
-      fd.append("files", file);
+      fd.append("files", compressed);
       const res = await fetch("/api/user/upload", { method: "POST", body: fd });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { paths } = await res.json();
@@ -388,9 +390,10 @@ function UserSetModal({
     try {
       const results: string[] = [];
       for (const file of Array.from(files)) {
+        const compressed = await compressImage(file); // keep set photos under the upload size limit
         const fd = new FormData();
         fd.append("userId", userId);
-        fd.append("files", file);
+        fd.append("files", compressed);
         const res = await fetch("/api/user/upload", { method: "POST", body: fd });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const { paths } = await res.json();

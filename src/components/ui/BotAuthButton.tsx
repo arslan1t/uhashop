@@ -122,27 +122,46 @@ export function BotAuthButton({ redirectTo = "/profile" }: Props) {
     };
   }, [pollOnce]);
 
-  const startAuth = async () => {
+  const startAuth = () => {
     setState("loading");
-    try {
-      const res = await fetch("/api/auth/bot/session", { method: "POST" });
-      if (!res.ok) throw new Error("init failed");
-      const { sessionId, botUrl } = await res.json();
 
-      beginPolling(sessionId);
-      window.open(botUrl, "_blank", "noopener,noreferrer");
+    // Open a tab SYNCHRONOUSLY inside the tap gesture. On mobile, calling
+    // window.open() after an `await` is treated as a non-user-initiated popup
+    // and silently blocked — which is why the redirect to Telegram never
+    // happened on phones. We open a blank tab now and point it at the bot URL
+    // once the session is created.
+    const popup = window.open("", "_blank");
 
-      // Auto-expire UI after 10 min
-      setTimeout(() => {
-        if (sessionRef.current === sessionId) {
-          stopPolling();
-          clearPending();
-          setState(s => s === "waiting" ? "expired" : s);
+    (async () => {
+      try {
+        const res = await fetch("/api/auth/bot/session", { method: "POST" });
+        if (!res.ok) throw new Error("init failed");
+        const { sessionId, botUrl } = await res.json();
+
+        beginPolling(sessionId);
+
+        if (popup && !popup.closed) {
+          // Reuse the tab we opened in the gesture.
+          popup.location.href = botUrl;
+        } else {
+          // Popup blocked (some in-app browsers) → navigate this tab instead.
+          // When the user returns, resume-on-mount picks the session back up.
+          window.location.href = botUrl;
         }
-      }, 10 * 60 * 1000);
-    } catch {
-      setState("error");
-    }
+
+        // Auto-expire UI after 10 min
+        setTimeout(() => {
+          if (sessionRef.current === sessionId) {
+            stopPolling();
+            clearPending();
+            setState(s => s === "waiting" ? "expired" : s);
+          }
+        }, 10 * 60 * 1000);
+      } catch {
+        if (popup && !popup.closed) popup.close();
+        setState("error");
+      }
+    })();
   };
 
   const cancel = () => {

@@ -9,7 +9,8 @@
  * (set when registering webhook via setWebhook API).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminDb } from "@/lib/firebase/admin";
+import { randomUUID } from "crypto";
+import { getAdminDb, getAdminStorage } from "@/lib/firebase/admin";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET ?? "";
@@ -28,6 +29,47 @@ async function tgPost(method: string, body: object) {
 
 async function sendMessage(chatId: number, text: string, extra?: object) {
   await tgPost("sendMessage", { chat_id: chatId, text, parse_mode: "HTML", ...extra });
+}
+
+/**
+ * Best-effort: pull the user's current Telegram profile photo, re-upload it to
+ * Firebase Storage (Telegram file URLs require the bot token and rotate), and
+ * return a permanent download URL. Returns null if the user hides their photo
+ * or anything fails — never throws, never blocks login.
+ */
+async function fetchTelegramAvatar(userId: string, telegramId: number): Promise<string | null> {
+  try {
+    const photosRes = await tgPost("getUserProfilePhotos", { user_id: telegramId, limit: 1 });
+    const photos = await photosRes.json();
+    const sizes = photos?.result?.photos?.[0];
+    if (!Array.isArray(sizes) || sizes.length === 0) return null;
+    const fileId = sizes[sizes.length - 1]?.file_id; // largest size
+    if (!fileId) return null;
+
+    const fileRes = await tgPost("getFile", { file_id: fileId });
+    const fileInfo = await fileRes.json();
+    const filePath: string | undefined = fileInfo?.result?.file_path;
+    if (!filePath) return null;
+
+    const imgRes = await fetch(`https://api.telegram.org/file/bot${BOT_TOKEN}/${filePath}`);
+    if (!imgRes.ok) return null;
+    const buf = Buffer.from(await imgRes.arrayBuffer());
+
+    const token = randomUUID();
+    const ext = filePath.split(".").pop()?.toLowerCase() || "jpg";
+    const path = `user-uploads/${userId}/tg-avatar-${token}.${ext}`;
+    const bucket = getAdminStorage().bucket();
+    await bucket.file(path).save(buf, {
+      metadata: {
+        contentType: "image/jpeg",
+        metadata: { firebaseStorageDownloadTokens: token },
+      },
+    });
+    const encoded = encodeURIComponent(path);
+    return `https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encoded}?alt=media&token=${token}`;
+  } catch {
+    return null;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -119,6 +161,13 @@ export async function POST(req: NextRequest) {
       const existingDoc = await db.collection("user_profiles").doc(userId).get();
       const existing = existingDoc.exists ? existingDoc.data()! : {};
 
+      // Auto-fetch the Telegram profile photo only if the user has no avatar yet
+      // (so a custom uploaded avatar is never overwritten).
+      let avatar = existing.avatar ?? null;
+      if (!avatar) {
+        avatar = await fetchTelegramAvatar(userId, from.id);
+      }
+
       const user = {
         id: userId,
         name: existing.name || name,
@@ -127,7 +176,7 @@ export async function POST(req: NextRequest) {
         telegramId: from.id,
         chatId,
         phone: contact.phone_number,
-        avatar: existing.avatar ?? null,
+        avatar,
         bio: existing.bio ?? null,
         socialLinks: existing.socialLinks ?? null,
         createdAt: existing.createdAt ?? new Date().toISOString(),

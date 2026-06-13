@@ -11,6 +11,7 @@ import { usePlayerSets } from "@/store/playerSets";
 import { useCustomProducts } from "@/store/customProducts";
 import { adminProducts } from "@/data/adminData";
 import { formatPrice } from "@/lib/utils";
+import { compressImage } from "@/lib/image";
 import type { PlayerSet, Product, ProductCategory } from "@/types";
 
 const inputCls = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
@@ -81,9 +82,10 @@ export default function AdminSetsPage() {
       const token = localStorage.getItem("uha-admin-token") ?? "";
       const results: string[] = [];
       for (const file of Array.from(files)) {
+        const compressed = await compressImage(file);
         const fd = new FormData();
         fd.append("slug", "player-sets");
-        fd.append("files", file);
+        fd.append("files", compressed);
         const res = await fetch("/api/admin/upload", {
           method: "POST", headers: { "x-admin-token": token }, body: fd,
         });
