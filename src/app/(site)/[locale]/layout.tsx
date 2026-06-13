@@ -107,7 +107,7 @@ export default async function LocaleLayout({
             <NavigationProgress />
             <Navbar />
             <CartDrawer />
-            <main className="min-h-screen pt-[112px] md:pt-[72px] overflow-x-hidden">{children}</main>
+            <main className="min-h-screen pt-16 md:pt-[72px] overflow-x-hidden">{children}</main>
             <Footer />
             <TelegramWidget />
           </Providers>

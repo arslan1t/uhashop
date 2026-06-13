@@ -86,13 +86,17 @@ export default function AdminSetsPage() {
     try {
       const token = localStorage.getItem("uha-admin-token") ?? "";
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("slug", "player-sets");   // API requires slug field
+      fd.append("files", file);           // API expects "files" (plural)
       const res = await fetch("/api/admin/upload", {
         method: "POST", headers: { "x-admin-token": token }, body: fd,
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const { url } = await res.json();
-      setForm(f => ({ ...f, heroImage: url }));
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error ?? `HTTP ${res.status}`);
+      }
+      const { paths } = await res.json();  // API returns paths[], not url
+      setForm(f => ({ ...f, heroImage: paths[0] }));
     } catch (e) {
       alert(`Ошибка загрузки: ${e}`);
     } finally {

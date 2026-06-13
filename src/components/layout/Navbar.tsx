@@ -80,6 +80,30 @@ export function Navbar() {
               </div>
             </Link>
 
+            {/* ── Mobile quick links — Marketplace + Academy, same row as logo ── */}
+            <div className="flex md:hidden items-center gap-1">
+              <Link href="/marketplace" onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all",
+                  isActive("/marketplace")
+                    ? "bg-[rgb(var(--accent)/0.12)] text-[rgb(var(--accent))]"
+                    : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface))]"
+                )}>
+                <Store className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>Магазин</span>
+              </Link>
+              <Link href="/academy" onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all",
+                  isActive("/academy")
+                    ? "bg-[rgb(var(--accent)/0.12)] text-[rgb(var(--accent))]"
+                    : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface))]"
+                )}>
+                <GraduationCap className="w-3.5 h-3.5 flex-shrink-0" />
+                <span>Академия</span>
+              </Link>
+            </div>
+
             {/* ── Desktop Nav ── */}
             <nav className="hidden md:flex items-center gap-1">
               {NAV_LINKS.map((item) => {
@@ -186,34 +210,6 @@ export function Navbar() {
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* ── Mobile quick-access bar — Marketplace + Academy ── */}
-        {/* Visible only on mobile (<md). Keeps the most-visited pages one tap away. */}
-        <div className="md:hidden border-t border-[rgb(var(--border)/0.5)] bg-[rgb(var(--surface)/0.85)] backdrop-blur-sm">
-          <div className="container-uha flex gap-2 py-1.5">
-            <Link href="/marketplace" onClick={() => setMobileOpen(false)}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all",
-                isActive("/marketplace")
-                  ? "bg-[rgb(var(--accent)/0.12)] text-[rgb(var(--accent))]"
-                  : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface-2))]"
-              )}>
-              <Store className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>Маркетплейс</span>
-            </Link>
-            <div className="w-px bg-[rgb(var(--border))]" />
-            <Link href="/academy" onClick={() => setMobileOpen(false)}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all",
-                isActive("/academy")
-                  ? "bg-[rgb(var(--accent)/0.12)] text-[rgb(var(--accent))]"
-                  : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface-2))]"
-              )}>
-              <GraduationCap className="w-3.5 h-3.5 flex-shrink-0" />
-              <span>Академия</span>
-            </Link>
           </div>
         </div>
 
