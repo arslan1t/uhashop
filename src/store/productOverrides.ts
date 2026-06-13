@@ -39,12 +39,15 @@ function save(overrides: Record<string, ProductOverride>) {
 
 function syncToFirestore(entry: ProductOverride) {
   if (typeof window === "undefined") return;
-  import("@/lib/firebase/config").then(({ isFirebaseConfigured }) => {
-    if (!isFirebaseConfigured()) return;
-    import("@/lib/firebase/overridesFirestore").then(({ saveOverrideToFirestore }) => {
-      saveOverrideToFirestore(entry).catch(console.error);
-    });
-  });
+  // Persist via the server admin API (Admin SDK) — client-side Firestore writes
+  // to shop_overrides are blocked by security rules, so a direct setDoc would
+  // silently fail and the image change would never sync to other devices.
+  const token = safeStorage.getItem("uha-admin-token") ?? "";
+  fetch("/api/admin/overrides", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-admin-token": token },
+    body: JSON.stringify(entry),
+  }).catch(console.error);
 }
 
 export const useProductOverrides = create<OverridesStore>()((set) => ({

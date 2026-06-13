@@ -820,9 +820,9 @@ export default function ProfilePage() {
                   const extraPhotos = (s.heroImages?.length ?? 0) - 1;
                   return (
                     <div key={s.id} className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl overflow-hidden group">
-                      <div className="relative h-36 bg-[rgb(var(--surface-2))]">
+                      <div className="relative aspect-square bg-[rgb(var(--surface-2))]">
                         {thumb
-                          ? <Image src={thumb} alt={s.name} fill className="object-cover" sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw" />
+                          ? <Image src={thumb} alt={s.name} fill className="object-contain" sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 33vw" />
                           : <div className="w-full h-full flex items-center justify-center text-4xl">🏀</div>}
                         {extraPhotos > 0 && (
                           <div className="absolute top-2 right-2 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">

@@ -246,7 +246,7 @@ export function SetDetailClient({ id }: { id: string }) {
 
             {/* ── Hero image ──────────────────────────────────────── */}
             <div
-              className="relative flex-1 overflow-hidden group"
+              className="relative flex-1 overflow-hidden group bg-[rgb(var(--surface))]"
               style={{ height: "clamp(420px, 78vh, 720px)" }}
               onClick={() => activePhoto && setLightboxOpen(true)}
               onTouchStart={e => { touchStartX.current = e.touches[0].clientX; }}
@@ -270,7 +270,7 @@ export function SetDetailClient({ id }: { id: string }) {
                     alt={set.name}
                     fill
                     priority
-                    className={`object-cover object-top transition-opacity duration-300 ${
+                    className={`object-contain transition-opacity duration-300 ${
                       imgLoaded ? "opacity-100" : "opacity-0"
                     }`}
                     sizes="(max-width: 768px) 100vw, calc(100vw - 88px)"

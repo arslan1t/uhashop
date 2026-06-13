@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 import { Send, Loader2, CheckCircle } from "lucide-react";
@@ -11,30 +11,116 @@ interface Props {
   redirectTo?: string;
 }
 
+// Persist the pending session across tab reloads. Mobile browsers frequently
+// discard a backgrounded tab while the user is in the Telegram app sharing
+// their contact — without this the sessionId (and the login) would be lost.
+const PENDING_KEY = "uha-tg-pending-session";
+
+interface PendingSession {
+  sessionId: string;
+  expiresAt: number;
+}
+
+function readPending(): PendingSession | null {
+  try {
+    const raw = localStorage.getItem(PENDING_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as PendingSession;
+    if (!p.sessionId || p.expiresAt < Date.now()) {
+      localStorage.removeItem(PENDING_KEY);
+      return null;
+    }
+    return p;
+  } catch {
+    return null;
+  }
+}
+
+function writePending(sessionId: string) {
+  try {
+    localStorage.setItem(
+      PENDING_KEY,
+      JSON.stringify({ sessionId, expiresAt: Date.now() + 10 * 60 * 1000 }),
+    );
+  } catch { /* ignore */ }
+}
+
+function clearPending() {
+  try { localStorage.removeItem(PENDING_KEY); } catch { /* ignore */ }
+}
+
 export function BotAuthButton({ redirectTo = "/profile" }: Props) {
   const [state, setState] = useState<State>("idle");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sessionRef = useRef<string | null>(null);
   const setUser = useAuthStore(s => s.setUser);
   const router = useRouter();
 
-  const stopPolling = () => {
+  const stopPolling = useCallback(() => {
     if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
-  };
+  }, []);
 
-  useEffect(() => () => stopPolling(), []);
+  // Single poll tick — checks session status and completes login when ready.
+  const pollOnce = useCallback(async () => {
+    const sessionId = sessionRef.current;
+    if (!sessionId) return;
+    try {
+      const r = await fetch(`/api/auth/bot/session?id=${sessionId}`);
+      const data = await r.json();
+      if (data.status === "completed" && data.user) {
+        stopPolling();
+        clearPending();
+        sessionRef.current = null;
+        setUser(data.user);
+        setState("success");
+        setTimeout(() => router.replace(redirectTo), 800);
+      } else if (data.status === "expired" || data.error === "not found") {
+        stopPolling();
+        clearPending();
+        sessionRef.current = null;
+        setState("expired");
+      }
+    } catch { /* ignore transient poll errors */ }
+  }, [stopPolling, setUser, router, redirectTo]);
 
-  // Poll more aggressively when user returns to this tab
+  // Begin polling a session (used both for a fresh start and on resume).
+  const beginPolling = useCallback((sessionId: string) => {
+    sessionRef.current = sessionId;
+    writePending(sessionId);
+    setState("waiting");
+    stopPolling();
+    void pollOnce(); // immediate check
+    pollRef.current = setInterval(pollOnce, 2000);
+  }, [pollOnce, stopPolling]);
+
+  // On mount: resume any session left pending from before a tab reload
+  // (the mobile round-trip through the Telegram app). This is what makes
+  // login complete reliably on phones.
   useEffect(() => {
-    const onFocus = () => {
-      if (state === "waiting") {
-        // immediate extra poll on tab focus
-        pollRef.current && clearInterval(pollRef.current);
-        pollRef.current = null;
+    const pending = readPending();
+    if (pending) beginPolling(pending.sessionId);
+    return () => stopPolling();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // When the user returns to this tab (back from Telegram), poll immediately
+  // and make sure the interval is alive — don't kill it.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== "visible") return;
+      if (!sessionRef.current) return;
+      void pollOnce();
+      if (!pollRef.current) {
+        pollRef.current = setInterval(pollOnce, 2000);
       }
     };
-    window.addEventListener("visibilitychange", onFocus);
-    return () => window.removeEventListener("visibilitychange", onFocus);
-  }, [state]);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [pollOnce]);
 
   const startAuth = async () => {
     setState("loading");
@@ -43,35 +129,27 @@ export function BotAuthButton({ redirectTo = "/profile" }: Props) {
       if (!res.ok) throw new Error("init failed");
       const { sessionId, botUrl } = await res.json();
 
+      beginPolling(sessionId);
       window.open(botUrl, "_blank", "noopener,noreferrer");
-      setState("waiting");
-
-      const poll = async () => {
-        try {
-          const r = await fetch(`/api/auth/bot/session?id=${sessionId}`);
-          const data = await r.json();
-          if (data.status === "completed" && data.user) {
-            stopPolling();
-            setUser(data.user);
-            setState("success");
-            setTimeout(() => router.replace(redirectTo), 800);
-          } else if (data.status === "expired") {
-            stopPolling();
-            setState("expired");
-          }
-        } catch { /* ignore poll errors */ }
-      };
-
-      pollRef.current = setInterval(poll, 2000);
 
       // Auto-expire UI after 10 min
       setTimeout(() => {
-        stopPolling();
-        setState(s => s === "waiting" ? "expired" : s);
+        if (sessionRef.current === sessionId) {
+          stopPolling();
+          clearPending();
+          setState(s => s === "waiting" ? "expired" : s);
+        }
       }, 10 * 60 * 1000);
     } catch {
       setState("error");
     }
+  };
+
+  const cancel = () => {
+    stopPolling();
+    clearPending();
+    sessionRef.current = null;
+    setState("idle");
   };
 
   if (state === "success") {
@@ -92,7 +170,7 @@ export function BotAuthButton({ redirectTo = "/profile" }: Props) {
         <p className="text-xs text-[rgb(var(--muted))] text-center">
           Поделитесь номером в боте и вернитесь на эту страницу
         </p>
-        <button onClick={() => { stopPolling(); setState("idle"); }}
+        <button onClick={cancel}
           className="text-xs text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] underline-offset-2 hover:underline transition-colors">
           Отменить
         </button>
