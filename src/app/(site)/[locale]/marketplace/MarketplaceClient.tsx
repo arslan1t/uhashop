@@ -344,7 +344,7 @@ export function MarketplaceClient() {
                           {/* Hero image — square */}
                           <Link href={`/marketplace/player-sets/${s.id}`} className="block relative aspect-square overflow-hidden bg-[rgb(var(--surface-2))]">
                             {s.heroImages?.[0] ?? s.heroImage ? (
-                              <Image src={s.heroImages?.[0] ?? s.heroImage!} alt={s.name} fill className="object-cover transition-transform duration-500 [@media(hover:hover)]:group-hover:scale-105" sizes="(max-width: 640px) 100vw, 50vw" />
+                              <Image src={s.heroImages?.[0] ?? s.heroImage!} alt={s.name} fill className="object-contain transition-transform duration-500 [@media(hover:hover)]:group-hover:scale-105" sizes="(max-width: 640px) 100vw, 50vw" />
                             ) : (
                               <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent)/0.2)] to-[rgb(var(--surface))] flex items-center justify-center">
                                 <Users className="w-12 h-12 text-[rgb(var(--accent)/0.3)]" />
