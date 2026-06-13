@@ -74,11 +74,12 @@ export interface PlayerSet {
   name: string;
   description: string;
   creatorName: string;
-  heroImage: string;
+  heroImage: string;           // Primary thumbnail (= heroImages[0] when set)
+  heroImages?: string[];       // All hero photos — square 1:1 aspect required
   productIds: string[];
   displayOrder: number;
   createdAt: string;
-  // Task 5 extensibility — future collection types supported without schema changes
+  createdBy?: string;          // userId of the creator (null = admin-created)
   type?: "player" | "featured" | "seasonal" | "creator" | "athlete" | "sponsored" | "campaign";
   isActive?: boolean;
   tags?: string[];

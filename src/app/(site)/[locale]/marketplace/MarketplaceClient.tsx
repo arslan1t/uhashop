@@ -89,7 +89,7 @@ export function MarketplaceClient() {
   const BRANDS = useMemo(() => [...new Set(allProducts.map(p => p.brand))].sort(), [allProducts]);
   // Always show all standard categories regardless of product availability
   const STANDARD_CATEGORIES: ProductCategory[] = [
-    "sets", "shoes", "apparel", "accessories", "backpacks", "jerseys", "thermals",
+    "shoes", "apparel", "accessories", "backpacks", "jerseys", "thermals",
   ];
   const CATEGORIES = useMemo(() => {
     const fromProducts = new Set(allProducts.map(p => p.category));
@@ -252,31 +252,37 @@ export function MarketplaceClient() {
 
       <div className="container-uha py-8">
 
+        {/* ── Section label ── */}
+        <div className="flex items-center gap-3 mb-4">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-[rgb(var(--muted))]">
+            Всё для игры и стиля
+          </span>
+          <div className="h-px flex-1 bg-[rgb(var(--border))]" />
+        </div>
+
         {/* ── Quick category chips ── */}
         <div className="flex flex-wrap gap-2 mb-6">
           {[
-            { label: "Все товары",    emoji: "🔍", value: "" },
-            { label: "Комплекты",     emoji: "📦", value: "sets" },
-            { label: "Кроссовки",     emoji: "👟", value: "shoes" },
-            { label: "Одежда",        emoji: "🧤", value: "apparel" },
-            { label: "Мячи",          emoji: "🏀", value: "accessories" },
-            { label: "Рюкзаки",       emoji: "🎒", value: "backpacks" },
-            { label: "Джерси",        emoji: "🏀", value: "jerseys" },
-            { label: "Термо бельё",   emoji: "🌡️", value: "thermals" },
+            { label: "Все товары",  value: "" },
+            { label: "Кроссовки",   value: "shoes" },
+            { label: "Одежда",      value: "apparel" },
+            { label: "Мячи",        value: "accessories" },
+            { label: "Рюкзаки",     value: "backpacks" },
+            { label: "Джерси",      value: "jerseys" },
+            { label: "Термо бельё", value: "thermals" },
           ].map(chip => {
             const active = !showSets && filters.category === chip.value;
             return (
               <button
                 key={chip.value}
                 onClick={() => { setShowSets(false); updateFilter({ category: chip.value }); }}
-                className={`flex items-center gap-1.5 h-9 px-4 rounded-xl text-sm font-semibold border transition-all ${
+                className={`h-9 px-4 rounded-xl text-sm font-semibold border transition-all ${
                   active
                     ? "bg-[rgb(var(--accent))] border-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent)/0.25)]"
                     : "bg-[rgb(var(--surface))] border-[rgb(var(--border))] text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:border-[rgb(var(--accent)/0.4)]"
                 }`}
               >
-                <span>{chip.emoji}</span>
-                <span>{chip.label}</span>
+                {chip.label}
               </button>
             );
           })}
@@ -290,10 +296,9 @@ export function MarketplaceClient() {
                 : "bg-[rgb(var(--surface))] border-[rgb(var(--border))] text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:border-[rgb(var(--accent)/0.4)]"
             }`}
           >
-            <span>🏆</span>
             <span>Сеты игроков</span>
             {playerSets.length > 0 && (
-              <span className={`ml-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+              <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                 showSets ? "bg-white/20" : "bg-[rgb(var(--accent)/0.15)] text-[rgb(var(--accent))]"
               }`}>
                 {playerSets.length}
