@@ -122,23 +122,56 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
   const [stock, setStock] = useState(String(product?.stock ?? ""));
 
   // ── Media handlers ──
+
+  // Compress/resize image to max 1800px, JPEG 85% — keeps requests under Vercel's 4.5MB limit
+  const compressImage = (file: File): Promise<File> =>
+    new Promise((resolve) => {
+      const MAX = 1800;
+      const img = new window.Image();
+      const blobUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(blobUrl);
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > MAX || h > MAX) {
+          if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+          else { w = Math.round(w * MAX / h); h = MAX; }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+        canvas.toBlob(
+          blob => resolve(blob
+            ? new File([blob], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" })
+            : file),
+          "image/jpeg", 0.85
+        );
+      };
+      img.onerror = () => { URL.revokeObjectURL(blobUrl); resolve(file); };
+      img.src = blobUrl;
+    });
+
   const handleFiles = useCallback((files: FileList | File[]) => {
     const arr = Array.from(files).filter(f => f.type.startsWith("image/"));
-    const newImgs: GalleryImage[] = arr.map((file, i) => ({
-      id: `new-${Date.now()}-${i}`,
-      src: URL.createObjectURL(file),
-      isMain: gallery.length === 0 && i === 0,
-      isLocal: true,
-      file,
-    }));
-    setGallery(prev => {
-      const combined = [...prev, ...newImgs];
-      // If no main, set first as main
-      if (!combined.some(img => img.isMain) && combined.length > 0) {
-        combined[0].isMain = true;
-      }
-      return combined;
+    const isFirstBatch = gallery.length === 0;
+
+    // Compress each file asynchronously, then add to gallery
+    Promise.all(arr.map(f => compressImage(f))).then(compressed => {
+      const newImgs: GalleryImage[] = compressed.map((file, i) => ({
+        id: `new-${Date.now()}-${i}`,
+        src: URL.createObjectURL(file),
+        isMain: isFirstBatch && i === 0,
+        isLocal: true,
+        file,
+      }));
+      setGallery(prev => {
+        const combined = [...prev, ...newImgs];
+        if (!combined.some(img => img.isMain) && combined.length > 0) {
+          combined[0].isMain = true;
+        }
+        return combined;
+      });
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gallery]);
 
   const setMain = (id: string) => {
