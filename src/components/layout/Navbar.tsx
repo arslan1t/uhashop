@@ -81,6 +81,28 @@ export function Navbar() {
             </Link>
 
 
+            {/* ── Mobile quick links (Marketplace + Academy) ── */}
+            <div className="flex md:hidden items-center gap-0.5 mx-1">
+              <Link href="/marketplace" onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "px-2 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wide transition-all whitespace-nowrap",
+                  isActive("/marketplace")
+                    ? "text-[rgb(var(--accent))]"
+                    : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))]"
+                )}>
+                Магазин
+              </Link>
+              <Link href="/academy" onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "px-2 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wide transition-all whitespace-nowrap",
+                  isActive("/academy")
+                    ? "text-[rgb(var(--accent))]"
+                    : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))]"
+                )}>
+                Академия
+              </Link>
+            </div>
+
             {/* ── Desktop Nav ── */}
             <nav className="hidden md:flex items-center gap-1">
               {NAV_LINKS.map((item) => {
