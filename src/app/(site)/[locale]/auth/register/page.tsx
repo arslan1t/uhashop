@@ -3,7 +3,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
-import { TelegramLoginButton } from "@/components/ui/TelegramLoginButton";
+import { BotAuthButton } from "@/components/ui/BotAuthButton";
 
 export default function RegisterPage() {
   return (
@@ -26,7 +26,7 @@ export default function RegisterPage() {
             Присоединись к UHA Basketball Ecosystem
           </p>
 
-          <TelegramLoginButton redirectTo="/profile" />
+          <BotAuthButton redirectTo="/profile" />
 
           <p className="text-center text-xs text-[rgb(var(--muted))] mt-6 leading-relaxed">
             Нажмите кнопку и войдите через Telegram.<br />

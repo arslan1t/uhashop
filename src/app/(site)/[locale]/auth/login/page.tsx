@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { TelegramLoginButton } from "@/components/ui/TelegramLoginButton";
+import { BotAuthButton } from "@/components/ui/BotAuthButton";
 
 export default function LoginPage() {
   const { theme } = useTheme();
@@ -36,7 +36,7 @@ export default function LoginPage() {
             UHA SHOP · Basketball Ecosystem
           </p>
 
-          <TelegramLoginButton redirectTo="/profile" />
+          <BotAuthButton redirectTo="/profile" />
 
           <p className="text-center text-xs text-[rgb(var(--muted))] mt-6 leading-relaxed">
             Нажмите кнопку и войдите через Telegram.<br />
