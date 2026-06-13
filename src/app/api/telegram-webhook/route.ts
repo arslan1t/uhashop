@@ -124,6 +124,8 @@ export async function POST(req: NextRequest) {
         name: existing.name || name,
         email: `${from.id}@telegram.local`,
         telegram: from.username ? `@${from.username}` : existing.telegram,
+        telegramId: from.id,
+        chatId,
         phone: contact.phone_number,
         avatar: existing.avatar ?? null,
         bio: existing.bio ?? null,

@@ -4,9 +4,12 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { isAdminAuthorized, unauthorizedResponse } from "@/lib/admin-auth";
 import { getAdminStorage } from "@/lib/firebase/admin";
 
 export async function POST(req: NextRequest) {
+  if (!isAdminAuthorized(req)) return unauthorizedResponse();
+
   try {
     const formData = await req.formData();
     const slug     = formData.get("slug") as string | null;

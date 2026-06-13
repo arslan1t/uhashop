@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { User, Shield, Mail, Phone, Send, Search, GraduationCap, Users, RefreshCw, Loader2, ShoppingBag, AlertCircle } from "lucide-react";
+import { Shield, Mail, Phone, Send, Search, GraduationCap, Users, RefreshCw, Loader2, ShoppingBag, AlertCircle, Megaphone, CheckCircle2 } from "lucide-react";
 import { useAcademyStore } from "@/store/academy";
 import { POSITION_SHORT, STATUS_LABELS, STATUS_COLORS, formatDateRu } from "@/data/academy";
+import { getAdminToken } from "@/store/admin";
 
-type UserTab = "shop" | "admins" | "athletes" | "parents";
+type UserTab = "shop" | "admins" | "athletes" | "parents" | "broadcast";
 
 const ADMINS = [
   { id: "1", name: "UHA Admin", email: "admin@uhashop.uz", role: "super_admin", lastLogin: "2025-05-26 14:30" },
@@ -19,6 +20,9 @@ interface ShopUser {
   avatar_url?: string;
   created_at: string;
   last_sign_in?: string;
+  source?: "email" | "telegram";
+  chatId?: number;
+  phone?: string;
 }
 
 export default function AdminUsersPage() {
@@ -29,11 +33,19 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Broadcast state
+  const [broadcastMsg, setBroadcastMsg] = useState("");
+  const [broadcasting, setBroadcasting] = useState(false);
+  const [broadcastResult, setBroadcastResult] = useState<{ sent: number; failed: number; total: number } | null>(null);
+  const [reachable, setReachable] = useState<number | null>(null);
+
   const fetchShopUsers = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/users");
+      const res = await fetch("/api/admin/users", {
+        headers: { "x-admin-token": getAdminToken() },
+      });
       const data = await res.json();
       if (data.error) {
         setError(data.error);
@@ -47,8 +59,41 @@ export default function AdminUsersPage() {
     }
   };
 
+  const fetchReachable = async () => {
+    try {
+      const res = await fetch("/api/admin/telegram-broadcast", {
+        headers: { "x-admin-token": getAdminToken() },
+      });
+      const data = await res.json();
+      setReachable(data.reachable ?? 0);
+    } catch {
+      setReachable(0);
+    }
+  };
+
+  const sendBroadcast = async () => {
+    if (!broadcastMsg.trim() || broadcasting) return;
+    setBroadcasting(true);
+    setBroadcastResult(null);
+    try {
+      const res = await fetch("/api/admin/telegram-broadcast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-token": getAdminToken() },
+        body: JSON.stringify({ message: broadcastMsg }),
+      });
+      const data = await res.json();
+      setBroadcastResult(data);
+      if (data.sent > 0) setBroadcastMsg("");
+    } catch {
+      setBroadcastResult({ sent: 0, failed: 0, total: 0 });
+    } finally {
+      setBroadcasting(false);
+    }
+  };
+
   useEffect(() => {
     fetchShopUsers();
+    fetchReachable();
   }, []);
 
   const q = search.toLowerCase();
@@ -59,11 +104,14 @@ export default function AdminUsersPage() {
 
   const totalUsers = shopUsers.length + ADMINS.length + athletes.length + parents.length;
 
+  const tgReachable = reachable ?? shopUsers.filter(u => u.chatId).length;
+
   const TABS: { key: UserTab; label: string; count: number; icon: typeof Users; color: string }[] = [
     { key: "shop", label: "UHA Shop", count: shopUsers.length, icon: ShoppingBag, color: "text-red-400" },
     { key: "admins", label: "Администраторы", count: ADMINS.length, icon: Shield, color: "text-red-400" },
     { key: "athletes", label: "Спортсмены", count: athletes.length, icon: GraduationCap, color: "text-blue-400" },
     { key: "parents", label: "Родители", count: parents.length, icon: Users, color: "text-purple-400" },
+    { key: "broadcast", label: "Рассылка", count: tgReachable, icon: Megaphone, color: "text-sky-400" },
   ];
 
   const formatDate = (str?: string) => {
@@ -183,7 +231,7 @@ export default function AdminUsersPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-[#1a1a1a]">
-                      {["Пользователь", "Email", "Telegram", "Дата регистрации", "Последний вход"].map(h => (
+                      {["Пользователь", "Контакт", "Telegram", "Источник", "Дата регистрации"].map(h => (
                         <th key={h} className="px-4 py-2.5 text-left text-[10px] font-bold text-[#555] uppercase tracking-wider whitespace-nowrap">{h}</th>
                       ))}
                     </tr>
@@ -202,13 +250,18 @@ export default function AdminUsersPage() {
                                 </span>
                               )}
                             </div>
-                            <span className="text-white text-sm font-medium">{u.name || "—"}</span>
+                            <div>
+                              <p className="text-white text-sm font-medium">{u.name || "—"}</p>
+                              {u.phone && <p className="text-[#555] text-[10px] flex items-center gap-1"><Phone className="w-2.5 h-2.5" />{u.phone}</p>}
+                            </div>
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          <span className="text-[#888] text-xs flex items-center gap-1">
-                            <Mail className="w-3 h-3" /> {u.email}
-                          </span>
+                          {u.email && !u.email.endsWith("@telegram.local") ? (
+                            <span className="text-[#888] text-xs flex items-center gap-1">
+                              <Mail className="w-3 h-3" /> {u.email}
+                            </span>
+                          ) : <span className="text-[#444] text-xs">—</span>}
                         </td>
                         <td className="px-4 py-3">
                           {u.telegram ? (
@@ -218,11 +271,17 @@ export default function AdminUsersPage() {
                             </a>
                           ) : <span className="text-[#444] text-xs">—</span>}
                         </td>
-                        <td className="px-4 py-3 text-[#666] text-xs whitespace-nowrap">{formatDate(u.created_at)}</td>
+                        <td className="px-4 py-3">
+                          {u.source === "telegram" ? (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/25">
+                              Telegram {u.chatId ? "✓" : ""}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Email</span>
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-[#666] text-xs whitespace-nowrap">
-                          {u.last_sign_in ? (
-                            <span className="text-emerald-500/70">{formatDate(u.last_sign_in)}</span>
-                          ) : "—"}
+                          {formatDate((u as unknown as { createdAt?: string }).createdAt || u.created_at)}
                         </td>
                       </tr>
                     ))}
@@ -384,9 +443,79 @@ export default function AdminUsersPage() {
         </div>
       )}
 
+      {/* ─── BROADCAST ─── */}
+      {tab === "broadcast" && (
+        <div className="space-y-4">
+          {/* Stats card */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-4 rounded-2xl border bg-sky-500/10 border-sky-500/20">
+              <div className="text-2xl font-bold text-sky-400">{tgReachable}</div>
+              <div className="text-[#555] text-xs mt-0.5">Telegram пользователей</div>
+            </div>
+            <div className="p-4 rounded-2xl border bg-[#111] border-[#1a1a1a]">
+              <div className="text-2xl font-bold text-white">{shopUsers.length}</div>
+              <div className="text-[#555] text-xs mt-0.5">Всего в базе</div>
+            </div>
+            <div className="p-4 rounded-2xl border bg-[#111] border-[#1a1a1a]">
+              <div className="text-2xl font-bold text-emerald-400">
+                {tgReachable > 0 ? Math.round(tgReachable / Math.max(shopUsers.length, 1) * 100) : 0}%
+              </div>
+              <div className="text-[#555] text-xs mt-0.5">Охват через Telegram</div>
+            </div>
+          </div>
+
+          {/* Compose */}
+          <div className="bg-[#111] border border-[#1a1a1a] rounded-2xl p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <Megaphone className="w-4 h-4 text-sky-400" />
+              <h3 className="text-white font-semibold text-sm">Отправить рассылку</h3>
+            </div>
+
+            <textarea
+              value={broadcastMsg}
+              onChange={e => setBroadcastMsg(e.target.value)}
+              placeholder="Текст сообщения... (поддерживает HTML: <b>жирный</b>, <i>курсив</i>)"
+              rows={5}
+              className="w-full px-4 py-3 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-sky-500/50 transition-colors resize-none"
+            />
+
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-[#555] text-xs">{broadcastMsg.length} символов · получат {tgReachable} человек</span>
+              <button
+                onClick={sendBroadcast}
+                disabled={!broadcastMsg.trim() || broadcasting || tgReachable === 0}
+                className="flex items-center gap-2 px-5 py-2.5 bg-sky-500 hover:bg-sky-400 text-white text-sm font-bold rounded-xl transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {broadcasting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {broadcasting ? "Отправка..." : "Отправить"}
+              </button>
+            </div>
+
+            {broadcastResult && (
+              <div className={`mt-3 p-3 rounded-xl flex items-center gap-2 text-sm ${
+                broadcastResult.sent > 0
+                  ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
+                  : "bg-red-500/10 border border-red-500/20 text-red-400"
+              }`}>
+                <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                Отправлено: {broadcastResult.sent} · Ошибки: {broadcastResult.failed} · Всего: {broadcastResult.total}
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 bg-[#1a1a1a] rounded-xl border border-[#222]">
+            <p className="text-[#555] text-xs">
+              Рассылка работает через Telegram Bot API. Получат сообщение только те пользователи,
+              которые авторизовались через Telegram-бота (UhaAuthenticationbot).
+              Пользователи с email-регистрацией не получат сообщение.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="mt-4 p-4 bg-[#1a1a1a] rounded-xl border border-[#222]">
         <p className="text-[#555] text-xs">
-          Пользователи UHA Shop — зарегистрированные через email на сайте (Supabase Auth).
+          UHA Shop — зарегистрированные через email или Telegram бота.
           Спортсмены и родители — аккаунты академии с PIN-авторизацией.
         </p>
       </div>
