@@ -13,6 +13,13 @@ export interface UserProfile {
   telegram?: string;
   avatar?: string;
   createdAt: string;
+  bio?: string;
+  socialLinks?: {
+    instagram?: string;
+    tiktok?: string;
+    youtube?: string;
+    twitter?: string;
+  };
 }
 
 interface AuthStore {
@@ -23,6 +30,7 @@ interface AuthStore {
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   register: (name: string, email: string, password: string, telegram?: string) => Promise<{ ok: boolean; error?: string }>;
   setUser: (user: UserProfile) => void;
+  updateProfile: (data: Partial<Pick<UserProfile, "name" | "avatar" | "bio" | "socialLinks" | "telegram">>) => void;
   logout: () => void;
 }
 
@@ -277,6 +285,23 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   setUser: (user: UserProfile) => {
     safeStorage.setItem(AUTH_KEY, JSON.stringify(user));
     set({ user, isAuthenticated: true, loading: false });
+  },
+
+  updateProfile: (data) => {
+    set(state => {
+      if (!state.user) return {};
+      const updated = { ...state.user, ...data };
+      safeStorage.setItem(AUTH_KEY, JSON.stringify(updated));
+      // Persist to Firestore (best-effort, non-blocking)
+      if (typeof window !== "undefined") {
+        fetch("/api/user/profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: updated.id, ...data }),
+        }).catch(() => {});
+      }
+      return { user: updated };
+    });
   },
 
   logout: () => {

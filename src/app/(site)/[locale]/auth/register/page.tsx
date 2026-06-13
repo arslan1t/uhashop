@@ -1,131 +1,42 @@
 "use client";
-import { useState } from "react";
-import { Link } from "@/i18n/navigation";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/navigation";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, AlertCircle, Loader2, ArrowLeft, Send, Mail, CheckCircle2 } from "lucide-react";
-import { useAuthStore } from "@/store/auth";
+import { ArrowLeft } from "lucide-react";
 import { TelegramLoginButton } from "@/components/ui/TelegramLoginButton";
-import { GoogleLoginButton } from "@/components/ui/GoogleLoginButton";
 
 export default function RegisterPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [telegram, setTelegram] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
-  const { register } = useAuthStore();
-  const router = useRouter();
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !email || !password) { setError("Заполните обязательные поля"); return; }
-    if (password.length < 6) { setError("Пароль минимум 6 символов"); return; }
-    setLoading(true); setError("");
-    const result = await register(name, email, password, telegram);
-    if (result.ok && result.error === "confirm_email") {
-      setEmailSent(true);
-      setLoading(false);
-    } else if (result.ok) {
-      router.replace("/profile");
-    } else {
-      setError(result.error || "Email уже зарегистрирован");
-      setLoading(false);
-    }
-  };
-
-  const INP = "w-full h-12 px-4 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl text-[rgb(var(--foreground))] text-sm placeholder:text-[rgb(var(--muted))] focus:outline-none focus:border-[rgb(var(--accent)/0.6)] transition-all";
-
   return (
     <div className="min-h-screen bg-[rgb(var(--background))] flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}
-        className="w-full max-w-[420px]">
+        className="w-full max-w-[400px]">
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] mb-10 transition-colors">
           <ArrowLeft className="w-4 h-4" /> На главную
         </Link>
+
         <div className="flex flex-col items-center mb-8">
           <div className="relative h-8 w-28 mb-4">
             <Image src="/images/branding/logo-white.png" alt="UHA SHOP" fill className="object-contain" />
           </div>
         </div>
+
         <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl p-8">
-          {emailSent ? (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-4">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-5">
-                <Mail className="w-8 h-8 text-emerald-400" />
-              </div>
-              <h2 className="text-xl font-bold mb-2">Проверь почту</h2>
-              <p className="text-[rgb(var(--muted))] text-sm mb-2">
-                Мы отправили письмо на
-              </p>
-              <p className="text-[rgb(var(--accent))] font-semibold text-sm mb-5">{email}</p>
-              <p className="text-[rgb(var(--muted))] text-xs leading-relaxed mb-6">
-                Нажми на ссылку в письме, чтобы подтвердить аккаунт. После этого можешь войти.
-              </p>
-              <div className="flex flex-col gap-3">
-                <Link href="/auth/login"
-                  className="w-full h-12 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white font-bold rounded-2xl text-sm uppercase tracking-wider transition-colors flex items-center justify-center gap-2">
-                  <CheckCircle2 className="w-4 h-4" /> Перейти к входу
-                </Link>
-                <button onClick={() => { setEmailSent(false); setPassword(""); }}
-                  className="text-sm text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] transition-colors">
-                  Отправить ещё раз
-                </button>
-              </div>
-            </motion.div>
-          ) : (<>
-          <h1 className="text-xl font-bold mb-1">Создать аккаунт</h1>
-          <p className="text-[rgb(var(--muted))] text-sm mb-7">Присоединись к UHA Basketball Ecosystem</p>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div><label className="block text-xs font-semibold uppercase tracking-wider text-[rgb(var(--muted))] mb-1.5">Имя *</label>
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="Арслан" className={INP} /></div>
-            <div><label className="block text-xs font-semibold uppercase tracking-wider text-[rgb(var(--muted))] mb-1.5">Email *</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@email.com" className={INP} /></div>
-            <div><label className="block text-xs font-semibold uppercase tracking-wider text-[rgb(var(--muted))] mb-1.5">Telegram</label>
-              <div className="relative">
-                <Send className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--muted))]" />
-                <input value={telegram} onChange={e => setTelegram(e.target.value)} placeholder="@username" className={`${INP} pl-10`} />
-              </div>
-            </div>
-            <div><label className="block text-xs font-semibold uppercase tracking-wider text-[rgb(var(--muted))] mb-1.5">Пароль *</label>
-              <div className="relative">
-                <input type={showPass ? "text" : "password"} value={password} onChange={e => { setPassword(e.target.value); setError(""); }} placeholder="Минимум 6 символов" className={`${INP} pr-11`} />
-                <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] transition-colors">
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-            {error && (
-              <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-2.5 px-4 py-3 bg-red-500/8 border border-red-500/15 rounded-xl">
-                <AlertCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
-                <span className="text-red-400 text-sm">{error}</span>
-              </motion.div>
-            )}
-            <button type="submit" disabled={loading}
-              className="w-full h-12 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white font-bold rounded-2xl text-sm uppercase tracking-wider transition-colors flex items-center justify-center gap-2 disabled:opacity-50 mt-2">
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Создаём...</> : "Зарегистрироваться"}
-            </button>
-          </form>
+          <h1 className="text-xl font-bold mb-1 text-center">Создать аккаунт</h1>
+          <p className="text-[rgb(var(--muted))] text-sm mb-8 text-center">
+            Присоединись к UHA Basketball Ecosystem
+          </p>
 
-          <div className="flex items-center gap-3 my-5">
-            <div className="flex-1 h-px bg-[rgb(var(--border))]" />
-            <span className="text-xs text-[rgb(var(--muted))] font-medium">или быстрый вход</span>
-            <div className="flex-1 h-px bg-[rgb(var(--border))]" />
-          </div>
+          <TelegramLoginButton redirectTo="/profile" />
 
-          <GoogleLoginButton redirectTo="/profile" label="Зарегистрироваться через Google" />
-          <TelegramLoginButton redirectTo="/profile" label="Зарегистрироваться через Telegram" />
+          <p className="text-center text-xs text-[rgb(var(--muted))] mt-6 leading-relaxed">
+            Нажмите кнопку и войдите через Telegram.<br />
+            Аккаунт создаётся автоматически — регистрация не нужна.
+          </p>
 
           <p className="text-center text-sm text-[rgb(var(--muted))] mt-5">
             Уже есть аккаунт?{" "}
             <Link href="/auth/login" className="text-[rgb(var(--accent))] font-semibold hover:underline">Войти</Link>
           </p>
-          </>)}
         </div>
       </motion.div>
     </div>
