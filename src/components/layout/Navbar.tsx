@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, Sun, Moon, Menu, X, User, ChevronDown, Store, GraduationCap } from "lucide-react";
+import { ShoppingBag, Sun, Moon, Menu, X, User, ChevronDown } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
@@ -80,29 +80,6 @@ export function Navbar() {
               </div>
             </Link>
 
-            {/* ── Mobile quick links — Marketplace + Academy, same row as logo ── */}
-            <div className="flex md:hidden items-center gap-1">
-              <Link href="/marketplace" onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all",
-                  isActive("/marketplace")
-                    ? "bg-[rgb(var(--accent)/0.12)] text-[rgb(var(--accent))]"
-                    : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface))]"
-                )}>
-                <Store className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>Магазин</span>
-              </Link>
-              <Link href="/academy" onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wide transition-all",
-                  isActive("/academy")
-                    ? "bg-[rgb(var(--accent)/0.12)] text-[rgb(var(--accent))]"
-                    : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface))]"
-                )}>
-                <GraduationCap className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>Академия</span>
-              </Link>
-            </div>
 
             {/* ── Desktop Nav ── */}
             <nav className="hidden md:flex items-center gap-1">

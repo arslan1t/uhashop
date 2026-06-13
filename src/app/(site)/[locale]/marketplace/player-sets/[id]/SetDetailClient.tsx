@@ -129,8 +129,15 @@ export function SetDetailClient({ id }: { id: string }) {
               </div>
               <h1 className="font-display text-2xl sm:text-3xl md:text-4xl tracking-wide mb-2">{set.name}</h1>
               <div className="flex items-center gap-2 text-[rgb(var(--muted))] text-sm mb-3">
-                <Users className="w-4 h-4" />
-                <span>{set.creatorName}</span>
+                <Users className="w-4 h-4 flex-shrink-0" />
+                {set.createdBy ? (
+                  <Link href={`/profile/${set.createdBy}`}
+                    className="hover:text-[rgb(var(--accent))] transition-colors underline-offset-2 hover:underline">
+                    {set.creatorName || "Пользователь"}
+                  </Link>
+                ) : (
+                  <span>{set.creatorName}</span>
+                )}
               </div>
               {set.description && (
                 <p className="text-[rgb(var(--muted))] text-sm leading-relaxed max-w-xl">{set.description}</p>

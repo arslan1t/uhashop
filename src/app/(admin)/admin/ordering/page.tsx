@@ -7,8 +7,10 @@ import { GripVertical, Save, Check, Loader2, Pin } from "lucide-react";
 import { useCustomProducts } from "@/store/customProducts";
 import { useProductMeta } from "@/store/productMeta";
 import { useProductOrder } from "@/store/productOrder";
-import { adminProducts } from "@/data/adminData";
+import { getMarketplaceProducts } from "@/data/products";
 import type { Product, ProductCategory } from "@/types";
+
+const staticProducts = getMarketplaceProducts();
 
 const CATEGORIES: { value: ProductCategory | "all"; label: string }[] = [
   { value: "all",        label: "Все товары" },
@@ -84,27 +86,27 @@ export default function AdminOrderingPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  // Mirrors exactly what the marketplace renders — same merge + dedup + delete filter
   const allProducts: Product[] = useMemo(() => {
-    const customIds = new Set(customProds.map(p => p.id));
-    const deletedIds = new Set(
+    const customIds   = new Set(customProds.map(p => p.id));
+    const customSlugs = new Set(customProds.map(p => p.slug));
+    const deletedIds  = new Set(
       Object.entries(metaMap).filter(([, m]) => m.isDeleted).map(([id]) => id)
     );
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const customNorms = customProds.map(p => norm(p.name));
+    const isNameDupe = (name: string) => {
+      const n = norm(name);
+      return n.length > 8 && customNorms.some(cn => cn.length > 8 && (cn.includes(n) || n.includes(cn)));
+    };
     return [
       ...customProds.filter(p => !deletedIds.has(p.id)),
-      ...adminProducts
-        .filter(p => !customIds.has(p.id) && !deletedIds.has(p.id))
-        .map(p => ({
-          id: p.id, slug: p.slug, name: p.name, nameRu: p.nameRu,
-          brand: p.brand, category: p.category as ProductCategory,
-          price: p.price, replicaPrice: p.replicaPrice,
-          currency: "USD" as const, image: p.image,
-          images: p.images ?? [p.image],
-          sizes: [] as Product["sizes"], tags: p.tags ?? [],
-          descriptionRu: p.nameRu, descriptionUz: p.nameRu,
-          sku: p.id, type: p.type, isFeatured: p.isFeatured,
-        })),
+      ...staticProducts.filter(p =>
+        !customIds.has(p.id) && !customSlugs.has(p.slug) &&
+        !isNameDupe(p.name) && !deletedIds.has(p.id)
+      ) as Product[],
     ];
-  }, [customProds]);
+  }, [customProds, metaMap]);
 
   const categoryProducts = useMemo(() =>
     activeCategory === "all"
