@@ -30,6 +30,7 @@ interface AuthStore {
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   register: (name: string, email: string, password: string, telegram?: string) => Promise<{ ok: boolean; error?: string }>;
   setUser: (user: UserProfile) => void;
+  refreshProfile: () => Promise<void>;
   updateProfile: (data: Partial<Pick<UserProfile, "name" | "avatar" | "bio" | "socialLinks" | "telegram">>) => void;
   logout: () => void;
 }
@@ -39,7 +40,25 @@ const USERS_KEY = "uha-users-v1";
 
 type StoredUser = UserProfile & { password: string };
 
-export const useAuthStore = create<AuthStore>()((set) => ({
+/**
+ * Fetch the canonical profile (avatar, bio, socials, name) from Firestore.
+ * The session is keyed by a deterministic id (tg_<id> or the Firebase uid),
+ * so this lets us reload profile extras on every login / device — fixing the
+ * "avatar disappeared after logging in again" bug where login rebuilt the
+ * session from scratch and dropped the stored avatar.
+ */
+async function fetchServerProfile(userId: string): Promise<Partial<UserProfile> | null> {
+  try {
+    const res = await fetch(`/api/user/profile?userId=${encodeURIComponent(userId)}`);
+    if (!res.ok) return null;
+    const { profile } = await res.json();
+    return (profile ?? null) as Partial<UserProfile> | null;
+  } catch {
+    return null;
+  }
+}
+
+export const useAuthStore = create<AuthStore>()((set, get) => ({
   user: null,
   isAuthenticated: false,
   loading: true,
@@ -76,6 +95,9 @@ export const useAuthStore = create<AuthStore>()((set) => ({
         if (raw) {
           const user = JSON.parse(raw) as UserProfile;
           set({ user, isAuthenticated: true, loading: false });
+          // Refresh profile extras (avatar/bio/socials) from the server so a
+          // re-login or a fresh device never shows a stale/empty avatar.
+          void get().refreshProfile();
         } else {
           set({ loading: false });
         }
@@ -83,6 +105,26 @@ export const useAuthStore = create<AuthStore>()((set) => ({
         set({ loading: false });
       }
     }
+  },
+
+  refreshProfile: async () => {
+    const current = get().user;
+    if (!current?.id || typeof window === "undefined") return;
+    const p = await fetchServerProfile(current.id);
+    if (!p) return;
+    set((state) => {
+      if (!state.user) return {};
+      const merged: UserProfile = {
+        ...state.user,
+        name: p.name || state.user.name,
+        avatar: p.avatar ?? state.user.avatar,
+        bio: p.bio ?? state.user.bio,
+        socialLinks: p.socialLinks ?? state.user.socialLinks,
+        telegram: p.telegram ?? state.user.telegram,
+      };
+      safeStorage.setItem(AUTH_KEY, JSON.stringify(merged));
+      return { user: merged };
+    });
   },
 
   login: async (email, password) => {
@@ -138,10 +180,15 @@ export const useAuthStore = create<AuthStore>()((set) => ({
             ...profile, provider: "email", lastLogin: new Date().toISOString(),
           }, { merge: true });
         } catch { /* non-critical */ }
+        // Persist to localStorage — hydrate() reads AUTH_KEY, so without this
+        // email users were logged out on every refresh.
+        safeStorage.setItem(AUTH_KEY, JSON.stringify(profile));
         set({
           user: profile,
           isAuthenticated: true,
         });
+        // Pull avatar/bio/socials saved to user_profiles so they survive login.
+        void get().refreshProfile();
         return { ok: true };
       } catch (e: unknown) {
         const code = (e as { code?: string }).code;
@@ -261,6 +308,9 @@ export const useAuthStore = create<AuthStore>()((set) => ({
   setUser: (user: UserProfile) => {
     safeStorage.setItem(AUTH_KEY, JSON.stringify(user));
     set({ user, isAuthenticated: true, loading: false });
+    // Merge any avatar/bio/socials already stored for this account (e.g. set on
+    // another device) so logging in on a new phone shows the full profile.
+    void get().refreshProfile();
   },
 
   updateProfile: (data) => {
