@@ -219,7 +219,7 @@ export function Navbar() {
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.25 }}
               className="md:hidden overflow-hidden bg-[rgb(var(--surface))] border-t border-[rgb(var(--border))]">
-              <nav className="container-uha py-4 flex flex-col gap-1">
+              <nav className="container-uha py-4 flex flex-col gap-1 max-h-[80vh] overflow-y-auto">
                 {NAV_LINKS.map((item) => {
                   const { key, href } = item;
                   const isExt = "external" in item && item.external;

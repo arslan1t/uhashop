@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Reorder, useDragControls } from "framer-motion";
 import { GripVertical, Save, Check, Loader2, Pin } from "lucide-react";
 import { useCustomProducts } from "@/store/customProducts";
+import { useProductMeta } from "@/store/productMeta";
 import { useProductOrder } from "@/store/productOrder";
 import { adminProducts } from "@/data/adminData";
 import type { Product, ProductCategory } from "@/types";
@@ -75,6 +76,7 @@ function DraggableRow({
 
 export default function AdminOrderingPage() {
   const customProds = useCustomProducts(s => s.products);
+  const metaMap = useProductMeta(s => s.meta);
   const { getOrder, saveToServer, loadFromServer } = useProductOrder();
 
   const [activeCategory, setActiveCategory] = useState<string>("all");
@@ -84,10 +86,13 @@ export default function AdminOrderingPage() {
 
   const allProducts: Product[] = useMemo(() => {
     const customIds = new Set(customProds.map(p => p.id));
+    const deletedIds = new Set(
+      Object.entries(metaMap).filter(([, m]) => m.isDeleted).map(([id]) => id)
+    );
     return [
-      ...customProds,
+      ...customProds.filter(p => !deletedIds.has(p.id)),
       ...adminProducts
-        .filter(p => !customIds.has(p.id))
+        .filter(p => !customIds.has(p.id) && !deletedIds.has(p.id))
         .map(p => ({
           id: p.id, slug: p.slug, name: p.name, nameRu: p.nameRu,
           brand: p.brand, category: p.category as ProductCategory,

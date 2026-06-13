@@ -3,13 +3,26 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Award, Zap, Activity, Shirt, Star } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import type { LucideIcon } from "lucide-react";
 
-const CATEGORIES = [
+const CATEGORIES: {
+  id: string;
+  icon: LucideIcon;
+  title: string;
+  sub: string;
+  href: string;
+  gradient: string;
+  border: string;
+  accent: string;
+  accentBg: string;
+  tag: string;
+  badge?: boolean;
+}[] = [
   {
     id: "shoes-basketball",
-    emoji: "🏀",
+    icon: Award,
     title: "Обувь",
     sub: "Баскетбол",
     href: "/marketplace?category=shoes&style=basketball",
@@ -21,7 +34,7 @@ const CATEGORIES = [
   },
   {
     id: "shoes-lifestyle",
-    emoji: "👟",
+    icon: Zap,
     title: "Обувь",
     sub: "Лайфстайл",
     href: "/marketplace?category=shoes&style=lifestyle",
@@ -33,7 +46,7 @@ const CATEGORIES = [
   },
   {
     id: "apparel-basketball",
-    emoji: "🧤",
+    icon: Activity,
     title: "Одежда",
     sub: "Баскетбол",
     href: "/marketplace?category=apparel&style=basketball",
@@ -45,7 +58,7 @@ const CATEGORIES = [
   },
   {
     id: "apparel-lifestyle",
-    emoji: "👕",
+    icon: Shirt,
     title: "Одежда",
     sub: "Лайфстайл",
     href: "/marketplace?category=apparel&style=lifestyle",
@@ -57,7 +70,7 @@ const CATEGORIES = [
   },
   {
     id: "merch",
-    emoji: "🔥",
+    icon: Star,
     title: "Мерч",
     sub: "UHA Оригинал",
     href: "/merch",
@@ -85,47 +98,46 @@ export function CategoriesSection() {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-          {CATEGORIES.map((cat, i) => (
-            <motion.div
-              key={cat.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.07 }}
-            >
-              <Link
-                href={cat.href}
-                className={`group relative flex flex-col items-center justify-center gap-3 p-5 md:p-6 rounded-2xl bg-gradient-to-br ${cat.gradient} border ${cat.border} transition-all duration-300 hover:scale-[1.03] hover:shadow-lg text-center h-full`}
+          {CATEGORIES.map((cat, i) => {
+            const Icon = cat.icon;
+            return (
+              <motion.div
+                key={cat.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.07 }}
               >
-                {/* Badge */}
-                {cat.badge && (
-                  <span className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest bg-[rgb(var(--accent))] text-white px-2 py-0.5 rounded-full">
-                    {cat.tag}
-                  </span>
-                )}
+                <Link
+                  href={cat.href}
+                  className={`group relative flex flex-col items-center justify-center gap-3 p-5 md:p-6 rounded-2xl bg-gradient-to-br ${cat.gradient} border ${cat.border} transition-all duration-300 hover:scale-[1.03] hover:shadow-lg text-center h-full`}
+                >
+                  {cat.badge && (
+                    <span className="absolute top-3 right-3 text-[9px] font-black uppercase tracking-widest bg-[rgb(var(--accent))] text-white px-2 py-0.5 rounded-full">
+                      {cat.tag}
+                    </span>
+                  )}
 
-                {/* Emoji */}
-                <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl ${cat.accentBg} flex items-center justify-center text-2xl md:text-3xl transition-transform duration-300 group-hover:scale-110`}>
-                  {cat.emoji}
-                </div>
+                  <div className={`w-12 h-12 md:w-14 md:h-14 rounded-2xl ${cat.accentBg} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
+                    <Icon className={`w-6 h-6 md:w-7 md:h-7 ${cat.accent}`} />
+                  </div>
 
-                {/* Text */}
-                <div>
-                  <p className="font-black text-base md:text-lg text-[rgb(var(--foreground))] leading-none mb-1">
-                    {cat.title}
-                  </p>
-                  <p className={`text-xs font-bold uppercase tracking-wider ${cat.accent}`}>
-                    {cat.sub}
-                  </p>
-                </div>
+                  <div>
+                    <p className="font-black text-base md:text-lg text-[rgb(var(--foreground))] leading-none mb-1">
+                      {cat.title}
+                    </p>
+                    <p className={`text-xs font-bold uppercase tracking-wider ${cat.accent}`}>
+                      {cat.sub}
+                    </p>
+                  </div>
 
-                {/* Arrow */}
-                <div className={`w-7 h-7 rounded-xl ${cat.accentBg} flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5`}>
-                  <ArrowUpRight className={`w-3.5 h-3.5 ${cat.accent}`} />
-                </div>
-              </Link>
-            </motion.div>
-          ))}
+                  <div className={`w-7 h-7 rounded-xl ${cat.accentBg} flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5`}>
+                    <ArrowUpRight className={`w-3.5 h-3.5 ${cat.accent}`} />
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
