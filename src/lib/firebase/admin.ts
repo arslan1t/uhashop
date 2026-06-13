@@ -11,6 +11,7 @@
 import { initializeApp, getApps, cert, type App } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import { getStorage, type Storage } from "firebase-admin/storage";
+import { getAuth, type Auth } from "firebase-admin/auth";
 
 function getAdminApp(): App {
   if (getApps().length > 0) return getApps()[0]!;
@@ -55,4 +56,8 @@ export function getAdminDb(): Firestore {
 
 export function getAdminStorage(): Storage {
   return getStorage(getAdminApp());
+}
+
+export function getAdminAuth(): Auth {
+  return getAuth(getAdminApp());
 }

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { type AdminOrder } from "@/data/adminData";
+import { getAdminToken } from "@/store/admin";
 
 interface OrdersState {
   orders: AdminOrder[];
@@ -53,7 +54,9 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
     set({ loading: true });
 
     try {
-      const res = await fetch("/api/orders");
+      const res = await fetch("/api/orders", {
+        headers: { "x-admin-token": getAdminToken() },
+      });
       const data = await res.json();
 
       if (data.orders) {
@@ -78,7 +81,7 @@ export const useOrdersStore = create<OrdersState>()((set, get) => ({
     try {
       await fetch("/api/orders", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-admin-token": getAdminToken() },
         body: JSON.stringify({ id, status }),
       });
     } catch (e) {

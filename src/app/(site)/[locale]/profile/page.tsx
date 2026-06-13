@@ -11,7 +11,7 @@ import {
   Camera, Trophy, Edit2, Trash2, Plus, Search, ChevronUp, ChevronDown,
   Instagram, Youtube, Twitter, Link as LinkIcon, ImageIcon, Upload, Save, Check,
 } from "lucide-react";
-import { useAuthStore } from "@/store/auth";
+import { useAuthStore, getUserToken } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { useCustomProducts } from "@/store/customProducts";
@@ -19,6 +19,7 @@ import { usePlayerSets } from "@/store/playerSets";
 import { products as staticProducts } from "@/data/products";
 import { getMarketplaceProducts } from "@/data/products";
 import { ProductCard } from "@/components/ui/ProductCard";
+import { BotAuthButton } from "@/components/ui/BotAuthButton";
 import { formatPrice } from "@/lib/utils";
 import { compressImage } from "@/lib/image";
 import type { PlayerSet, Product } from "@/types";
@@ -235,9 +236,12 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
     try {
       const compressed = await compressImage(file, 800, 0.85); // avatars don't need to be large
       const fd = new FormData();
-      fd.append("userId", user.id);
       fd.append("files", compressed);
-      const res = await fetch("/api/user/upload", { method: "POST", body: fd });
+      const res = await fetch("/api/user/upload", {
+        method: "POST",
+        headers: { "x-user-token": getUserToken() },
+        body: fd,
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const { paths } = await res.json();
       updateProfile({ avatar: paths[0] });
@@ -392,9 +396,12 @@ function UserSetModal({
       for (const file of Array.from(files)) {
         const compressed = await compressImage(file); // keep set photos under the upload size limit
         const fd = new FormData();
-        fd.append("userId", userId);
         fd.append("files", compressed);
-        const res = await fetch("/api/user/upload", { method: "POST", body: fd });
+        const res = await fetch("/api/user/upload", {
+          method: "POST",
+          headers: { "x-user-token": getUserToken() },
+          body: fd,
+        });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const { paths } = await res.json();
         results.push(paths[0]);
@@ -444,7 +451,7 @@ function UserSetModal({
     try {
       const res = await fetch("/api/user/sets", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-user-token": getUserToken() },
         body: JSON.stringify(payload),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -631,7 +638,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!user?.id) return;
     setOrdersLoading(true);
-    fetch(`/api/orders?user_id=${user.id}`)
+    fetch(`/api/orders`, { headers: { "x-user-token": getUserToken() } })
       .then(r => r.json())
       .then(data => { if (data.orders) setOrders(data.orders.map(mapOrderFromApi)); })
       .catch(console.error)
@@ -649,8 +656,8 @@ export default function ProfilePage() {
     try {
       const res = await fetch("/api/user/sets", {
         method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, setId: s.id }),
+        headers: { "Content-Type": "application/json", "x-user-token": getUserToken() },
+        body: JSON.stringify({ setId: s.id }),
       });
       if (!res.ok) { const e = await res.json(); throw new Error(e.error ?? "error"); }
       removeSet(s.id);
@@ -746,6 +753,24 @@ export default function ProfilePage() {
         </div>
 
         <div className="container-uha py-10 space-y-10">
+          {/* ── Link Telegram (email accounts not yet linked) ── */}
+          {!user.telegram && !user.email?.includes("@telegram.local") && (
+            <section className="bg-[#2AABEE]/5 border border-[#2AABEE]/20 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex-1">
+                <h3 className="font-bold text-sm flex items-center gap-2">
+                  <Send className="w-4 h-4 text-[#2AABEE]" /> Привяжите Telegram
+                </h3>
+                <p className="text-[rgb(var(--muted))] text-xs mt-1 max-w-md">
+                  Привяжите Telegram-аккаунт, чтобы входить с любого устройства одной кнопкой
+                  и сохранять профиль, сеты и заказы.
+                </p>
+              </div>
+              <div className="sm:w-64 flex-shrink-0">
+                <BotAuthButton redirectTo="/profile" linkUserId={user.id} label="Привязать Telegram" />
+              </div>
+            </section>
+          )}
+
           {/* ── Orders ── */}
           <section>
             <h2 className="text-lg font-bold mb-5 flex items-center gap-2">

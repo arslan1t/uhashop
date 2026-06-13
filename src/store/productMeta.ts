@@ -4,6 +4,7 @@
  */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { safeStorage } from "@/lib/storage";
 
 interface ProductMeta {
   isFeatured?: boolean;
@@ -24,12 +25,15 @@ interface ProductMetaStore {
 
 function syncMeta(id: string, data: ProductMeta) {
   if (typeof window === "undefined") return;
-  import("@/lib/firebase/config").then(({ isFirebaseConfigured }) => {
-    if (!isFirebaseConfigured()) return;
-    import("@/lib/firebase/metaFirestore").then(({ saveMetaToFirestore }) => {
-      saveMetaToFirestore({ id, ...data }).catch(console.error);
-    });
-  });
+  // Persist via the server admin API (Admin SDK) — client writes to shop_meta
+  // are blocked by security rules, so feature/archive/delete toggles would
+  // otherwise never sync to other devices or the public site.
+  const token = safeStorage.getItem("uha-admin-token") ?? "";
+  fetch("/api/admin/meta", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-admin-token": token },
+    body: JSON.stringify({ id, ...data }),
+  }).catch(console.error);
 }
 
 export const useProductMeta = create<ProductMetaStore>()(

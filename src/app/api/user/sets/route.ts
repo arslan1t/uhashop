@@ -5,6 +5,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { getAuthUserId, unauthorizedUser } from "@/lib/user-auth";
 import type { PlayerSet } from "@/types";
 
 function sanitize<T>(v: T): T {
@@ -35,17 +36,29 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const authId = getAuthUserId(req);
+    if (!authId) return unauthorizedUser();
+
     const body = await req.json() as Partial<PlayerSet> & { userId?: string };
-    const { userId, ...setData } = body;
-    if (!userId) return NextResponse.json({ error: "userId required" }, { status: 400 });
+    // Strip any client-supplied userId/createdBy — ownership comes from the token.
+    const { userId: _ignored, createdBy: _ignored2, ...setData } = body;
     if (!setData.name?.trim()) return NextResponse.json({ error: "name required" }, { status: 400 });
 
     const id = setData.id ?? `uset-${Date.now()}`;
     const db = getAdminDb();
+
+    // If updating an existing set, the caller must own it.
+    if (setData.id) {
+      const existing = await db.collection("player_sets").doc(setData.id).get();
+      if (existing.exists && existing.data()?.createdBy !== authId) {
+        return NextResponse.json({ error: "forbidden" }, { status: 403 });
+      }
+    }
+
     const payload = sanitize({
       ...setData,
       id,
-      createdBy: userId,
+      createdBy: authId,
       displayOrder: setData.displayOrder ?? 999,
       createdAt: setData.createdAt ?? new Date().toISOString(),
     });
@@ -58,14 +71,17 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const { userId, setId } = (await req.json()) as { userId?: string; setId?: string };
-    if (!userId || !setId) return NextResponse.json({ error: "userId and setId required" }, { status: 400 });
+    const authId = getAuthUserId(req);
+    if (!authId) return unauthorizedUser();
+
+    const { setId } = (await req.json()) as { setId?: string };
+    if (!setId) return NextResponse.json({ error: "setId required" }, { status: 400 });
 
     const db = getAdminDb();
     const snap = await db.collection("player_sets").doc(setId).get();
     if (!snap.exists) return NextResponse.json({ error: "not found" }, { status: 404 });
     const data = snap.data() as PlayerSet;
-    if (data.createdBy !== userId) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    if (data.createdBy !== authId) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
     await db.collection("player_sets").doc(setId).delete();
     return NextResponse.json({ ok: true });

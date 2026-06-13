@@ -5,7 +5,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase/admin";
 import { sendTelegramMessage, escapeHtml } from "@/lib/telegram";
-import { buildAdminToken } from "@/lib/admin-auth";
+import { buildAdminToken, isAdminAuthorized } from "@/lib/admin-auth";
+import { getAuthUserId } from "@/lib/user-auth";
 import { FieldValue } from "firebase-admin/firestore";
 
 // ── Telegram notification ────────────────────────────────────────────────────
@@ -47,7 +48,7 @@ async function sendOrderNotification(order: {
 }
 
 // ── POST — create order ──────────────────────────────────────────────────────
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
@@ -59,6 +60,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // Bind the order to the authenticated user when logged in; guests (no token)
+    // may still check out. A spoofed user_id in the body is ignored.
+    const tokenUserId = getAuthUserId(req);
+    const resolvedUserId = tokenUserId ?? (typeof user_id === "string" ? user_id : null);
+
     const now     = new Date();
     const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
     const rand    = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -66,7 +72,7 @@ export async function POST(req: Request) {
 
     const orderData = {
       order_number:     orderNumber,
-      user_id:          user_id ?? null,
+      user_id:          resolvedUserId,
       items,
       total,
       status:           "new",
@@ -114,20 +120,27 @@ export async function POST(req: Request) {
 // ── GET — list orders (user_id scoped OR admin token) ────────────────────────
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const userId     = searchParams.get("user_id");
     const adminToken = req.headers.get("x-admin-token") ?? "";
     const isAdmin    = adminToken && adminToken === buildAdminToken();
+    // A user may only read THEIR OWN orders — the userId comes from the verified
+    // session token, never from the query string (which anyone could spoof).
+    const tokenUserId = getAuthUserId(req);
 
-    if (!userId && !isAdmin) {
+    if (!isAdmin && !tokenUserId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const db   = getAdminDb();
     const col  = db.collection("orders");
-    const snap = userId
-      ? await col.where("user_id", "==", userId).orderBy("created_at", "desc").get()
-      : await col.orderBy("created_at", "desc").get();
+    let snap;
+    if (isAdmin) {
+      const qUser = new URL(req.url).searchParams.get("user_id");
+      snap = qUser
+        ? await col.where("user_id", "==", qUser).orderBy("created_at", "desc").get()
+        : await col.orderBy("created_at", "desc").get();
+    } else {
+      snap = await col.where("user_id", "==", tokenUserId).orderBy("created_at", "desc").get();
+    }
 
     const orders = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     return NextResponse.json({ orders });
@@ -138,8 +151,13 @@ export async function GET(req: NextRequest) {
 }
 
 // ── PATCH — update order status ──────────────────────────────────────────────
-export async function PATCH(req: Request) {
+export async function PATCH(req: NextRequest) {
   try {
+    // Order status changes are admin-only.
+    if (!isAdminAuthorized(req)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body           = await req.json();
     const { id, status } = body as { id?: string; status?: string };
 

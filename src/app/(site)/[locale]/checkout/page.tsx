@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { Check, ArrowLeft, Send, MapPin, User, Phone, Tag, X, Package, ShoppingBag, Copy, CheckCheck } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { usePromoStore, calcDiscount } from "@/store/promoCodes";
-import { useAuthStore } from "@/store/auth";
+import { useAuthStore, getUserToken } from "@/store/auth";
 import type { PromoCode } from "@/store/promoCodes";
 import { formatPrice } from "@/lib/utils";
 
@@ -114,7 +114,7 @@ export default function CheckoutPage() {
 
       const res = await fetch("/api/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", "x-user-token": getUserToken() },
         body: JSON.stringify({
           items: orderItems,
           total: finalTotal,
