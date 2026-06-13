@@ -116,13 +116,11 @@ export const ProductCard = memo(function ProductCard({ product, priority = false
 
           {/* Desktop-only hover overlay — hidden on touch via CSS media query */}
           <div className="[@media(hover:none)]:hidden absolute inset-0 bg-black/25 opacity-0 transition-opacity duration-200 group-hover:opacity-100 flex items-center justify-center gap-2.5 pointer-events-none group-hover:pointer-events-auto">
-            <Link
-              href={`/product/${product.slug}`}
-              onClick={(e) => e.stopPropagation()}
+            <span
               className="w-9 h-9 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center text-black hover:bg-white transition-colors shadow-lg"
               title="Открыть товар">
               <Eye className="w-4 h-4" />
-            </Link>
+            </span>
             <button onClick={openPicker}
               className={`w-9 h-9 backdrop-blur-sm rounded-xl flex items-center justify-center transition-colors shadow-lg ${
                 added
