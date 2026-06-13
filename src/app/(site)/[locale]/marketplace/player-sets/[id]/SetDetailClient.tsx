@@ -270,7 +270,7 @@ export function SetDetailClient({ id }: { id: string }) {
                     alt={set.name}
                     fill
                     priority
-                    className={`object-cover transition-opacity duration-300 ${
+                    className={`object-cover object-top transition-opacity duration-300 ${
                       imgLoaded ? "opacity-100" : "opacity-0"
                     }`}
                     sizes="(max-width: 768px) 100vw, calc(100vw - 88px)"

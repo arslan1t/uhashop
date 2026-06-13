@@ -7,6 +7,7 @@ import { X, Star, Upload, Trash2, Check, ImageIcon, GripVertical, CheckCircle2 }
 import type { AdminProduct } from "@/data/adminData";
 import { useProductOverrides } from "@/store/productOverrides";
 import { useCustomBrands } from "@/store/customBrands";
+import { getAdminToken } from "@/store/admin";
 
 const CLS = "w-full h-10 px-3.5 bg-[#181818] border border-[#2a2a2a] rounded-xl text-white text-sm placeholder:text-[#444] focus:outline-none focus:border-red-800/60 transition-colors";
 
@@ -262,7 +263,11 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
           fd.append("slug", currentSlug);
           fd.append("category", category);
           fd.append("files", img.file!);
-          const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+          const res = await fetch("/api/admin/upload", {
+            method: "POST",
+            headers: { "x-admin-token": getAdminToken() },
+            body: fd,
+          });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           const data = await res.json();
           const url = data.paths?.[0];
