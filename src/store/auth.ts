@@ -66,35 +66,11 @@ export const useAuthStore = create<AuthStore>()((set) => ({
           set({ user: null, isAuthenticated: false, loading: false });
         }
       }).catch(() => set({ loading: false }));
-    } else if (typeof window !== "undefined" && isFirebaseConfigured()) {
-      // Firebase Auth mode — unsubscribe any previous listener first to prevent leaks (H-9 fix)
-      if (_firebaseAuthUnsubscribe) {
-        _firebaseAuthUnsubscribe();
-        _firebaseAuthUnsubscribe = null;
-      }
-      import("firebase/auth").then(({ getAuth, onAuthStateChanged }) => {
-        import("@/lib/firebase/config").then(({ getFirebaseApp }) => {
-          const auth = getAuth(getFirebaseApp());
-          _firebaseAuthUnsubscribe = onAuthStateChanged(auth, (fbUser) => {
-            if (fbUser && fbUser.emailVerified) {
-              set({
-                user: {
-                  id: fbUser.uid,
-                  name: fbUser.displayName || fbUser.email?.split("@")[0] || "",
-                  email: fbUser.email || "",
-                  createdAt: fbUser.metadata.creationTime || new Date().toISOString(),
-                },
-                isAuthenticated: true,
-                loading: false,
-              });
-            } else {
-              set({ user: null, isAuthenticated: false, loading: false });
-            }
-          });
-        });
-      }).catch(() => set({ loading: false }));
     } else {
-      // Pure local fallback (no email service available)
+      // Telegram-bot auth: localStorage is the source of truth.
+      // Firebase Auth is NOT used for user-facing login (only Telegram bot flow),
+      // so we never hand off to onAuthStateChanged — it would return null and
+      // silently log out users who authenticated via the Telegram bot.
       try {
         const raw = safeStorage.getItem(AUTH_KEY);
         if (raw) {

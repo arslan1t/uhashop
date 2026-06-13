@@ -75,7 +75,12 @@ export function SetDetailClient({ id }: { id: string }) {
       {/* Hero */}
       <div className="relative h-[40vh] min-h-[280px] max-h-[480px] overflow-hidden bg-black">
         {activePhoto ? (
-          <Image src={activePhoto} alt={set.name} fill className="object-contain" priority sizes="100vw" />
+          <>
+            {/* Blurred background fills letterbox space */}
+            <Image src={activePhoto} alt="" fill className="object-cover scale-110 blur-2xl opacity-70 select-none" sizes="100vw" aria-hidden />
+            {/* Full photo on top */}
+            <Image src={activePhoto} alt={set.name} fill className="object-contain" priority sizes="100vw" />
+          </>
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent)/0.3)] via-[rgb(var(--surface))] to-[rgb(var(--background))]" />
         )}
