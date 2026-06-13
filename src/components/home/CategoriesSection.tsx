@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { motion } from "framer-motion";
-import { ArrowUpRight, Award, Zap, Activity, Shirt, Star } from "lucide-react";
+import { ArrowUpRight, Footprints, Shirt, Star } from "lucide-react";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import type { LucideIcon } from "lucide-react";
 
@@ -22,7 +22,7 @@ const CATEGORIES: {
 }[] = [
   {
     id: "shoes-basketball",
-    icon: Award,
+    icon: Footprints,
     title: "Обувь",
     sub: "Баскетбол",
     href: "/marketplace?category=shoes&style=basketball",
@@ -34,7 +34,7 @@ const CATEGORIES: {
   },
   {
     id: "shoes-lifestyle",
-    icon: Zap,
+    icon: Footprints,
     title: "Обувь",
     sub: "Лайфстайл",
     href: "/marketplace?category=shoes&style=lifestyle",
@@ -46,7 +46,7 @@ const CATEGORIES: {
   },
   {
     id: "apparel-basketball",
-    icon: Activity,
+    icon: Shirt,
     title: "Одежда",
     sub: "Баскетбол",
     href: "/marketplace?category=apparel&style=basketball",
