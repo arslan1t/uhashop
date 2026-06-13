@@ -154,8 +154,29 @@ export async function POST(req: NextRequest) {
         return ok();
       }
 
-      // Build / merge user profile
-      const userId = `tg_${from.id}`;
+      const sessionData = session.data()!;
+
+      // ── Resolve which account this Telegram identity maps to ──────────────
+      // Priority:
+      //   1. linkUserId on the session → user is linking TG to an existing
+      //      (email) account from a logged-in session. Persist the mapping.
+      //   2. existing telegram_links/<tgId> → this TG was linked before; reuse
+      //      that account (so email users keep one profile across devices).
+      //   3. tg_<id> → plain Telegram-only account.
+      const linkRef = db.collection("telegram_links").doc(String(from.id));
+      const linkDoc = await linkRef.get();
+      let userId: string;
+      if (sessionData.linkUserId) {
+        userId = sessionData.linkUserId as string;
+        await linkRef.set({ userId, telegramId: from.id, linkedAt: new Date().toISOString() }, { merge: true });
+      } else if (linkDoc.exists && linkDoc.data()?.userId) {
+        userId = linkDoc.data()!.userId as string;
+      } else {
+        userId = `tg_${from.id}`;
+        // Record the mapping so future logins are stable even before any linking.
+        await linkRef.set({ userId, telegramId: from.id, linkedAt: new Date().toISOString() }, { merge: true });
+      }
+
       const name = [from.first_name, from.last_name].filter(Boolean).join(" ") || "Пользователь";
 
       const existingDoc = await db.collection("user_profiles").doc(userId).get();
@@ -171,7 +192,8 @@ export async function POST(req: NextRequest) {
       const user = {
         id: userId,
         name: existing.name || name,
-        email: `${from.id}@telegram.local`,
+        // Preserve a real (linked) email; only use the placeholder for pure-TG accounts.
+        email: existing.email || `${from.id}@telegram.local`,
         telegram: from.username ? `@${from.username}` : existing.telegram,
         telegramId: from.id,
         chatId,

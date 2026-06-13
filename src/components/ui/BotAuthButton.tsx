@@ -2,13 +2,18 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth";
+import { useAuthStore, getUserToken } from "@/store/auth";
 import { Send, Loader2, CheckCircle } from "lucide-react";
 
 type State = "idle" | "loading" | "waiting" | "success" | "error" | "expired";
 
 interface Props {
   redirectTo?: string;
+  /** When set, links Telegram to this (already logged-in) account instead of
+   *  creating/using a Telegram-only account. */
+  linkUserId?: string;
+  /** Override the idle button label (e.g. for the "link" use case). */
+  label?: string;
 }
 
 // Persist the pending session across tab reloads. Mobile browsers frequently
@@ -49,7 +54,7 @@ function clearPending() {
   try { localStorage.removeItem(PENDING_KEY); } catch { /* ignore */ }
 }
 
-export function BotAuthButton({ redirectTo = "/profile" }: Props) {
+export function BotAuthButton({ redirectTo = "/profile", linkUserId, label }: Props) {
   const [state, setState] = useState<State>("idle");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionRef = useRef<string | null>(null);
@@ -71,7 +76,7 @@ export function BotAuthButton({ redirectTo = "/profile" }: Props) {
         stopPolling();
         clearPending();
         sessionRef.current = null;
-        setUser(data.user);
+        setUser(data.user, data.token);
         setState("success");
         setTimeout(() => router.replace(redirectTo), 800);
       } else if (data.status === "expired" || data.error === "not found") {
@@ -134,7 +139,13 @@ export function BotAuthButton({ redirectTo = "/profile" }: Props) {
 
     (async () => {
       try {
-        const res = await fetch("/api/auth/bot/session", { method: "POST" });
+        const res = await fetch("/api/auth/bot/session", {
+          method: "POST",
+          headers: linkUserId
+            ? { "Content-Type": "application/json", "x-user-token": getUserToken() }
+            : { "Content-Type": "application/json" },
+          body: linkUserId ? JSON.stringify({ linkUserId }) : undefined,
+        });
         if (!res.ok) throw new Error("init failed");
         const { sessionId, botUrl } = await res.json();
 
@@ -227,7 +238,7 @@ export function BotAuthButton({ redirectTo = "/profile" }: Props) {
       {state === "loading"
         ? <Loader2 className="w-5 h-5 animate-spin" />
         : <Send className="w-5 h-5" />}
-      {state === "loading" ? "Подключение..." : "Продолжить через Telegram"}
+      {state === "loading" ? "Подключение..." : (label ?? "Продолжить через Telegram")}
     </button>
   );
 }

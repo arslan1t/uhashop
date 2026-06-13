@@ -29,7 +29,7 @@ interface AuthStore {
   hydrate: () => void;
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   register: (name: string, email: string, password: string, telegram?: string) => Promise<{ ok: boolean; error?: string }>;
-  setUser: (user: UserProfile) => void;
+  setUser: (user: UserProfile, token?: string) => void;
   refreshProfile: () => Promise<void>;
   updateProfile: (data: Partial<Pick<UserProfile, "name" | "avatar" | "bio" | "socialLinks" | "telegram">>) => void;
   logout: () => void;
@@ -37,8 +37,18 @@ interface AuthStore {
 
 const AUTH_KEY = "uha-auth-v1";
 const USERS_KEY = "uha-users-v1";
+const TOKEN_KEY = "uha-user-token";
 
 type StoredUser = UserProfile & { password: string };
+
+/** The signed session token authorizing /api/user/* calls (server-issued). */
+export function getUserToken(): string {
+  return safeStorage.getItem(TOKEN_KEY) ?? "";
+}
+function setUserToken(token: string | null) {
+  if (token) safeStorage.setItem(TOKEN_KEY, token);
+  else safeStorage.removeItem(TOKEN_KEY);
+}
 
 /**
  * Fetch the canonical profile (avatar, bio, socials, name) from Firestore.
@@ -183,6 +193,20 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
         // Persist to localStorage — hydrate() reads AUTH_KEY, so without this
         // email users were logged out on every refresh.
         safeStorage.setItem(AUTH_KEY, JSON.stringify(profile));
+        // Exchange the Firebase ID token for a server-signed session token that
+        // authorizes /api/user/* calls (uploads, set/profile writes).
+        try {
+          const idToken = await fbUser.getIdToken();
+          const sres = await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken }),
+          });
+          if (sres.ok) {
+            const { token } = await sres.json();
+            if (token) setUserToken(token);
+          }
+        } catch { /* non-fatal — reads still work, writes will 401 until next login */ }
         set({
           user: profile,
           isAuthenticated: true,
@@ -305,8 +329,9 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
     }
   },
 
-  setUser: (user: UserProfile) => {
+  setUser: (user: UserProfile, token?: string) => {
     safeStorage.setItem(AUTH_KEY, JSON.stringify(user));
+    if (token) setUserToken(token);
     set({ user, isAuthenticated: true, loading: false });
     // Merge any avatar/bio/socials already stored for this account (e.g. set on
     // another device) so logging in on a new phone shows the full profile.
@@ -318,12 +343,13 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
       if (!state.user) return {};
       const updated = { ...state.user, ...data };
       safeStorage.setItem(AUTH_KEY, JSON.stringify(updated));
-      // Persist to Firestore (best-effort, non-blocking)
+      // Persist to Firestore (best-effort, non-blocking). The server derives the
+      // userId from the session token — we no longer send it in the body.
       if (typeof window !== "undefined") {
         fetch("/api/user/profile", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId: updated.id, ...data }),
+          headers: { "Content-Type": "application/json", "x-user-token": getUserToken() },
+          body: JSON.stringify(data),
         }).catch(() => {});
       }
       return { user: updated };
@@ -341,6 +367,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
       });
     }
     safeStorage.removeItem(AUTH_KEY);
+    setUserToken(null);
     set({ user: null, isAuthenticated: false });
   },
 }));

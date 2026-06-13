@@ -10,10 +10,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
-// Server-only env vars (no NEXT_PUBLIC_ prefix → not in JS bundle)
-const ADMIN_EMAIL    = process.env.ADMIN_EMAIL    ?? "admin@uhashop.uz";
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "uha2024admin";
-const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET ?? "uha-admin-secret-2024";
+// Server-only env vars (no NEXT_PUBLIC_ prefix → not in JS bundle).
+// No insecure defaults — credentials MUST be configured in the environment.
+const ADMIN_EMAIL    = process.env.ADMIN_EMAIL    ?? "";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "";
+const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || crypto.randomBytes(32).toString("hex");
 
 /** Deterministic session token derived from env-only secret */
 function buildToken(): string {
@@ -23,14 +24,26 @@ function buildToken(): string {
     .digest("hex");
 }
 
+/** Length-safe constant-time compare (timingSafeEqual throws on unequal lengths). */
+function safeEqual(a: string, b: string): boolean {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  return crypto.timingSafeEqual(ab, bb);
+}
+
 /** POST — validate email + password, return token */
 export async function POST(req: NextRequest) {
   try {
+    // Fail closed if admin credentials aren't configured.
+    if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+      return NextResponse.json({ ok: false, error: "Admin not configured" }, { status: 503 });
+    }
+
     const { email, password } = await req.json();
 
-    // Constant-time comparison to prevent timing attacks
-    const emailOk    = crypto.timingSafeEqual(Buffer.from(email    ?? ""), Buffer.from(ADMIN_EMAIL));
-    const passwordOk = crypto.timingSafeEqual(Buffer.from(password ?? ""), Buffer.from(ADMIN_PASSWORD));
+    const emailOk    = safeEqual(String(email ?? ""), ADMIN_EMAIL);
+    const passwordOk = safeEqual(String(password ?? ""), ADMIN_PASSWORD);
 
     if (!emailOk || !passwordOk) {
       // Artificial delay on failure to slow brute-force attempts

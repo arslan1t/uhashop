@@ -1,19 +1,24 @@
 /**
- * User media upload (avatars, set images) — no admin token required.
- * Files stored under user-uploads/{userId}/{uuid}.{ext}
+ * User media upload (avatars, set images). Requires a valid user session token;
+ * files are always stored under the AUTHENTICATED user's path
+ * (user-uploads/{userId}/{uuid}.{ext}) — a client cannot write to another
+ * user's folder by passing a different userId.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getAdminStorage } from "@/lib/firebase/admin";
+import { getAuthUserId, unauthorizedUser } from "@/lib/user-auth";
 
 export async function POST(req: NextRequest) {
   try {
+    const userId = getAuthUserId(req);
+    if (!userId) return unauthorizedUser();
+
     const formData = await req.formData();
-    const userId = formData.get("userId") as string | null;
     const files   = formData.getAll("files") as File[];
 
-    if (!userId || !files.length) {
-      return NextResponse.json({ error: "userId and files required" }, { status: 400 });
+    if (!files.length) {
+      return NextResponse.json({ error: "files required" }, { status: 400 });
     }
 
     const storage = getAdminStorage();
