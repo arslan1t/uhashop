@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useTranslations, useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingBag, Sun, Moon, Menu, X, User, ChevronDown } from "lucide-react";
+import { ShoppingBag, Sun, Moon, Menu, X, User, ChevronDown, Store, GraduationCap } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
 import { cn } from "@/lib/utils";
@@ -186,6 +186,34 @@ export function Navbar() {
                 {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* ── Mobile quick-access bar — Marketplace + Academy ── */}
+        {/* Visible only on mobile (<md). Keeps the most-visited pages one tap away. */}
+        <div className="md:hidden border-t border-[rgb(var(--border)/0.5)] bg-[rgb(var(--surface)/0.85)] backdrop-blur-sm">
+          <div className="container-uha flex gap-2 py-1.5">
+            <Link href="/marketplace" onClick={() => setMobileOpen(false)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all",
+                isActive("/marketplace")
+                  ? "bg-[rgb(var(--accent)/0.12)] text-[rgb(var(--accent))]"
+                  : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface-2))]"
+              )}>
+              <Store className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>Маркетплейс</span>
+            </Link>
+            <div className="w-px bg-[rgb(var(--border))]" />
+            <Link href="/academy" onClick={() => setMobileOpen(false)}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide transition-all",
+                isActive("/academy")
+                  ? "bg-[rgb(var(--accent)/0.12)] text-[rgb(var(--accent))]"
+                  : "text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:bg-[rgb(var(--surface-2))]"
+              )}>
+              <GraduationCap className="w-3.5 h-3.5 flex-shrink-0" />
+              <span>Академия</span>
+            </Link>
           </div>
         </div>
 

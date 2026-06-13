@@ -67,3 +67,19 @@ export interface CartItem {
 }
 
 // FilterState is defined and exported from @/components/ui/FilterBar — do not duplicate here.
+
+/** A curated collection of products assembled by a player, creator, or community member. */
+export interface PlayerSet {
+  id: string;
+  name: string;
+  description: string;
+  creatorName: string;
+  heroImage: string;
+  productIds: string[];
+  displayOrder: number;
+  createdAt: string;
+  // Task 5 extensibility — future collection types supported without schema changes
+  type?: "player" | "featured" | "seasonal" | "creator" | "athlete" | "sponsored" | "campaign";
+  isActive?: boolean;
+  tags?: string[];
+}

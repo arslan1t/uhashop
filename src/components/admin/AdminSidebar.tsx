@@ -7,7 +7,8 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, Package, ShoppingCart, Users, FolderOpen,
   Image as ImageIcon, Settings, Shirt, FileText,
-  ChevronLeft, LogOut, ExternalLink, Tag, GraduationCap
+  ChevronLeft, LogOut, ExternalLink, Tag, GraduationCap,
+  Trophy, ArrowUpDown,
 } from "lucide-react";
 import { useAdminStore } from "@/store/admin";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,8 @@ const NAV = [
   { label: "Медиа", href: "/admin/media", icon: ImageIcon },
   { label: "Главная", href: "/admin/homepage", icon: FileText },
   { label: "Академия", href: "/admin/academy", icon: GraduationCap, badge: "new" },
+  { label: "Сеты игроков", href: "/admin/sets", icon: Trophy },
+  { label: "Порядок товаров", href: "/admin/ordering", icon: ArrowUpDown },
   { label: "Пользователи", href: "/admin/users", icon: Users },
   { label: "Настройки", href: "/admin/settings", icon: Settings },
 ];
