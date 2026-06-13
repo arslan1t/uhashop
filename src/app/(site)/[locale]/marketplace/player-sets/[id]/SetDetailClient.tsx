@@ -73,9 +73,9 @@ export function SetDetailClient({ id }: { id: string }) {
   return (
     <div className="bg-[rgb(var(--background))] min-h-screen">
       {/* Hero */}
-      <div className="relative h-[40vh] min-h-[280px] max-h-[480px] overflow-hidden">
+      <div className="relative h-[40vh] min-h-[280px] max-h-[480px] overflow-hidden bg-black">
         {activePhoto ? (
-          <Image src={activePhoto} alt={set.name} fill className="object-cover" priority sizes="100vw" />
+          <Image src={activePhoto} alt={set.name} fill className="object-contain" priority sizes="100vw" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent)/0.3)] via-[rgb(var(--surface))] to-[rgb(var(--background))]" />
         )}
