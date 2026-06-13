@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/auth";
 import { useProductVisibility } from "@/store/productVisibility";
 import { useWishlist } from "@/store/wishlist";
 import { useFirestoreProducts } from "@/hooks/useFirestoreProducts";
+import { useFirestoreSets } from "@/hooks/useFirestoreSets";
 
 function StoreHydration() {
   useEffect(() => {
@@ -19,8 +20,9 @@ function StoreHydration() {
     useWishlist.getState().hydrate?.();
   }, []);
 
-  // Subscribe to Firestore products — syncs across all devices in real time
+  // Subscribe to Firestore — syncs products + sets across all devices in real time
   useFirestoreProducts();
+  useFirestoreSets();
 
   return null;
 }

@@ -4,13 +4,18 @@ import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send } from "lucide-react";
+import { Send, Users, Package, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { Link } from "@/i18n/navigation";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { FilterBar, type FilterState } from "@/components/ui/FilterBar";
 import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 import { getMarketplaceProducts } from "@/data/products";
 import { useCustomProducts } from "@/store/customProducts";
 import { useProductMeta } from "@/store/productMeta";
+import { usePlayerSets } from "@/store/playerSets";
+import { useProductOrder } from "@/store/productOrder";
+import { formatPrice } from "@/lib/utils";
 import type { ProductCategory } from "@/types";
 
 const staticProducts = getMarketplaceProducts();
@@ -24,6 +29,10 @@ export function MarketplaceClient() {
   const searchParams = useSearchParams();
   const customProds = useCustomProducts(s => s.products);
   const metaMap     = useProductMeta(s => s.meta);
+  const playerSets  = usePlayerSets(s => s.sets);
+  const getOrder    = useProductOrder(s => s.getOrder);
+
+  const [showSets, setShowSets] = useState(false);
 
   // Read initial filters from URL params (e.g. ?category=shoes&style=basketball)
   const initCategory = searchParams?.get("category") ?? "";
@@ -190,8 +199,22 @@ export function MarketplaceClient() {
       case "new":
         result.sort((a, b) => (b.isNew ? 1 : 0) - (a.isNew ? 1 : 0));
         break;
-      default:
-        result.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
+      default: {
+        // Use custom admin-defined order if available for the current category
+        const categoryKey = filters.category || "all";
+        const customOrder = getOrder(categoryKey);
+        if (customOrder.length > 0) {
+          const orderMap = new Map(customOrder.map((id, i) => [id, i]));
+          result.sort((a, b) => {
+            const ai = orderMap.has(a.id) ? orderMap.get(a.id)! : Infinity;
+            const bi = orderMap.has(b.id) ? orderMap.get(b.id)! : Infinity;
+            if (ai !== bi) return ai - bi;
+            return (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0);
+          });
+        } else {
+          result.sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0));
+        }
+      }
     }
 
     return result;
@@ -241,11 +264,11 @@ export function MarketplaceClient() {
             { label: "Джерси",        emoji: "🏀", value: "jerseys" },
             { label: "Термо бельё",   emoji: "🌡️", value: "thermals" },
           ].map(chip => {
-            const active = filters.category === chip.value;
+            const active = !showSets && filters.category === chip.value;
             return (
               <button
                 key={chip.value}
-                onClick={() => updateFilter({ category: chip.value })}
+                onClick={() => { setShowSets(false); updateFilter({ category: chip.value }); }}
                 className={`flex items-center gap-1.5 h-9 px-4 rounded-xl text-sm font-semibold border transition-all ${
                   active
                     ? "bg-[rgb(var(--accent))] border-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent)/0.25)]"
@@ -257,10 +280,30 @@ export function MarketplaceClient() {
               </button>
             );
           })}
+
+          {/* Player Sets chip */}
+          <button
+            onClick={() => setShowSets(true)}
+            className={`flex items-center gap-1.5 h-9 px-4 rounded-xl text-sm font-semibold border transition-all ${
+              showSets
+                ? "bg-[rgb(var(--accent))] border-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent)/0.25)]"
+                : "bg-[rgb(var(--surface))] border-[rgb(var(--border))] text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:border-[rgb(var(--accent)/0.4)]"
+            }`}
+          >
+            <span>🏆</span>
+            <span>Сеты игроков</span>
+            {playerSets.length > 0 && (
+              <span className={`ml-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                showSets ? "bg-white/20" : "bg-[rgb(var(--accent)/0.15)] text-[rgb(var(--accent))]"
+              }`}>
+                {playerSets.length}
+              </span>
+            )}
+          </button>
         </div>
 
-        {/* Filters */}
-        <div className="mb-8">
+        {/* Filters — hidden in sets view */}
+        {!showSets && <div className="mb-8">
           <FilterBar
             state={filters}
             onChange={updateFilter}
@@ -271,10 +314,80 @@ export function MarketplaceClient() {
             priceRange={PRICE_RANGE}
             total={filtered.length}
           />
-        </div>
+        </div>}
+
+        {/* ── Player Sets Grid ── */}
+        {showSets && (
+          <div>
+            {playerSets.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="text-5xl mb-5">🏆</div>
+                <h3 className="font-semibold text-xl mb-2">Сеты пока не добавлены</h3>
+                <p className="text-[rgb(var(--muted))] max-w-sm text-sm">
+                  Скоро здесь появятся кураторские подборки от игроков и атлетов команды.
+                </p>
+              </div>
+            ) : (
+              <motion.div
+                variants={stagger} initial="hidden" animate="show"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {[...playerSets]
+                  .sort((a, b) => a.displayOrder - b.displayOrder)
+                  .map(s => (
+                      <motion.div key={s.id} variants={fadeUp}>
+                        <Link href={`/marketplace/player-sets/${s.id}`}
+                          className="group block bg-[rgb(var(--card-bg))] border border-[rgb(var(--card-border))] rounded-2xl overflow-hidden product-card-hover">
+                          {/* Hero image */}
+                          <div className="relative aspect-[16/9] overflow-hidden bg-[rgb(var(--surface-2))]">
+                            {s.heroImage ? (
+                              <Image src={s.heroImage} alt={s.name} fill className="object-cover transition-transform duration-500 [@media(hover:hover)]:group-hover:scale-105" sizes="(max-width: 640px) 100vw, 50vw" />
+                            ) : (
+                              <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent)/0.2)] to-[rgb(var(--surface))] flex items-center justify-center text-5xl">
+                                🏀
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                            {s.type && s.type !== "player" && (
+                              <span className="absolute top-3 left-3 text-[10px] font-bold uppercase px-2 py-1 rounded-full bg-black/60 text-white backdrop-blur-sm">
+                                {s.type}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div className="p-4">
+                            <div className="flex items-center gap-1.5 text-[rgb(var(--muted))] text-xs mb-1.5">
+                              <Users className="w-3 h-3" />
+                              <span>{s.creatorName}</span>
+                            </div>
+                            <h3 className="font-semibold text-base mb-1 [@media(hover:hover)]:group-hover:text-[rgb(var(--accent))] transition-colors">
+                              {s.name}
+                            </h3>
+                            {s.description && (
+                              <p className="text-[rgb(var(--muted))] text-xs line-clamp-2 mb-3">
+                                {s.description}
+                              </p>
+                            )}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-1.5 text-[rgb(var(--muted))] text-xs">
+                                <Package className="w-3 h-3" />
+                                <span>{s.productIds.length} товар{s.productIds.length !== 1 ? "а" : ""}</span>
+                              </div>
+                              <span className="text-[rgb(var(--accent))] text-xs font-semibold flex items-center gap-1">
+                                Смотреть <ChevronRight className="w-3 h-3" />
+                              </span>
+                            </div>
+                          </div>
+                        </Link>
+                      </motion.div>
+                  ))}
+              </motion.div>
+            )}
+          </div>
+        )}
 
         {/* Grid */}
-        <AnimatePresence mode="wait">
+        {!showSets && <AnimatePresence mode="wait">
           {filtered.length === 0 ? (
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="flex flex-col items-center justify-center py-20 text-center">
@@ -308,7 +421,7 @@ export function MarketplaceClient() {
               ))}
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence>}
       </div>
     </div>
   );
