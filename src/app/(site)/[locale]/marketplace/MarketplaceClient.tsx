@@ -340,15 +340,14 @@ export function MarketplaceClient() {
                   .sort((a, b) => a.displayOrder - b.displayOrder)
                   .map(s => (
                       <motion.div key={s.id} variants={fadeUp}>
-                        <Link href={`/marketplace/player-sets/${s.id}`}
-                          className="group block bg-[rgb(var(--card-bg))] border border-[rgb(var(--card-border))] rounded-2xl overflow-hidden product-card-hover">
-                          {/* Hero image */}
-                          <div className="relative aspect-[16/9] overflow-hidden bg-[rgb(var(--surface-2))]">
-                            {s.heroImage ? (
-                              <Image src={s.heroImage} alt={s.name} fill className="object-cover transition-transform duration-500 [@media(hover:hover)]:group-hover:scale-105" sizes="(max-width: 640px) 100vw, 50vw" />
+                        <div className="bg-[rgb(var(--card-bg))] border border-[rgb(var(--card-border))] rounded-2xl overflow-hidden product-card-hover group">
+                          {/* Hero image — square */}
+                          <Link href={`/marketplace/player-sets/${s.id}`} className="block relative aspect-square overflow-hidden bg-[rgb(var(--surface-2))]">
+                            {s.heroImages?.[0] ?? s.heroImage ? (
+                              <Image src={s.heroImages?.[0] ?? s.heroImage!} alt={s.name} fill className="object-cover transition-transform duration-500 [@media(hover:hover)]:group-hover:scale-105" sizes="(max-width: 640px) 100vw, 50vw" />
                             ) : (
-                              <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent)/0.2)] to-[rgb(var(--surface))] flex items-center justify-center text-5xl">
-                                🏀
+                              <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent)/0.2)] to-[rgb(var(--surface))] flex items-center justify-center">
+                                <Users className="w-12 h-12 text-[rgb(var(--accent)/0.3)]" />
                               </div>
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
@@ -357,17 +356,27 @@ export function MarketplaceClient() {
                                 {s.type}
                               </span>
                             )}
-                          </div>
+                          </Link>
 
                           {/* Info */}
                           <div className="p-4">
-                            <div className="flex items-center gap-1.5 text-[rgb(var(--muted))] text-xs mb-1.5">
-                              <Users className="w-3 h-3" />
-                              <span>{s.creatorName}</span>
+                            <div className="flex items-center gap-1.5 mb-1.5">
+                              <Users className="w-3 h-3 text-[rgb(var(--muted))] flex-shrink-0" />
+                              {s.createdBy ? (
+                                <Link href={`/profile/${s.createdBy}`}
+                                  className="text-xs text-[rgb(var(--muted))] hover:text-[rgb(var(--accent))] transition-colors truncate"
+                                  onClick={e => e.stopPropagation()}>
+                                  {s.creatorName || "Пользователь"}
+                                </Link>
+                              ) : (
+                                <span className="text-[rgb(var(--muted))] text-xs truncate">{s.creatorName}</span>
+                              )}
                             </div>
-                            <h3 className="font-semibold text-base mb-1 [@media(hover:hover)]:group-hover:text-[rgb(var(--accent))] transition-colors">
-                              {s.name}
-                            </h3>
+                            <Link href={`/marketplace/player-sets/${s.id}`}>
+                              <h3 className="font-semibold text-base mb-1 [@media(hover:hover)]:group-hover:text-[rgb(var(--accent))] transition-colors">
+                                {s.name}
+                              </h3>
+                            </Link>
                             {s.description && (
                               <p className="text-[rgb(var(--muted))] text-xs line-clamp-2 mb-3">
                                 {s.description}
@@ -378,12 +387,13 @@ export function MarketplaceClient() {
                                 <Package className="w-3 h-3" />
                                 <span>{s.productIds.length} товар{s.productIds.length !== 1 ? "а" : ""}</span>
                               </div>
-                              <span className="text-[rgb(var(--accent))] text-xs font-semibold flex items-center gap-1">
+                              <Link href={`/marketplace/player-sets/${s.id}`}
+                                className="text-[rgb(var(--accent))] text-xs font-semibold flex items-center gap-1 hover:underline">
                                 Смотреть <ChevronRight className="w-3 h-3" />
-                              </span>
+                              </Link>
                             </div>
                           </div>
-                        </Link>
+                        </div>
                       </motion.div>
                   ))}
               </motion.div>
