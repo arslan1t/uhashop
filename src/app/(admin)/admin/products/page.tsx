@@ -50,32 +50,39 @@ export default function AdminProductsPage() {
   const { products: customProds, addProduct, removeProduct: removeCustom, updateProduct: updateCustom } = useCustomProducts();
   const { setFeatured, setStatus, setDeleted, getMeta } = useProductMeta();
 
-  // Merge static + custom products for display
-  const customAsAdmin: AdminProduct[] = customProds.map(p => ({
-    id: p.id,
-    slug: p.slug,
-    name: p.name,
-    nameRu: p.nameRu,
-    nameUz: p.nameRu,
-    brand: p.brand,
-    category: p.category,
-    price: p.price,
-    replicaPrice: p.replicaPrice,
-    status: "published" as const,
-    type: p.type,
-    isFeatured: p.isFeatured ?? false,
-    stock: p.inStock,
-    estimatedDelivery: p.estimatedDelivery ?? "7–14 дней",
-    replicaDelivery: p.replicaDelivery,
-    image: p.image,
-    images: p.images,
-    imageCount: p.images.length || 1,
-    createdAt: new Date().toISOString().split("T")[0],
-    badge: p.badge,
-    descriptionRu: p.descriptionRu,
-    tags: p.tags,
-    style: p.style,
-  }));
+  // Merge static + custom products for display.
+  // Null-safe: a Firestore product saved by an older/partial write may be
+  // missing fields (e.g. `images`, `name`). Accessing `.length`/`.toLowerCase()`
+  // on undefined would throw and crash the whole admin page, so we default
+  // everything here.
+  const customAsAdmin: AdminProduct[] = customProds.map(p => {
+    const imgs = Array.isArray(p.images) ? p.images : (p.image ? [p.image] : []);
+    return {
+      id: p.id,
+      slug: p.slug ?? p.id,
+      name: p.name ?? p.nameRu ?? "Без названия",
+      nameRu: p.nameRu ?? p.name ?? "Без названия",
+      nameUz: p.nameRu ?? p.name ?? "Без названия",
+      brand: p.brand ?? "UHA",
+      category: p.category ?? "shoes",
+      price: p.price ?? 0,
+      replicaPrice: p.replicaPrice,
+      status: "published" as const,
+      type: p.type ?? "preorder",
+      isFeatured: p.isFeatured ?? false,
+      stock: p.inStock,
+      estimatedDelivery: p.estimatedDelivery ?? "7–14 дней",
+      replicaDelivery: p.replicaDelivery,
+      image: p.image ?? imgs[0],
+      images: imgs,
+      imageCount: imgs.length || 1,
+      createdAt: new Date().toISOString().split("T")[0],
+      badge: p.badge,
+      descriptionRu: p.descriptionRu,
+      tags: p.tags,
+      style: p.style,
+    };
+  });
 
   // Deduplicate: custom product with same ID overrides static
   // Also filter out products marked as deleted in meta
@@ -89,9 +96,9 @@ export default function AdminProductsPage() {
   const filtered = products.filter((p) => {
     const q = search.toLowerCase();
     const matchSearch = !search ||
-      p.name.toLowerCase().includes(q) ||
-      p.brand.toLowerCase().includes(q) ||
-      p.nameRu.toLowerCase().includes(q);
+      (p.name ?? "").toLowerCase().includes(q) ||
+      (p.brand ?? "").toLowerCase().includes(q) ||
+      (p.nameRu ?? "").toLowerCase().includes(q);
     const matchFilter =
       filter === "all" ? true :
       filter === "published" ? p.status === "published" :
@@ -141,8 +148,8 @@ export default function AdminProductsPage() {
   const makeUniqueSlug = (raw: string, selfId?: string): string => {
     const base = normalizeSlug(raw || "") || `product-${Date.now()}`;
     const taken = new Set<string>([
-      ...customProds.filter(p => p.id !== selfId).map(p => p.slug.toLowerCase()),
-      ...staticProducts.map(p => p.slug.toLowerCase()),
+      ...customProds.filter(p => p.id !== selfId).map(p => (p.slug ?? "").toLowerCase()),
+      ...staticProducts.map(p => (p.slug ?? "").toLowerCase()),
     ]);
     if (!taken.has(base)) return base;
     let i = 2;
@@ -445,10 +452,10 @@ export default function AdminProductsPage() {
                       <div className="flex items-center gap-3">
                         <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-[#1a1a1a] border border-[#222] flex-shrink-0">
                           <Image
-                            src={overrides[product.slug]?.mainImage ?? product.image}
-                            alt={product.name}
+                            src={overrides[product.slug]?.mainImage || product.image || "/images/branding/logo-white.png"}
+                            alt={product.name ?? "product"}
                             fill className="object-cover" sizes="40px"
-                            key={overrides[product.slug]?.mainImage ?? product.image}
+                            key={overrides[product.slug]?.mainImage || product.image || product.id}
                           />
                           {product.imageCount > 1 && (
                             <div className="absolute bottom-0 right-0 bg-black/70 text-white text-[8px] px-1 rounded-tl">
