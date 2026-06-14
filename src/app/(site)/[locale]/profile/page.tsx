@@ -9,7 +9,7 @@ import {
   LogOut, Heart, Package, Clock, Send, ChevronRight,
   ShoppingBag, CheckCircle2, Truck, Box, XCircle, Loader2, X, RefreshCw, Copy, CheckCheck,
   Camera, Trophy, Edit2, Trash2, Plus, Search, ChevronUp, ChevronDown,
-  Instagram, Youtube, Twitter, Link as LinkIcon, ImageIcon, Upload, Save, Check,
+  Instagram, Youtube, Link as LinkIcon, ImageIcon, Upload, Save, Check,
 } from "lucide-react";
 import { useAuthStore, getUserToken } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
@@ -211,7 +211,7 @@ type ProfileForm = {
   instagram: string;
   tiktok: string;
   youtube: string;
-  twitter: string;
+  telegram: string;
 };
 
 function EditProfileModal({ onClose }: { onClose: () => void }) {
@@ -222,7 +222,7 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
     instagram: user?.socialLinks?.instagram ?? "",
     tiktok:    user?.socialLinks?.tiktok ?? "",
     youtube:   user?.socialLinks?.youtube ?? "",
-    twitter:   user?.socialLinks?.twitter ?? "",
+    telegram:  user?.socialLinks?.telegram ?? "",
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -257,7 +257,7 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
         instagram: form.instagram.trim() || undefined,
         tiktok:    form.tiktok.trim() || undefined,
         youtube:   form.youtube.trim() || undefined,
-        twitter:   form.twitter.trim() || undefined,
+        telegram:  form.telegram.trim() || undefined,
       },
     });
     setSaved(true);
@@ -268,7 +268,7 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
     { key: "instagram", label: "Instagram",  icon: Instagram, placeholder: "@username" },
     { key: "tiktok",    label: "TikTok",     icon: LinkIcon,  placeholder: "@username" },
     { key: "youtube",   label: "YouTube",    icon: Youtube,   placeholder: "Канал или @handle" },
-    { key: "twitter",   label: "X / Twitter",icon: Twitter,   placeholder: "@username" },
+    { key: "telegram",  label: "Telegram",   icon: Send,      placeholder: "@username" },
   ];
 
   return (
@@ -705,10 +705,10 @@ export default function ProfilePage() {
                           <Youtube className="w-3 h-3" /> {user.socialLinks.youtube}
                         </a>
                       )}
-                      {user.socialLinks.twitter && (
-                        <a href={`https://x.com/${user.socialLinks.twitter.replace("@","")}`} target="_blank" rel="noopener"
+                      {user.socialLinks.telegram && (
+                        <a href={`https://t.me/${user.socialLinks.telegram.replace("@","")}`} target="_blank" rel="noopener"
                           className="flex items-center gap-1 text-[10px] text-sky-400 hover:text-sky-300 transition-colors">
-                          <Twitter className="w-3 h-3" /> {user.socialLinks.twitter}
+                          <Send className="w-3 h-3" /> {user.socialLinks.telegram}
                         </a>
                       )}
                     </div>
