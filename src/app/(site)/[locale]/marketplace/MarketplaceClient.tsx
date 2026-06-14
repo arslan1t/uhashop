@@ -42,7 +42,7 @@ export function MarketplaceClient() {
 
   // Normalize product name for fuzzy deduplication
   // "NikeG.T. Cut 3 Turbo EP College Navy Mystic Navy" → "nikegt3turboepcollegenavy..."
-  const normName = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+  const normName = (s: string) => (s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
   // Custom products override static ones with same ID, slug, or similar name; hide deleted products
   const allProducts = useMemo(() => {
@@ -88,7 +88,7 @@ export function MarketplaceClient() {
   }, [customProds, metaMap]);
 
   // Derived lists for filter options
-  const BRANDS = useMemo(() => [...new Set(allProducts.map(p => p.brand))].sort(), [allProducts]);
+  const BRANDS = useMemo(() => [...new Set(allProducts.map(p => p.brand).filter(Boolean))].sort(), [allProducts]);
   // Always show all standard categories regardless of product availability
   const STANDARD_CATEGORIES: ProductCategory[] = [
     "shoes", "apparel", "accessories", "backpacks", "jerseys", "thermals",
@@ -114,7 +114,8 @@ export function MarketplaceClient() {
 
   // Price range
   const PRICE_RANGE = useMemo((): [number, number] => {
-    const prices = allProducts.map(p => p.price);
+    const prices = allProducts.map(p => p.price ?? 0).filter(n => Number.isFinite(n));
+    if (prices.length === 0) return [0, 1000];
     return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))];
   }, [allProducts]);
 
@@ -150,10 +151,10 @@ export function MarketplaceClient() {
     if (filters.search) {
       const q = filters.search.toLowerCase();
       result = result.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        p.nameRu?.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q) ||
-        p.tags?.some(tag => tag.includes(q))
+        (p.name ?? "").toLowerCase().includes(q) ||
+        (p.nameRu ?? "").toLowerCase().includes(q) ||
+        (p.brand ?? "").toLowerCase().includes(q) ||
+        p.tags?.some(tag => (tag ?? "").includes(q))
       );
     }
 
