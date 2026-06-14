@@ -32,17 +32,19 @@ export function MarketplaceClient() {
   const metaMap     = useProductMeta(s => s.meta);
   const playerSets  = usePlayerSets(s => s.sets);
   const setSets     = usePlayerSets(s => s.setSets);
-  const getOrder    = useProductOrder(s => s.getOrder);
+  const getOrder        = useProductOrder(s => s.getOrder);
+  const loadOrder       = useProductOrder(s => s.loadFromServer);
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
 
   const [showSets, setShowSets] = useState(false);
 
-  // Keep sets in sync with Firestore so all users see each other's sets.
+  // Keep sets and product ordering in sync with Firestore on every visit.
   useEffect(() => {
     fetch("/api/user/sets")
       .then(r => r.json())
       .then(({ sets }) => { if (Array.isArray(sets)) setSets(sets); })
       .catch(() => {});
+    void loadOrder();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

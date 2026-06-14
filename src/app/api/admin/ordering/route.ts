@@ -8,8 +8,7 @@ import { getAdminDb } from "@/lib/firebase/admin";
 
 const DOC_PATH = { collection: "marketplace_config", doc: "product_order" };
 
-export async function GET(req: NextRequest) {
-  if (!isAdminAuthorized(req)) return unauthorizedResponse();
+export async function GET() {
   try {
     const db = getAdminDb();
     const snap = await db.collection(DOC_PATH.collection).doc(DOC_PATH.doc).get();

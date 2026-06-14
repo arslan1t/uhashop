@@ -32,9 +32,7 @@ export const useProductOrder = create<ProductOrderStore>()(
 
       loadFromServer: async () => {
         try {
-          const res = await fetch("/api/admin/ordering", {
-            headers: { "x-admin-token": getAdminToken() },
-          });
+          const res = await fetch("/api/admin/ordering");
           if (!res.ok) return;
           const { orders } = await res.json();
           if (orders && typeof orders === "object") {
