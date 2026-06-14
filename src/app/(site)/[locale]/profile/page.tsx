@@ -12,6 +12,7 @@ import {
   Instagram, Youtube, Link as LinkIcon, ImageIcon, Upload, Save, Check,
 } from "lucide-react";
 import { useAuthStore, getUserToken } from "@/store/auth";
+import { useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
 import { useCustomProducts } from "@/store/customProducts";
@@ -616,7 +617,7 @@ function UserSetModal({
 
 // ── Profile Page ──────────────────────────────────────────────────────
 export default function ProfilePage() {
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout, loginWithToken } = useAuthStore();
   const { items } = useCartStore();
   const { slugs: wishlistSlugs } = useWishlist();
   const customProds = useCustomProducts(s => s.products);
@@ -624,6 +625,8 @@ export default function ProfilePage() {
   const allSets = usePlayerSets(s => s.sets);
   const { removeSet } = usePlayerSets();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tToken = searchParams?.get("t") ?? null;
 
   const [selectedOrder, setSelectedOrder] = useState<MockOrder | null>(null);
   const [orders, setOrders] = useState<MockOrder[]>([]);
@@ -631,9 +634,24 @@ export default function ProfilePage() {
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [setEditing, setSetEditing] = useState<PlayerSet | "new" | null>(null);
 
+  // Handle Telegram deep-link auto-login: the webhook embeds a signed token in
+  // the "Open profile" button URL (?t=...) so clicking it from Telegram logs the
+  // user in without a second login step.
   useEffect(() => {
-    if (!isAuthenticated) router.replace("/auth/login");
-  }, [isAuthenticated]);
+    if (!tToken) return;
+    loginWithToken(tToken).then(() => {
+      // Remove the token from the URL so it's not bookmarked or shared
+      const url = new URL(window.location.href);
+      url.searchParams.delete("t");
+      window.history.replaceState({}, "", url.toString());
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tToken]);
+
+  // Redirect to login only if we have no active session AND no pending token
+  useEffect(() => {
+    if (!isAuthenticated && !tToken) router.replace("/auth/login");
+  }, [isAuthenticated, tToken]);
 
   useEffect(() => {
     if (!user?.id) return;

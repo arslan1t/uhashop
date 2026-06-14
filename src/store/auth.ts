@@ -30,6 +30,8 @@ interface AuthStore {
   login: (email: string, password: string) => Promise<{ ok: boolean; error?: string }>;
   register: (name: string, email: string, password: string, telegram?: string) => Promise<{ ok: boolean; error?: string }>;
   setUser: (user: UserProfile, token?: string) => void;
+  /** Auto-login from a Telegram deep-link token (e.g. ?t=... in the URL). */
+  loginWithToken: (token: string) => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateProfile: (data: Partial<Pick<UserProfile, "name" | "avatar" | "bio" | "socialLinks" | "telegram">>) => void;
   logout: () => void;
@@ -45,7 +47,7 @@ type StoredUser = UserProfile & { password: string };
 export function getUserToken(): string {
   return safeStorage.getItem(TOKEN_KEY) ?? "";
 }
-function setUserToken(token: string | null) {
+export function setUserToken(token: string | null) {
   if (token) safeStorage.setItem(TOKEN_KEY, token);
   else safeStorage.removeItem(TOKEN_KEY);
 }
@@ -151,6 +153,20 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
         set({ loading: false });
       }
     }
+  },
+
+  loginWithToken: async (token: string) => {
+    if (!token || typeof window === "undefined") return;
+    try {
+      // Fetch the user profile using the token — validates it server-side too
+      const res = await fetch("/api/user/me", { headers: { "x-user-token": token } });
+      if (!res.ok) return;
+      const { profile } = await res.json() as { profile: UserProfile };
+      if (!profile?.id) return;
+      setUserToken(token);
+      safeStorage.setItem(AUTH_KEY, JSON.stringify(profile));
+      set({ user: profile, isAuthenticated: true, loading: false });
+    } catch { /* ignore — user will see login page if it fails */ }
   },
 
   refreshProfile: async () => {

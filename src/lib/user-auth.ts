@@ -11,10 +11,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
-// Falls back to the existing admin secret (already set in Vercel) so user
-// tokens work without a new env var, but a dedicated USER_SESSION_SECRET is
-// recommended. If NEITHER is set, signing fails closed (tokens never verify).
-const SECRET = process.env.USER_SESSION_SECRET ?? process.env.ADMIN_SESSION_SECRET ?? "";
+// Fallback chain: dedicated user secret → admin secret (already in Vercel) →
+// Firebase private key (always present, stable) → empty (fail-closed).
+// FIREBASE_PRIVATE_KEY is the last-resort so tokens always mint even if the
+// admin secret is rotated, and the final "" ensures we fail-closed rather than
+// sign with an undefined key.
+const SECRET =
+  process.env.USER_SESSION_SECRET ??
+  process.env.ADMIN_SESSION_SECRET ??
+  process.env.FIREBASE_PRIVATE_KEY ??
+  "";
 
 const TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
