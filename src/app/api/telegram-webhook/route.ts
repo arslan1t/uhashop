@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getAdminDb, getAdminStorage } from "@/lib/firebase/admin";
+import { mintUserToken } from "@/lib/user-auth";
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const WEBHOOK_SECRET = process.env.TELEGRAM_WEBHOOK_SECRET ?? "";
@@ -216,14 +217,22 @@ export async function POST(req: NextRequest) {
       // Clean up chat session mapping
       await db.collection("bot_chat_sessions").doc(String(chatId)).delete();
 
+      // Mint a signed user token and embed it in the deep-link URL so that
+      // clicking the button from Telegram automatically authenticates the user
+      // in the browser without a second login step.
+      const userToken = mintUserToken(userId);
+      const profileUrl = userToken
+        ? `${SITE_URL}/profile?t=${encodeURIComponent(userToken)}`
+        : `${SITE_URL}/profile`;
+
       // Send confirmation with deep link
       await sendMessage(chatId,
-        `✅ <b>Вход выполнен!</b>\n\nВернитесь на сайт — вы уже авторизованы.`,
+        `✅ <b>Вход выполнен!</b>\n\nНажмите кнопку ниже, чтобы открыть ваш профиль.`,
         {
           reply_markup: {
             inline_keyboard: [[{
-              text: "🏀 Открыть UHA SHOP",
-              url: `${SITE_URL}/profile`,
+              text: "👤 Перейти в профиль",
+              url: profileUrl,
             }]],
           },
         }

@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Users, Package, ChevronRight } from "lucide-react";
+import { Send, Users, Package, ChevronRight, Plus } from "lucide-react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -13,6 +13,7 @@ import { ProductCardSkeleton } from "@/components/ui/Skeleton";
 import { getMarketplaceProducts } from "@/data/products";
 import { useCustomProducts } from "@/store/customProducts";
 import { useProductMeta } from "@/store/productMeta";
+import { useAuthStore } from "@/store/auth";
 import { usePlayerSets } from "@/store/playerSets";
 import { useProductOrder } from "@/store/productOrder";
 import { formatPrice } from "@/lib/utils";
@@ -31,6 +32,7 @@ export function MarketplaceClient() {
   const metaMap     = useProductMeta(s => s.meta);
   const playerSets  = usePlayerSets(s => s.sets);
   const getOrder    = useProductOrder(s => s.getOrder);
+  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
 
   const [showSets, setShowSets] = useState(false);
 
@@ -324,8 +326,24 @@ export function MarketplaceClient() {
         {/* ── Player Sets Grid ── */}
         {showSets && (
           <div>
+            {/* CTA — "Create my set" button */}
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <p className="text-[rgb(var(--muted))] text-sm">
+                  Собери свой набор экипировки и поделись с командой
+                </p>
+              </div>
+              <Link
+                href={isAuthenticated ? "/profile" : "/auth/login"}
+                className="flex items-center gap-2 h-9 px-4 bg-[rgb(var(--accent))] text-white text-xs font-bold rounded-xl hover:bg-red-900 transition-colors uppercase tracking-wide flex-shrink-0"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Создать свой сет
+              </Link>
+            </div>
+
             {playerSets.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="text-5xl mb-5">🏆</div>
                 <h3 className="font-semibold text-xl mb-2">Сеты пока не добавлены</h3>
                 <p className="text-[rgb(var(--muted))] max-w-sm text-sm">
