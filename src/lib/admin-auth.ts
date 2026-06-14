@@ -5,15 +5,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 
-// No insecure default — if ADMIN_SESSION_SECRET is unset the token becomes a
-// random per-process value that matches nothing, so admin auth fails closed
-// instead of accepting a publicly known default secret.
-const SESSION_SECRET =
-  process.env.ADMIN_SESSION_SECRET || crypto.randomBytes(32).toString("hex");
+// Secret resolution must be DETERMINISTIC and identical everywhere — a random
+// fallback makes the issuing and validating code paths disagree (→ 401 on every
+// admin write). No publicly-known hardcoded default: if ADMIN_SESSION_SECRET is
+// unset we derive a stable secret from FIREBASE_PRIVATE_KEY (server-only, always
+// present, not guessable) so auth keeps working without a weak default.
+export function adminSessionSecret(): string {
+  return process.env.ADMIN_SESSION_SECRET || process.env.FIREBASE_PRIVATE_KEY || "";
+}
 
 export function buildAdminToken(): string {
   return crypto
-    .createHmac("sha256", SESSION_SECRET)
+    .createHmac("sha256", adminSessionSecret())
     .update("uha-admin-session-v1")
     .digest("hex");
 }

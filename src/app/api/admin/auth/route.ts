@@ -9,20 +9,16 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { buildAdminToken } from "@/lib/admin-auth";
 
 // Server-only env vars (no NEXT_PUBLIC_ prefix → not in JS bundle).
 // No insecure defaults — credentials MUST be configured in the environment.
 const ADMIN_EMAIL    = process.env.ADMIN_EMAIL    ?? "";
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "";
-const SESSION_SECRET = process.env.ADMIN_SESSION_SECRET || crypto.randomBytes(32).toString("hex");
 
-/** Deterministic session token derived from env-only secret */
-function buildToken(): string {
-  return crypto
-    .createHmac("sha256", SESSION_SECRET)
-    .update("uha-admin-session-v1")
-    .digest("hex");
-}
+// Single source of truth for the session token — shared with isAdminAuthorized
+// so issuing and validating can never disagree.
+const buildToken = buildAdminToken;
 
 /** Length-safe constant-time compare (timingSafeEqual throws on unequal lengths). */
 function safeEqual(a: string, b: string): boolean {
