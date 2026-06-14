@@ -233,9 +233,13 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
 
   const handleAvatarUpload = async (file: File) => {
     if (!user?.id) return;
+    if (!getUserToken()) {
+      alert("Для загрузки фото необходимо обновить сессию: выйдите и войдите через Telegram заново.");
+      return;
+    }
     setUploadingAvatar(true);
     try {
-      const compressed = await compressImage(file, 800, 0.85); // avatars don't need to be large
+      const compressed = await compressImage(file, 800, 0.85);
       const fd = new FormData();
       fd.append("files", compressed);
       const res = await fetch("/api/user/upload", {
@@ -375,6 +379,7 @@ function UserSetModal({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [needsReauth, setNeedsReauth] = useState(false);
 
   const allProducts: Product[] = useMemo(() => {
     const customIds = new Set(customProds.map(p => p.id));
@@ -387,15 +392,16 @@ function UserSetModal({
   const filtered = useMemo(() => {
     if (!productSearch) return allProducts;
     const q = productSearch.toLowerCase();
-    return allProducts.filter(p => p.nameRu.toLowerCase().includes(q) || p.brand.toLowerCase().includes(q));
+    return allProducts.filter(p => (p.nameRu ?? "").toLowerCase().includes(q) || (p.brand ?? "").toLowerCase().includes(q));
   }, [allProducts, productSearch]);
 
   const uploadPhotos = async (files: FileList) => {
+    if (!getUserToken()) { setNeedsReauth(true); return; }
     setUploading(true);
     try {
       const results: string[] = [];
       for (const file of Array.from(files)) {
-        const compressed = await compressImage(file); // keep set photos under the upload size limit
+        const compressed = await compressImage(file);
         const fd = new FormData();
         fd.append("files", compressed);
         const res = await fetch("/api/user/upload", {
@@ -403,6 +409,7 @@ function UserSetModal({
           headers: { "x-user-token": getUserToken() },
           body: fd,
         });
+        if (res.status === 401) { setNeedsReauth(true); return; }
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const { paths } = await res.json();
         results.push(paths[0]);
@@ -530,15 +537,24 @@ function UserSetModal({
               </div>
             )}
 
-            <label className="flex items-center gap-3 border-2 border-dashed border-[rgb(var(--border))] rounded-xl p-4 cursor-pointer hover:border-[rgb(var(--accent)/0.4)] transition-colors">
-              {uploading ? <Loader2 className="w-5 h-5 text-[rgb(var(--muted))] animate-spin flex-shrink-0" /> : <Upload className="w-5 h-5 text-[rgb(var(--muted))] flex-shrink-0" />}
-              <div>
-                <p className="text-[rgb(var(--muted))] text-xs">{uploading ? "Загрузка..." : "Загрузить фото (можно несколько)"}</p>
-                <p className="text-[rgb(var(--muted))] text-[10px] mt-0.5 opacity-60">Квадратные фото 1:1 · JPG, PNG, WEBP</p>
+            {needsReauth ? (
+              <div className="border-2 border-dashed border-[rgb(var(--accent)/0.4)] rounded-xl p-4 space-y-3">
+                <p className="text-xs text-[rgb(var(--muted))] text-center">
+                  Сессия устарела. Войдите через Telegram ещё раз — это займёт 10 секунд.
+                </p>
+                <BotAuthButton redirectTo="/profile" label="Обновить сессию" />
               </div>
-              <input type="file" accept="image/*" multiple className="hidden"
-                onChange={e => { if (e.target.files?.length) uploadPhotos(e.target.files); }} />
-            </label>
+            ) : (
+              <label className="flex items-center gap-3 border-2 border-dashed border-[rgb(var(--border))] rounded-xl p-4 cursor-pointer hover:border-[rgb(var(--accent)/0.4)] transition-colors">
+                {uploading ? <Loader2 className="w-5 h-5 text-[rgb(var(--muted))] animate-spin flex-shrink-0" /> : <Upload className="w-5 h-5 text-[rgb(var(--muted))] flex-shrink-0" />}
+                <div>
+                  <p className="text-[rgb(var(--muted))] text-xs">{uploading ? "Загрузка..." : "Загрузить фото (можно несколько)"}</p>
+                  <p className="text-[rgb(var(--muted))] text-[10px] mt-0.5 opacity-60">Квадратные фото 1:1 · JPG, PNG, WEBP</p>
+                </div>
+                <input type="file" accept="image/*" multiple className="hidden"
+                  onChange={e => { if (e.target.files?.length) uploadPhotos(e.target.files); }} />
+              </label>
+            )}
           </div>
 
           {/* Products */}
