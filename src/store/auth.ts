@@ -68,6 +68,38 @@ async function fetchServerProfile(userId: string): Promise<Partial<UserProfile> 
   }
 }
 
+/**
+ * Re-mint a session token from a persisted Firebase session. Used to recover
+ * email-user logins that predate the token system (so uploads/profile writes
+ * stop 401-ing) without forcing a re-login. Telegram-only users have no
+ * Firebase session — they get a token on their next Telegram login. Only reads
+ * the current Firebase user; never changes auth state, so it can't log anyone out.
+ */
+async function recoverTokenFromFirebase(): Promise<void> {
+  if (typeof window === "undefined" || !isFirebaseConfigured()) return;
+  try {
+    const { getAuth, onAuthStateChanged } = await import("firebase/auth");
+    const { getFirebaseApp } = await import("@/lib/firebase/config");
+    const auth = getAuth(getFirebaseApp());
+    const unsub = onAuthStateChanged(auth, async (fbUser) => {
+      unsub();
+      if (!fbUser) return;
+      try {
+        const idToken = await fbUser.getIdToken();
+        const res = await fetch("/api/auth/session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken }),
+        });
+        if (res.ok) {
+          const { token } = await res.json();
+          if (token) safeStorage.setItem(TOKEN_KEY, token);
+        }
+      } catch { /* ignore */ }
+    });
+  } catch { /* ignore */ }
+}
+
 export const useAuthStore = create<AuthStore>()((set, get) => ({
   user: null,
   isAuthenticated: false,
@@ -108,6 +140,10 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
           // Refresh profile extras (avatar/bio/socials) from the server so a
           // re-login or a fresh device never shows a stale/empty avatar.
           void get().refreshProfile();
+          // Recover a missing session token for logins that predate the token
+          // system, so uploads/profile writes don't 401. Email/Firebase users
+          // can be re-minted silently from their persisted Firebase session.
+          if (!getUserToken()) void recoverTokenFromFirebase();
         } else {
           set({ loading: false });
         }
