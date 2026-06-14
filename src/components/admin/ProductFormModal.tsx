@@ -80,26 +80,34 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
     prod: NonNullable<typeof product>,
     currentOverrides: Record<string, { mainImage?: string; imageOrder?: string[] }>
   ): GalleryImage[] => {
-    // Use actual image paths from product data (preserves correct extensions: .jpg, .png, .webp, .jpeg)
-    const basePaths = prod.images?.length
-      ? prod.images
-      : [prod.image].filter(Boolean);
+    // Filter out empty/blob URLs — next/image throws on empty src
+    const isValidUrl = (s: unknown): s is string => typeof s === "string" && !!s && !s.startsWith("blob:");
+    const validImages = (prod.images ?? []).filter(isValidUrl);
+    const basePaths = validImages.length > 0
+      ? validImages
+      : ([prod.image].filter(isValidUrl) as string[]);
 
-    const override = currentOverrides[prod.slug];
-    const savedOrder  = override?.imageOrder ?? basePaths;
-    const savedMain   = override?.mainImage  ?? basePaths[0] ?? "";
+    const override = currentOverrides[prod.slug ?? ""];
+    const rawOrder  = override?.imageOrder?.filter(isValidUrl) ?? basePaths;
+    const savedMain = (isValidUrl(override?.mainImage) ? override!.mainImage! : null) ?? basePaths[0] ?? "";
 
-    return savedOrder.map((src, i) => ({
+    return rawOrder.map((src, i) => ({
       id: `img-${i}-${src}`,
       src,
       isMain: src === savedMain,
     }));
   };
 
-  // Initialize gallery once on mount with current store state
-  const [gallery, setGallery] = useState<GalleryImage[]>(() =>
-    product ? buildGallery(product, useProductOverrides.getState().overrides) : []
-  );
+  // Initialize gallery once on mount with current store state.
+  // Wrapped in try-catch so a corrupted product never white-screens the admin.
+  const [gallery, setGallery] = useState<GalleryImage[]>(() => {
+    if (!product) return [];
+    try {
+      return buildGallery(product, useProductOverrides.getState().overrides);
+    } catch {
+      return [];
+    }
+  });
   const [dragging, setDragging] = useState(false);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -268,9 +276,12 @@ export function ProductFormModal({ product, onClose, onSave }: Props) {
     }
 
     // ── Persist image order & main to shared override store ──
-    if (currentSlug && finalGallery.length > 0) {
-      const mainImg = finalGallery.find(img => img.isMain)?.src ?? finalGallery[0].src;
-      const order = finalGallery.map(img => img.src);
+    // Filter out empty/blob URLs before writing so the override store stays clean
+    // and never feeds an empty src back to next/image on the next edit.
+    const realGallery = finalGallery.filter(img => !!img.src && !img.src.startsWith("blob:"));
+    if (currentSlug && realGallery.length > 0) {
+      const mainImg = realGallery.find(img => img.isMain)?.src ?? realGallery[0].src;
+      const order = realGallery.map(img => img.src);
       setOverride(currentSlug, { mainImage: mainImg, imageOrder: order });
     }
 

@@ -446,7 +446,8 @@ export default function AdminProductsPage() {
                 {filtered.map((product) => (
                   <motion.tr key={product.id}
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className={`hover:bg-[#141414] transition-colors group ${isHidden(product.slug) ? "opacity-50" : ""}`}>
+                    onClick={() => setSelectedProduct(product)}
+                    className={`hover:bg-[#141414] transition-colors group cursor-pointer ${isHidden(product.slug) ? "opacity-50" : ""}`}>
                     {/* Product */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
@@ -501,7 +502,7 @@ export default function AdminProductsPage() {
                     </td>
 
                     {/* Status */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <button onClick={() => toggleStatus(product.id)}
                         className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border transition-all ${STATUS_STYLES[product.status]}`}>
                         {product.status === "published" ? "Опубликован" : "Черновик"}
@@ -509,7 +510,7 @@ export default function AdminProductsPage() {
                     </td>
 
                     {/* Featured */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <button onClick={() => toggleFeatured(product.id)}
                         className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-[#1a1a1a] transition-colors">
                         {product.isFeatured
@@ -519,7 +520,7 @@ export default function AdminProductsPage() {
                     </td>
 
                     {/* Hidden (Coming Soon on Merch) */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <button
                         onClick={() => toggleHidden(product.slug)}
                         title={isHidden(product.slug) ? "Скрытый — показывается на Merch как Coming Soon" : "Видимый — кликни чтобы скрыть"}
@@ -534,7 +535,7 @@ export default function AdminProductsPage() {
                     </td>
 
                     {/* Actions */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3" onClick={e => e.stopPropagation()}>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button onClick={() => setSelectedProduct(product)}
                           className="w-8 h-8 rounded-xl bg-[#1a1a1a] flex items-center justify-center text-[#666] hover:text-white transition-colors">
