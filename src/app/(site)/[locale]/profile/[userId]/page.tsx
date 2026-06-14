@@ -5,7 +5,7 @@ import { use } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Instagram, Youtube, Twitter, Link as LinkIcon, Users, Package, ChevronRight, Loader2 } from "lucide-react";
+import { ArrowLeft, Instagram, Youtube, Send, Link as LinkIcon, Users, Package, ChevronRight, Loader2 } from "lucide-react";
 import { usePlayerSets } from "@/store/playerSets";
 import type { PlayerSet } from "@/types";
 
@@ -13,7 +13,7 @@ interface PublicProfile {
   name?: string;
   avatar?: string;
   bio?: string;
-  socialLinks?: { instagram?: string; tiktok?: string; youtube?: string; twitter?: string };
+  socialLinks?: { instagram?: string; tiktok?: string; youtube?: string; telegram?: string };
 }
 
 export default function PublicProfilePage({ params }: { params: Promise<{ userId: string }> }) {
@@ -88,11 +88,11 @@ export default function PublicProfilePage({ params }: { params: Promise<{ userId
                       <Youtube className="w-3.5 h-3.5" /> {profile.socialLinks.youtube}
                     </a>
                   )}
-                  {profile.socialLinks.twitter && (
-                    <a href={`https://x.com/${profile.socialLinks.twitter.replace("@","")}`}
+                  {profile.socialLinks.telegram && (
+                    <a href={`https://t.me/${profile.socialLinks.telegram.replace("@","")}`}
                       target="_blank" rel="noopener"
                       className="flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 transition-colors">
-                      <Twitter className="w-3.5 h-3.5" /> {profile.socialLinks.twitter}
+                      <Send className="w-3.5 h-3.5" /> {profile.socialLinks.telegram}
                     </a>
                   )}
                 </div>

@@ -18,7 +18,7 @@ export interface UserProfile {
     instagram?: string;
     tiktok?: string;
     youtube?: string;
-    twitter?: string;
+    telegram?: string;
   };
 }
 
