@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,10 +31,20 @@ export function MarketplaceClient() {
   const customProds = useCustomProducts(s => s.products);
   const metaMap     = useProductMeta(s => s.meta);
   const playerSets  = usePlayerSets(s => s.sets);
+  const setSets     = usePlayerSets(s => s.setSets);
   const getOrder    = useProductOrder(s => s.getOrder);
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
 
   const [showSets, setShowSets] = useState(false);
+
+  // Keep sets in sync with Firestore so all users see each other's sets.
+  useEffect(() => {
+    fetch("/api/user/sets")
+      .then(r => r.json())
+      .then(({ sets }) => { if (Array.isArray(sets)) setSets(sets); })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Read initial filters from URL params (e.g. ?category=shoes&style=basketball)
   const initCategory = searchParams?.get("category") ?? "";
