@@ -122,12 +122,22 @@ function Lightbox({
 /* ─── Main component ───────────────────────────────────────────────── */
 export function SetDetailClient({ id }: { id: string }) {
   const sets       = usePlayerSets(s => s.sets);
+  const setSets    = usePlayerSets(s => s.setSets);
   const customProds = useCustomProducts(s => s.products);
   const metaMap    = useProductMeta(s => s.meta);
 
   const [activeIdx,    setActiveIdx]    = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [imgLoaded,    setImgLoaded]    = useState(false);
+
+  // Sync the latest Firestore state so a direct URL visit always shows current data.
+  useEffect(() => {
+    fetch("/api/user/sets")
+      .then(r => r.json())
+      .then(({ sets: fresh }) => { if (Array.isArray(fresh)) setSets(fresh); })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const touchStartX = useRef<number | null>(null);
 
