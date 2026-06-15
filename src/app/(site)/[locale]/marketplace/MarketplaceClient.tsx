@@ -278,13 +278,13 @@ export function MarketplaceClient() {
         {/* ── Quick category chips ── */}
         <div className="flex flex-wrap gap-2 mb-6">
           {[
-            { label: "Все товары",  value: "" },
-            { label: "Кроссовки",   value: "shoes" },
-            { label: "Одежда",      value: "apparel" },
-            { label: "Мячи",        value: "accessories" },
-            { label: "Рюкзаки",     value: "backpacks" },
-            { label: "Джерси",      value: "jerseys" },
-            { label: "Термо бельё", value: "thermals" },
+            { label: t("tab_all"),                value: "" },
+            { label: t("categories.shoes"),       value: "shoes" },
+            { label: t("categories.apparel"),     value: "apparel" },
+            { label: t("categories.accessories"), value: "accessories" },
+            { label: t("categories.backpacks"),   value: "backpacks" },
+            { label: t("categories.jerseys"),     value: "jerseys" },
+            { label: t("categories.thermals"),    value: "thermals" },
           ].map(chip => {
             const active = !showSets && filters.category === chip.value;
             return (
@@ -311,7 +311,7 @@ export function MarketplaceClient() {
                 : "bg-[rgb(var(--surface))] border-[rgb(var(--border))] text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:border-[rgb(var(--accent)/0.4)]"
             }`}
           >
-            <span>Сеты игроков</span>
+            <span>{t("tab_sets")}</span>
             {playerSets.length > 0 && (
               <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                 showSets ? "bg-white/20" : "bg-[rgb(var(--accent)/0.15)] text-[rgb(var(--accent))]"
@@ -351,14 +351,14 @@ export function MarketplaceClient() {
                 className="flex items-center gap-2 h-9 px-4 bg-[rgb(var(--accent))] text-white text-xs font-bold rounded-xl hover:bg-red-900 transition-colors uppercase tracking-wide flex-shrink-0"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Создать свой сет
+                {t("create_set")}
               </Link>
             </div>
 
             {playerSets.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-center">
                 <div className="text-5xl mb-5">🏆</div>
-                <h3 className="font-semibold text-xl mb-2">Сеты пока не добавлены</h3>
+                <h3 className="font-semibold text-xl mb-2">{t("sets_empty")}</h3>
                 <p className="text-[rgb(var(--muted))] max-w-sm text-sm">
                   Скоро здесь появятся кураторские подборки от игроков и атлетов команды.
                 </p>

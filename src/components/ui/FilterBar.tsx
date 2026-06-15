@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, X, ChevronDown, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -32,40 +33,6 @@ interface FilterBarProps {
   total: number;
 }
 
-const SORT_OPTIONS = [
-  { value: "popular", label: "Популярные" },
-  { value: "new", label: "Новинки" },
-  { value: "price_asc", label: "Дешевле" },
-  { value: "price_desc", label: "Дороже" },
-];
-
-const VERSION_OPTIONS: { value: VersionFilter; label: string }[] = [
-  { value: "all", label: "Все" },
-  { value: "original", label: "Оригинал" },
-  { value: "replica", label: "Реплика" },
-];
-
-const STOCK_OPTIONS: { value: StockFilter; label: string }[] = [
-  { value: "all", label: "Все" },
-  { value: "instock", label: "В наличии" },
-  { value: "preorder", label: "Предзаказ" },
-];
-
-const CAT_LABELS: Record<string, string> = {
-  shoes:       "Кроссовки",
-  apparel:     "Одежда",
-  accessories: "Мячи",
-  backpacks:   "Рюкзаки",
-  jerseys:     "Джерси",
-  socks:       "Носки",
-  sets:        "Комплекты",
-  thermals:    "Термо бельё",
-  merch:       "Мерч",
-};
-function catLabel(cat: string) {
-  return CAT_LABELS[cat] ?? cat;
-}
-
 function Chip({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
   return (
     <button onClick={onClick}
@@ -85,7 +52,40 @@ export function FilterBar({
   brands, categories, allSizes,
   priceRange, total,
 }: FilterBarProps) {
+  const t = useTranslations("marketplace");
   const [open, setOpen] = useState(false);
+
+  const SORT_OPTIONS = [
+    { value: "popular",    label: t("sort_popular") },
+    { value: "new",        label: t("sort_new") },
+    { value: "price_asc",  label: t("sort_price_asc") },
+    { value: "price_desc", label: t("sort_price_desc") },
+  ];
+
+  const VERSION_OPTIONS: { value: VersionFilter; label: string }[] = [
+    { value: "all",      label: t("all") },
+    { value: "original", label: t("original_only") },
+    { value: "replica",  label: t("replica_only") },
+  ];
+
+  const STOCK_OPTIONS: { value: StockFilter; label: string }[] = [
+    { value: "all",      label: t("all") },
+    { value: "instock",  label: t("stock_instock") },
+    { value: "preorder", label: t("stock_preorder") },
+  ];
+
+  const CAT_LABELS: Record<string, string> = {
+    shoes:       t("categories.shoes"),
+    apparel:     t("categories.apparel"),
+    accessories: t("categories.accessories"),
+    backpacks:   t("categories.backpacks"),
+    jerseys:     t("categories.jerseys"),
+    socks:       t("categories.socks"),
+    sets:        t("categories.sets"),
+    thermals:    t("categories.thermals"),
+    merch:       t("categories.merch"),
+  };
+  const catLabel = (cat: string) => CAT_LABELS[cat] ?? cat;
 
   const activeCount = [
     state.brand,
@@ -100,10 +100,10 @@ export function FilterBar({
   const chips: { label: string; clear: () => void }[] = [];
   if (state.brand) chips.push({ label: state.brand, clear: () => onChange({ brand: "" }) });
   if (state.category) chips.push({ label: catLabel(state.category), clear: () => onChange({ category: "" }) });
-  if (state.style) chips.push({ label: state.style === "basketball" ? "🏀 Баскетбол" : "👟 Лайфстайл", clear: () => onChange({ style: "" }) });
-  if (state.version !== "all") chips.push({ label: state.version === "original" ? "Оригинал" : "Реплика", clear: () => onChange({ version: "all" }) });
-  if (state.stockType !== "all") chips.push({ label: state.stockType === "instock" ? "В наличии" : "Предзаказ", clear: () => onChange({ stockType: "all" }) });
-  if (state.size) chips.push({ label: `Размер ${state.size}`, clear: () => onChange({ size: "" }) });
+  if (state.style) chips.push({ label: state.style === "basketball" ? t("style_basketball") : t("style_lifestyle"), clear: () => onChange({ style: "" }) });
+  if (state.version !== "all") chips.push({ label: state.version === "original" ? t("original_only") : t("replica_only"), clear: () => onChange({ version: "all" }) });
+  if (state.stockType !== "all") chips.push({ label: state.stockType === "instock" ? t("stock_instock") : t("stock_preorder"), clear: () => onChange({ stockType: "all" }) });
+  if (state.size) chips.push({ label: `${t("size_chip")} ${state.size}`, clear: () => onChange({ size: "" }) });
   if (state.priceMin > priceRange[0] || state.priceMax < priceRange[1]) {
     chips.push({ label: `$${state.priceMin}–$${state.priceMax}`, clear: () => onChange({ priceMin: priceRange[0], priceMax: priceRange[1] }) });
   }
@@ -114,7 +114,7 @@ export function FilterBar({
       <div className="flex gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[rgb(var(--muted))]" />
-          <input type="text" placeholder="Поиск по названию, бренду..."
+          <input type="text" placeholder={t("search_placeholder")}
             value={state.search} onChange={e => onChange({ search: e.target.value })}
             className="w-full h-11 pl-10 pr-10 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-xl text-sm placeholder:text-[rgb(var(--muted))] focus:outline-none focus:border-[rgb(var(--accent))] transition-colors" />
           {state.search && (
@@ -141,7 +141,7 @@ export function FilterBar({
               : "bg-[rgb(var(--surface))] border-[rgb(var(--border))] hover:border-[rgb(var(--accent))]"
           )}>
           <SlidersHorizontal className="w-4 h-4" />
-          <span className="hidden sm:inline">Фильтры</span>
+          <span className="hidden sm:inline">{t("filter_label")}</span>
           {activeCount > 0 && (
             <span className="w-5 h-5 rounded-full bg-white/25 text-[11px] font-bold flex items-center justify-center">
               {activeCount}
@@ -166,11 +166,11 @@ export function FilterBar({
             <motion.button key="clear-all" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={onClear}
               className="text-xs text-[rgb(var(--muted))] hover:text-red-400 transition-colors underline underline-offset-2">
-              Сбросить всё
+              {t("reset_all")}
             </motion.button>
           )}
         </AnimatePresence>
-        <span className="ml-auto text-xs text-[rgb(var(--muted))]">{total} товаров</span>
+        <span className="ml-auto text-xs text-[rgb(var(--muted))]">{total} {t("products")}</span>
       </div>
 
       {/* ── Expandable panel ── */}
@@ -185,7 +185,7 @@ export function FilterBar({
               {/* Type + Stock + Sort (mobile) */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">Тип товара</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">{t("filter_type")}</p>
                   <div className="flex gap-1.5">
                     {VERSION_OPTIONS.map(v => (
                       <button key={v.value} onClick={() => onChange({ version: v.value })}
@@ -202,7 +202,7 @@ export function FilterBar({
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">Наличие</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">{t("filter_stock")}</p>
                   <div className="flex gap-1.5">
                     {STOCK_OPTIONS.map(s => (
                       <button key={s.value} onClick={() => onChange({ stockType: s.value })}
@@ -217,7 +217,7 @@ export function FilterBar({
                 </div>
 
                 <div className="sm:hidden">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">Сортировка</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">{t("filter_sort_label")}</p>
                   <div className="relative">
                     <select value={state.sort} onChange={e => onChange({ sort: e.target.value })}
                       className="w-full h-10 pl-4 pr-9 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-xl text-sm focus:outline-none appearance-none cursor-pointer">
@@ -231,19 +231,19 @@ export function FilterBar({
               {/* Price range */}
               <div>
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))]">Цена (USD)</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))]">{t("filter_price_label")}</p>
                   <span className="text-xs font-semibold text-[rgb(var(--foreground))]">${state.priceMin} — ${state.priceMax}</span>
                 </div>
                 <div className="flex items-center gap-3 mb-2.5">
                   <div className="relative flex-1">
-                    <span className="absolute -top-4 left-0 text-[10px] text-[rgb(var(--muted))]">от</span>
+                    <span className="absolute -top-4 left-0 text-[10px] text-[rgb(var(--muted))]">{t("price_from")}</span>
                     <input type="number" value={state.priceMin} min={priceRange[0]} max={state.priceMax - 1}
                       onChange={e => onChange({ priceMin: Math.max(priceRange[0], Math.min(Number(e.target.value), state.priceMax - 1)) })}
                       className="w-full h-9 px-3 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-xl text-sm text-center focus:outline-none focus:border-[rgb(var(--accent))] transition-colors" />
                   </div>
                   <div className="w-6 h-px bg-[rgb(var(--border))]" />
                   <div className="relative flex-1">
-                    <span className="absolute -top-4 left-0 text-[10px] text-[rgb(var(--muted))]">до</span>
+                    <span className="absolute -top-4 left-0 text-[10px] text-[rgb(var(--muted))]">{t("price_to")}</span>
                     <input type="number" value={state.priceMax} min={state.priceMin + 1} max={priceRange[1]}
                       onChange={e => onChange({ priceMax: Math.min(priceRange[1], Math.max(Number(e.target.value), state.priceMin + 1)) })}
                       className="w-full h-9 px-3 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-xl text-sm text-center focus:outline-none focus:border-[rgb(var(--accent))] transition-colors" />
@@ -260,30 +260,30 @@ export function FilterBar({
 
               {/* Brands */}
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">Бренд</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">{t("filter_brand_label")}</p>
                 <div className="flex flex-wrap gap-2">
-                  <Chip active={!state.brand} onClick={() => onChange({ brand: "" })} label="Все" />
+                  <Chip active={!state.brand} onClick={() => onChange({ brand: "" })} label={t("all")} />
                   {brands.map(b => <Chip key={b} active={state.brand === b} onClick={() => onChange({ brand: state.brand === b ? "" : b })} label={b} />)}
                 </div>
               </div>
 
               {/* Categories */}
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">Категория</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">{t("filter_cat_label")}</p>
                 <div className="flex flex-wrap gap-2">
-                  <Chip active={!state.category} onClick={() => onChange({ category: "" })} label="Все" />
+                  <Chip active={!state.category} onClick={() => onChange({ category: "" })} label={t("all")} />
                   {categories.map(c => <Chip key={c} active={state.category === c} onClick={() => onChange({ category: state.category === c ? "" : c })} label={catLabel(c)} />)}
                 </div>
               </div>
 
               {/* Style */}
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">Стиль</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">{t("filter_style_label")}</p>
                 <div className="flex gap-2">
                   {[
-                    { value: "" as const, label: "Все" },
-                    { value: "basketball" as const, label: "🏀 Баскетбол" },
-                    { value: "lifestyle" as const, label: "👟 Лайфстайл" },
+                    { value: "" as const,           label: t("all") },
+                    { value: "basketball" as const, label: t("style_basketball") },
+                    { value: "lifestyle" as const,  label: t("style_lifestyle") },
                   ].map(opt => (
                     <button key={opt.value} onClick={() => onChange({ style: opt.value })}
                       className={cn(
@@ -305,7 +305,7 @@ export function FilterBar({
               {/* Sizes */}
               {allSizes.length > 0 && (
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">Размер EU</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-[rgb(var(--muted))] mb-2.5">{t("filter_size_label")}</p>
                   <div className="flex flex-wrap gap-2">
                     {allSizes.map(s => (
                       <button key={s} onClick={() => onChange({ size: state.size === s ? "" : s })}
@@ -324,13 +324,13 @@ export function FilterBar({
               <div className="flex items-center justify-between pt-2 border-t border-[rgb(var(--border))]">
                 {activeCount > 0 && (
                   <button onClick={onClear} className="text-sm text-red-400 hover:text-red-300 transition-colors flex items-center gap-1.5">
-                    <X className="w-3.5 h-3.5" /> Сбросить всё
+                    <X className="w-3.5 h-3.5" /> {t("reset_all")}
                   </button>
                 )}
                 <button onClick={() => setOpen(false)}
                   className="ml-auto px-5 py-2.5 bg-[rgb(var(--accent))] text-white font-bold rounded-xl text-sm hover:bg-[rgb(var(--accent-hover))] transition-colors flex items-center gap-2">
                   <Check className="w-4 h-4" />
-                  Показать {total} товаров
+                  {t("showing")} {total} {t("products")}
                 </button>
               </div>
             </div>
