@@ -52,7 +52,7 @@ export const products: Product[] = [
   // ──────── SHOES ────────
   {
     id: "1", slug: "jordan-1-lucky-green",
-    name: "Air Jordan 1 High Lucky Green",
+    name: "Air Jordan 1 High \"Lucky Green\"",
     nameRu: "Air Jordan 1 High «Lucky Green»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 189, replicaPrice: 65, currency: "USD",
@@ -67,7 +67,7 @@ export const products: Product[] = [
   },
   {
     id: "2", slug: "nike-dunk-low-panda",
-    name: "Nike Dunk Low Panda",
+    name: "Nike Dunk Low \"Panda\"",
     nameRu: "Nike Dunk Low «Panda»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 139, replicaPrice: 65, currency: "USD",
@@ -83,7 +83,7 @@ export const products: Product[] = [
   },
   {
     id: "3", slug: "jordan-4-fire-red",
-    name: "Air Jordan 4 Fire Red",
+    name: "Air Jordan 4 \"Fire Red\"",
     nameRu: "Air Jordan 4 «Fire Red»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 215, replicaPrice: 65, currency: "USD",
@@ -98,7 +98,7 @@ export const products: Product[] = [
   },
   {
     id: "4", slug: "travis-dunk-sb",
-    name: "Travis Scott x Nike SB Dunk Low",
+    name: "Travis Scott X Nike SB Dunk Low",
     nameRu: "Travis Scott × Nike SB Dunk Low",
     brand: "Travis Scott", category: "shoes", type: "preorder",
     price: 450, replicaPrice: 65, currency: "USD",
@@ -113,7 +113,7 @@ export const products: Product[] = [
   },
   {
     id: "5", slug: "travis-jordan-1-low-mocha",
-    name: "Travis Scott x Jordan 1 Low Mocha",
+    name: "Travis Scott X Jordan 1 Low \"Mocha\"",
     nameRu: "Travis Scott × Jordan 1 Low «Mocha»",
     brand: "Travis Scott", category: "shoes", type: "preorder",
     price: 380, replicaPrice: 65, currency: "USD",
@@ -128,7 +128,7 @@ export const products: Product[] = [
   },
   {
     id: "6", slug: "jordan-4-military-black",
-    name: "Air Jordan 4 Military Black",
+    name: "Air Jordan 4 \"Military Black\"",
     nameRu: "Air Jordan 4 «Military Black»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 199, replicaPrice: 65, currency: "USD",
@@ -143,7 +143,7 @@ export const products: Product[] = [
   },
   {
     id: "7", slug: "yeezy-350-v2-carbon",
-    name: "Adidas Yeezy Boost 350 V2 Carbon",
+    name: "Adidas Yeezy Boost 350 V2 \"Carbon\"",
     nameRu: "Yeezy Boost 350 V2 «Carbon»",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 229, replicaPrice: 65, currency: "USD",
@@ -158,7 +158,7 @@ export const products: Product[] = [
   },
   {
     id: "8", slug: "adidas-samba-black",
-    name: "Adidas Originals Samba OG Black",
+    name: "Adidas Samba OG \"Black\"",
     nameRu: "Adidas Samba OG «Black»",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 125, replicaPrice: 65, currency: "USD",
@@ -187,7 +187,7 @@ export const products: Product[] = [
   },
   {
     id: "10", slug: "li-ning-wade-8",
-    name: "Li-Ning Way of Wade 8",
+    name: "Li-Ning Way Of Wade 8",
     nameRu: "Li-Ning Way of Wade 8",
     brand: "Li-Ning", category: "shoes", type: "preorder",
     price: 149, replicaPrice: 65, currency: "USD",
@@ -202,7 +202,7 @@ export const products: Product[] = [
   },
   {
     id: "11", slug: "jordan-1-lost-found",
-    name: "Air Jordan 1 High OG Lost and Found",
+    name: "Air Jordan 1 High OG \"Lost And Found\"",
     nameRu: "Air Jordan 1 High «Lost and Found»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 250, replicaPrice: 65, currency: "USD",
@@ -217,7 +217,7 @@ export const products: Product[] = [
   },
   {
     id: "12", slug: "yeezy-350-zebra",
-    name: "Adidas Yeezy Boost 350 V2 Zebra",
+    name: "Adidas Yeezy Boost 350 V2 \"Zebra\"",
     nameRu: "Yeezy Boost 350 V2 «Zebra»",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 239, replicaPrice: 65, currency: "USD",
@@ -232,7 +232,7 @@ export const products: Product[] = [
   },
   {
     id: "13", slug: "yeezy-350-v2-bone",
-    name: "Adidas Yeezy Boost 350 V2 Bone",
+    name: "Adidas Yeezy Boost 350 V2 \"Bone\"",
     nameRu: "Yeezy Boost 350 V2 «Bone»",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 219, replicaPrice: 65, currency: "USD",
@@ -246,7 +246,7 @@ export const products: Product[] = [
   },
   {
     id: "14", slug: "nike-dunk-low-remastered-blue",
-    name: "Nike Dunk Low Remastered Blue",
+    name: "Nike Dunk Low Remastered \"Blue\"",
     nameRu: "Nike Dunk Low Remastered «Blue»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 145, replicaPrice: 65, currency: "USD",
@@ -261,7 +261,7 @@ export const products: Product[] = [
   },
   {
     id: "15", slug: "adidas-campus-00s",
-    name: "Adidas Campus 00s Core Black",
+    name: "Adidas Campus 00s \"Core Black\"",
     nameRu: "Adidas Campus 00s «Core Black»",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 115, replicaPrice: 65, currency: "USD",
@@ -276,7 +276,7 @@ export const products: Product[] = [
   },
   {
     id: "16", slug: "ja-morant-1",
-    name: "Nike Ja 1 Day One",
+    name: "Nike Ja 1 \"Day One\"",
     nameRu: "Nike Ja 1 «Day One»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 169, replicaPrice: 65, currency: "USD",
@@ -291,7 +291,7 @@ export const products: Product[] = [
   },
   {
     id: "17", slug: "kd-16-ny",
-    name: "Nike KD 16 New York",
+    name: "Nike KD 16 \"New York\"",
     nameRu: "Nike KD 16 «New York»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 175, replicaPrice: 65, currency: "USD",
@@ -306,7 +306,7 @@ export const products: Product[] = [
   },
   {
     id: "18", slug: "adidas-adiform-q-black",
-    name: "Adidas adiFOM Q Black Carbon",
+    name: "Adidas AdiFOM Q \"Black Carbon\"",
     nameRu: "Adidas adiFOM Q «Black Carbon»",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 145, replicaPrice: 65, currency: "USD",
@@ -320,7 +320,7 @@ export const products: Product[] = [
   },
   {
     id: "19", slug: "jordan-4-canyon-purple",
-    name: "Air Jordan 4 Canyon Purple",
+    name: "Air Jordan 4 \"Canyon Purple\"",
     nameRu: "Air Jordan 4 «Canyon Purple»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 189, replicaPrice: 65, currency: "USD",
@@ -335,7 +335,7 @@ export const products: Product[] = [
   },
   {
     id: "20", slug: "travis-jordan-4-olive",
-    name: "Travis Scott x Jordan 4 Olive",
+    name: "Travis Scott X Jordan 4 \"Olive\"",
     nameRu: "Travis Scott × Jordan 4 «Olive»",
     brand: "Travis Scott", category: "shoes", type: "preorder",
     price: 420, replicaPrice: 65, currency: "USD",
@@ -352,7 +352,7 @@ export const products: Product[] = [
   // ──────── APPAREL ────────
   {
     id: "21", slug: "fog-essential-tee",
-    name: "Fear of God Essentials Tee",
+    name: "Fear Of God Essentials Tee",
     nameRu: "Fear of God Essentials футболка",
     brand: "Fear of God", category: "apparel", type: "preorder",
     price: 79, replicaPrice: 65, currency: "USD",
@@ -425,7 +425,7 @@ export const products: Product[] = [
   },
   {
     id: "26", slug: "kaws-tee",
-    name: "KAWS x Fragment Tee",
+    name: "KAWS X Fragment Tee",
     nameRu: "KAWS × Fragment футболка",
     brand: "KAWS", category: "apparel", type: "preorder",
     price: 110, replicaPrice: 65, currency: "USD",
@@ -442,7 +442,7 @@ export const products: Product[] = [
   // ──────── NEW 20 PRODUCTS ────────
   {
     id: "28", slug: "jordan-3-a-ma-maniere",
-    name: "A Ma Maniére × Air Jordan 3 'Raised by Women'",
+    name: "A Ma Maniére × Air Jordan 3 \"Raised By Women\"",
     nameRu: "A Ma Maniére × Air Jordan 3 «Raised by Women»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 320, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -456,7 +456,7 @@ export const products: Product[] = [
   },
   {
     id: "29", slug: "yeezy-350-v2-mx-grey",
-    name: "Adidas Yeezy Boost 350 V2 MX Grey",
+    name: "Adidas Yeezy Boost 350 V2 \"MX Grey\"",
     nameRu: "Adidas Yeezy Boost 350 V2 MX Grey",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 245, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -470,7 +470,7 @@ export const products: Product[] = [
   },
   {
     id: "30", slug: "yeezy-380-onyx",
-    name: "Adidas Yeezy Boost 380 Onyx",
+    name: "Adidas Yeezy Boost 380 \"Onyx\"",
     nameRu: "Adidas Yeezy Boost 380 Onyx",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 260, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -484,7 +484,7 @@ export const products: Product[] = [
   },
   {
     id: "31", slug: "adidas-ae1-white",
-    name: "Adidas AE 1 'Easy Money Sniper' White",
+    name: "Adidas AE 1 \"Easy Money Sniper\" White",
     nameRu: "Adidas AE 1 «Easy Money Sniper» White",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 149, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -498,7 +498,7 @@ export const products: Product[] = [
   },
   {
     id: "32", slug: "nike-ja1",
-    name: "Nike Ja 1 'Day One'",
+    name: "Nike Ja 1 \"Day One\"",
     nameRu: "Nike Ja 1 «Day One»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 139, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -512,7 +512,7 @@ export const products: Product[] = [
   },
   {
     id: "33", slug: "jordan-1-royal-reimagined",
-    name: "Air Jordan 1 High OG 'Royal Reimagined'",
+    name: "Air Jordan 1 High OG \"Royal Reimagined\"",
     nameRu: "Air Jordan 1 High OG «Royal Reimagined»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 215, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -526,7 +526,7 @@ export const products: Product[] = [
   },
   {
     id: "34", slug: "lebron-19-map",
-    name: "Nike LeBron 19 'The Map'",
+    name: "Nike LeBron 19 \"The Map\"",
     nameRu: "Nike LeBron 19 «The Map»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 199, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -540,7 +540,7 @@ export const products: Product[] = [
   },
   {
     id: "35", slug: "li-ning-8",
-    name: "Li-Ning Way of Wade 8 'Infinity'",
+    name: "Li-Ning Way Of Wade 8 \"Infinity\"",
     nameRu: "Li-Ning Way of Wade 8 «Infinity»",
     brand: "Li-Ning", category: "shoes", type: "preorder",
     price: 169, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -554,7 +554,7 @@ export const products: Product[] = [
   },
   {
     id: "36", slug: "jordan-1-high-heritage",
-    name: "Nike Air Jordan 1 High OG 'Heritage'",
+    name: "Nike Air Jordan 1 High OG \"Heritage\"",
     nameRu: "Nike Air Jordan 1 High OG «Heritage»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 185, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -582,7 +582,7 @@ export const products: Product[] = [
   },
   {
     id: "38", slug: "jordan-5-burgundy",
-    name: "Nike Air Jordan 5 Retro 'Burgundy'",
+    name: "Nike Air Jordan 5 Retro \"Burgundy\"",
     nameRu: "Nike Air Jordan 5 Retro «Burgundy»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 225, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -596,7 +596,7 @@ export const products: Product[] = [
   },
   {
     id: "39", slug: "jordan-delta-2-black",
-    name: "Nike Air Jordan Delta 2 Black",
+    name: "Nike Air Jordan Delta 2 \"Black\"",
     nameRu: "Nike Air Jordan Delta 2 Black",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 155, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -610,7 +610,7 @@ export const products: Product[] = [
   },
   {
     id: "40", slug: "nike-vomero-5",
-    name: "Nike Air Zoom Vomero 5 'Cobalt Bliss'",
+    name: "Nike Air Zoom Vomero 5 \"Cobalt Bliss\"",
     nameRu: "Nike Air Zoom Vomero 5 «Cobalt Bliss»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 165, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -624,7 +624,7 @@ export const products: Product[] = [
   },
   {
     id: "41", slug: "nike-dunk-low-clot-cork",
-    name: "CLOT × Nike Dunk Low 'Cork'",
+    name: "CLOT × Nike Dunk Low \"Cork\"",
     nameRu: "CLOT × Nike Dunk Low «Cork»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 350, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -638,7 +638,7 @@ export const products: Product[] = [
   },
   {
     id: "42", slug: "anta-shockwave-5-dark-matter",
-    name: "Anta Shock Wave 5 'Dark Matter'",
+    name: "Anta Shock Wave 5 \"Dark Matter\"",
     nameRu: "Anta Shock Wave 5 «Dark Matter»",
     brand: "Anta", category: "shoes", type: "preorder",
     price: 129, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -652,7 +652,7 @@ export const products: Product[] = [
   },
   {
     id: "43", slug: "jordan-1-zoom-cmft-2",
-    name: "Nike Air Jordan 1 Zoom CMFT 2 'Multi-Color'",
+    name: "Nike Air Jordan 1 Zoom CMFT 2 \"Multi-Color\"",
     nameRu: "Nike Air Jordan 1 Zoom CMFT 2 «Multi-Color»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 175, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -666,7 +666,7 @@ export const products: Product[] = [
   },
   {
     id: "44", slug: "yeezy-350-zebra",
-    name: "Adidas Yeezy Boost 350 V2 'Zebra'",
+    name: "Adidas Yeezy Boost 350 V2 \"Zebra\"",
     nameRu: "Adidas Yeezy Boost 350 V2 «Zebra»",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 265, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -687,7 +687,7 @@ export const products: Product[] = [
   },
   {
     id: "45", slug: "jordan-1-newstalgia",
-    name: "Nike Air Jordan 1 High OG 'Newstalgia'",
+    name: "Nike Air Jordan 1 High OG \"Newstalgia\"",
     nameRu: "Nike Air Jordan 1 High OG «Newstalgia»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 190, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -701,7 +701,7 @@ export const products: Product[] = [
   },
   {
     id: "46", slug: "jordan-1-switch-pink",
-    name: "Nike Air Jordan 1 High Switch 'Pink'",
+    name: "Nike Air Jordan 1 High Switch \"Pink\"",
     nameRu: "Nike Air Jordan 1 High Switch «Pink»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 175, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -715,7 +715,7 @@ export const products: Product[] = [
   },
   {
     id: "47", slug: "jordan-delta-2-clot-flint",
-    name: "CLOT × Nike Air Jordan Delta 2 'Flint'",
+    name: "CLOT × Nike Air Jordan Delta 2 \"Flint\"",
     nameRu: "CLOT × Nike Air Jordan Delta 2 «Flint»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 310, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -731,7 +731,7 @@ export const products: Product[] = [
   // ──────── BATCH 2: 20 MORE PRODUCTS ────────
   {
     id: "48", slug: "nike-dunk-low-remastered-blue",
-    name: "Nike Dunk Low Remastered 'Blue'",
+    name: "Nike Dunk Low Remastered \"Blue\"",
     nameRu: "Nike Dunk Low Remastered «Blue»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 145, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -745,7 +745,7 @@ export const products: Product[] = [
   },
   {
     id: "49", slug: "nike-dunk-low-remastered-panda",
-    name: "Nike Dunk Low Remastered 'Panda'",
+    name: "Nike Dunk Low Remastered \"Panda\"",
     nameRu: "Nike Dunk Low Remastered «Panda»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 145, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -759,7 +759,7 @@ export const products: Product[] = [
   },
   {
     id: "50", slug: "nike-dunk-grateful-dead",
-    name: "Nike SB Dunk Low 'Grateful Dead' Bears",
+    name: "Nike SB Dunk Low \"Grateful Dead\" Bears",
     nameRu: "Nike SB Dunk Low «Grateful Dead» Bears",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 280, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -773,7 +773,7 @@ export const products: Product[] = [
   },
   {
     id: "51", slug: "nike-dunk-valentines-day",
-    name: "Nike Dunk Low 'Valentine's Day' (2024)",
+    name: "Nike Dunk Low \"Valentine's Day\" (2024)",
     nameRu: "Nike Dunk Low «Valentine's Day» 2024",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 155, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -787,7 +787,7 @@ export const products: Product[] = [
   },
   {
     id: "52", slug: "nike-dunk-lobster",
-    name: "Nike SB Dunk Low 'Lobster' (Concepts)",
+    name: "Nike SB Dunk Low \"Lobster\" (Concepts)",
     nameRu: "Nike SB Dunk Low «Lobster» (Concepts)",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 420, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -801,7 +801,7 @@ export const products: Product[] = [
   },
   {
     id: "53", slug: "jordan-1-dark-mocha",
-    name: "Air Jordan 1 High OG 'Dark Mocha'",
+    name: "Air Jordan 1 High OG \"Dark Mocha\"",
     nameRu: "Air Jordan 1 High OG «Dark Mocha»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 210, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -815,7 +815,7 @@ export const products: Product[] = [
   },
   {
     id: "54", slug: "jordan-4-bred-2019",
-    name: "Air Jordan 4 Retro 'Bred' (2019)",
+    name: "Air Jordan 4 Retro \"Bred\" (2019)",
     nameRu: "Air Jordan 4 Retro «Bred» 2019",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 235, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -829,7 +829,7 @@ export const products: Product[] = [
   },
   {
     id: "55", slug: "jordan-4-thunder",
-    name: "Air Jordan 4 Retro 'Thunder'",
+    name: "Air Jordan 4 Retro \"Thunder\"",
     nameRu: "Air Jordan 4 Retro «Thunder»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 220, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -843,7 +843,7 @@ export const products: Product[] = [
   },
   {
     id: "56", slug: "jordan-6-mint-foam",
-    name: "Air Jordan 6 Retro 'Mint Foam'",
+    name: "Air Jordan 6 Retro \"Mint Foam\"",
     nameRu: "Air Jordan 6 Retro «Mint Foam»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 195, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -857,7 +857,7 @@ export const products: Product[] = [
   },
   {
     id: "57", slug: "jordan-6-olive",
-    name: "Air Jordan 6 Retro 'Olive'",
+    name: "Air Jordan 6 Retro \"Olive\"",
     nameRu: "Air Jordan 6 Retro «Olive»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 195, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -871,7 +871,7 @@ export const products: Product[] = [
   },
   {
     id: "58", slug: "travis-scott-black-phantom",
-    name: "Travis Scott × Nike Air Max 1 'Black Phantom'",
+    name: "Travis Scott × Nike Air Max 1 \"Black Phantom\"",
     nameRu: "Travis Scott × Nike Air Max 1 «Black Phantom»",
     brand: "Travis Scott", category: "shoes", type: "preorder",
     price: 390, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -885,7 +885,7 @@ export const products: Product[] = [
   },
   {
     id: "59", slug: "jordan-2-bred-concord",
-    name: "Air Jordan 2 Retro 'Bred Concord'",
+    name: "Air Jordan 2 Retro \"Bred Concord\"",
     nameRu: "Air Jordan 2 Retro «Bred Concord»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 185, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -899,7 +899,7 @@ export const products: Product[] = [
   },
   {
     id: "60", slug: "adidas-samba-white",
-    name: "Adidas Samba OG 'Cloud White'",
+    name: "Adidas Samba OG \"Cloud White\"",
     nameRu: "Adidas Samba OG «Cloud White»",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 125, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -913,7 +913,7 @@ export const products: Product[] = [
   },
   {
     id: "61", slug: "adidas-samba-green",
-    name: "Adidas Samba OG 'Collegiate Green'",
+    name: "Adidas Samba OG \"Collegiate Green\"",
     nameRu: "Adidas Samba OG «Collegiate Green»",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 125, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -927,7 +927,7 @@ export const products: Product[] = [
   },
   {
     id: "62", slug: "anta-wave-5-white-blue",
-    name: "Anta Shock Wave 5 'White Blue'",
+    name: "Anta Shock Wave 5 \"White Blue\"",
     nameRu: "Anta Shock Wave 5 «White Blue»",
     brand: "Anta", category: "shoes", type: "preorder",
     price: 119, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -941,7 +941,7 @@ export const products: Product[] = [
   },
   {
     id: "63", slug: "jordan-1-switch-purple",
-    name: "Nike Air Jordan 1 High Switch 'Pulse Purple'",
+    name: "Nike Air Jordan 1 High Switch \"Pulse Purple\"",
     nameRu: "Nike Air Jordan 1 High Switch «Pulse Purple»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 175, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -955,7 +955,7 @@ export const products: Product[] = [
   },
   {
     id: "64", slug: "jordan-1-year-rabbit",
-    name: "Nike Air Jordan 1 High 'Year of the Rabbit'",
+    name: "Nike Air Jordan 1 High \"Year Of The Rabbit\"",
     nameRu: "Nike Air Jordan 1 High «Year of the Rabbit»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 210, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -969,7 +969,7 @@ export const products: Product[] = [
   },
   {
     id: "65", slug: "nike-dunk-born-raised",
-    name: "Nike Dunk Low 'Born x Raised' On Fairfax",
+    name: "Nike Dunk Low \"Born X Raised\" On Fairfax",
     nameRu: "Nike Dunk Low «Born x Raised» On Fairfax",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 295, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -983,7 +983,7 @@ export const products: Product[] = [
   },
   {
     id: "66", slug: "nike-dunk-cherry",
-    name: "Nike Dunk High 'Cherry'",
+    name: "Nike Dunk High \"Cherry\"",
     nameRu: "Nike Dunk High «Cherry»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 155, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -997,7 +997,7 @@ export const products: Product[] = [
   },
   {
     id: "67", slug: "nike-dunk-high-panda",
-    name: "Nike Dunk High 'Panda'",
+    name: "Nike Dunk High \"Panda\"",
     nameRu: "Nike Dunk High «Panda»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 155, replicaPrice: 65, replicaDelivery: "3–7 дней", currency: "USD",
@@ -1013,14 +1013,16 @@ export const products: Product[] = [
   // ──────── NIKE BASKETBALL (2024–25) ────────
   {
     id: "68", slug: "nike-lebron-23-uncharted",
-    name: "Nike LeBron 23 EP 'Uncharted'",
+    name: "Nike LeBron 23 EP \"Uncharted\"",
     nameRu: "Nike LeBron 23 EP «Uncharted»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 185, replicaPrice: 65, currency: "USD",
     image: "/images/products/shoes/nike-lebron-23-uncharted/1.png",
     images: [
       "/images/products/shoes/nike-lebron-23-uncharted/1.png",
+      "/images/products/shoes/nike-lebron-23-uncharted/1.webp",
       "/images/products/shoes/nike-lebron-23-uncharted/2.png",
+      "/images/products/shoes/nike-lebron-23-uncharted/2.webp",
       "/images/products/shoes/nike-lebron-23-uncharted/3.webp",
       "/images/products/shoes/nike-lebron-23-uncharted/4.webp",
     ],
@@ -1033,7 +1035,7 @@ export const products: Product[] = [
   },
   {
     id: "69", slug: "nike-kd-18-premium-international-blue",
-    name: "Nike KD 18 Premium International Blue",
+    name: "Nike KD 18 Premium \"International Blue\"",
     nameRu: "Nike KD 18 Premium «International Blue»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 175, replicaPrice: 65, currency: "USD",
@@ -1055,7 +1057,7 @@ export const products: Product[] = [
   },
   {
     id: "70", slug: "nike-gt-cut-3-turbo",
-    name: "Nike G.T. Cut 3 Turbo EP College Navy",
+    name: "Nike G.T. Cut 3 Turbo EP \"College Navy\"",
     nameRu: "Nike G.T. Cut 3 Turbo EP «College Navy»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 180, replicaPrice: 65, currency: "USD",
@@ -1077,18 +1079,18 @@ export const products: Product[] = [
   },
   {
     id: "71", slug: "nike-gt-cut-4-rob-dillingham",
-    name: "Nike G.T. Cut 4 EP Rob Dillingham",
+    name: "Nike G.T. Cut 4 EP \"Rob Dillingham\"",
     nameRu: "Nike G.T. Cut 4 EP «Rob Dillingham»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 185, replicaPrice: 65, currency: "USD",
     image: "/images/products/shoes/nike-gt-cut-4-rob-dillingham/1.png",
     images: [
       "/images/products/shoes/nike-gt-cut-4-rob-dillingham/1.png",
-      "/images/products/shoes/nike-gt-cut-4-rob-dillingham/2.webp",
-      "/images/products/shoes/nike-gt-cut-4-rob-dillingham/3.webp",
-      "/images/products/shoes/nike-gt-cut-4-rob-dillingham/4.webp",
-      "/images/products/shoes/nike-gt-cut-4-rob-dillingham/5.webp",
-      "/images/products/shoes/nike-gt-cut-4-rob-dillingham/6.webp",
+      "/images/products/shoes/nike-gt-cut-4-rob-dillingham/2.png",
+      "/images/products/shoes/nike-gt-cut-4-rob-dillingham/3.png",
+      "/images/products/shoes/nike-gt-cut-4-rob-dillingham/4.png",
+      "/images/products/shoes/nike-gt-cut-4-rob-dillingham/5.png",
+      "/images/products/shoes/nike-gt-cut-4-rob-dillingham/6.png",
     ],
     sizes: SHOES_SIZES, estimatedDelivery: "7–14 дней", replicaDelivery: "3–7 дней",
     badge: "new", isNew: true,
@@ -1099,7 +1101,7 @@ export const products: Product[] = [
   },
   {
     id: "72", slug: "nike-gt-future-red-bronzeblack",
-    name: "Nike G.T. Future Red Bronze/Black",
+    name: "Nike G.T. Future \"Red Bronze/Black\"",
     nameRu: "Nike G.T. Future «Red Bronze/Black»",
     brand: "Nike", category: "shoes", type: "preorder",
     price: 165, replicaPrice: 65, currency: "USD",
@@ -1118,7 +1120,7 @@ export const products: Product[] = [
   // ──────── ADIDAS / ANTA / JORDAN (добавленные) ────────
   {
     id: "73", slug: "adidas-ae2-blue-burst",
-    name: "Adidas A.E. 2 Blue Burst",
+    name: "Adidas A.E. 2 \"Blue Burst\"",
     nameRu: "Adidas A.E. 2 «Blue Burst»",
     brand: "Adidas", category: "shoes", type: "preorder",
     price: 135, replicaPrice: 65, currency: "USD",
@@ -1156,7 +1158,7 @@ export const products: Product[] = [
   },
   {
     id: "75", slug: "travis-jordan-6-khaki",
-    name: "Travis Scott × Jordan 6 Khaki",
+    name: "Travis Scott × Jordan 6 \"Khaki\"",
     nameRu: "Travis Scott × Jordan 6 «Khaki»",
     brand: "Travis Scott", category: "shoes", type: "preorder",
     price: 480, replicaPrice: 65, currency: "USD",
@@ -1173,7 +1175,7 @@ export const products: Product[] = [
   },
   {
     id: "76", slug: "jordan-1-unc-blue",
-    name: "Air Jordan 1 High UNC Blue",
+    name: "Air Jordan 1 High \"UNC Blue\"",
     nameRu: "Air Jordan 1 High «UNC Blue»",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 185, replicaPrice: 65, currency: "USD",
@@ -1190,7 +1192,7 @@ export const products: Product[] = [
   // ──────── APPAREL (дополнительные расцветки) ────────
   {
     id: "77", slug: "fog-essential-tee-2",
-    name: "Fear of God Essential Tee 2",
+    name: "Fear Of God Essential Tee 2",
     nameRu: "Fear of God Essential Tee (расцветка 2)",
     brand: "Fear of God", category: "apparel", type: "preorder",
     price: 89, currency: "USD",
@@ -1204,7 +1206,7 @@ export const products: Product[] = [
   },
   {
     id: "78", slug: "fog-essential-tee-3",
-    name: "Fear of God Essential Tee 3",
+    name: "Fear Of God Essential Tee 3",
     nameRu: "Fear of God Essential Tee (расцветка 3)",
     brand: "Fear of God", category: "apparel", type: "preorder",
     price: 89, currency: "USD",
@@ -1532,7 +1534,7 @@ export const products: Product[] = [
   },
   {
     id: "100", slug: "j2-nina-chanel",
-    name: "Jordan 2 x Nina Chanel Abney", nameRu: "Jordan 2 × Nina Chanel Abney",
+    name: "Jordan 2 X Nina Chanel Abney", nameRu: "Jordan 2 × Nina Chanel Abney",
     brand: "Jordan", category: "shoes", type: "preorder",
     price: 280, replicaPrice: 65, currency: "USD",
     image: "/images/products/shoes/j2-nina-chanel/1.png",

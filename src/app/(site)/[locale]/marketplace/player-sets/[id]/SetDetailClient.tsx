@@ -7,6 +7,7 @@ import {
   ArrowLeft, Users, Package,
   ChevronLeft, ChevronRight,
   Maximize2, X, ShoppingBag,
+  Instagram, Youtube, Link as LinkIcon, Send,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { usePlayerSets } from "@/store/playerSets";
@@ -126,22 +127,33 @@ export function SetDetailClient({ id }: { id: string }) {
   const customProds = useCustomProducts(s => s.products);
   const metaMap    = useProductMeta(s => s.meta);
 
-  const [activeIdx,    setActiveIdx]    = useState(0);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [imgLoaded,    setImgLoaded]    = useState(false);
+  const [activeIdx,      setActiveIdx]      = useState(0);
+  const [lightboxOpen,   setLightboxOpen]   = useState(false);
+  const [fetchedCreator, setFetchedCreator] = useState<string | null>(null);
+  const [syncing,        setSyncing]        = useState(true);
 
   // Sync the latest Firestore state so a direct URL visit always shows current data.
   useEffect(() => {
     fetch("/api/user/sets")
       .then(r => r.json())
       .then(({ sets: fresh }) => { if (Array.isArray(fresh)) setSets(fresh); })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setSyncing(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const touchStartX = useRef<number | null>(null);
 
   const set = sets.find(s => s.id === id);
+
+  // Fetch creator name from profile if not stored on the set
+  useEffect(() => {
+    if (!set?.createdBy || set.creatorName) return;
+    fetch(`/api/user/profile?userId=${set.createdBy}`)
+      .then(r => r.json())
+      .then(({ profile }) => { if (profile?.name) setFetchedCreator(profile.name); })
+      .catch(() => {});
+  }, [set?.createdBy, set?.creatorName]);
 
   const photos = useMemo(() => {
     if (!set) return [];
@@ -151,8 +163,6 @@ export function SetDetailClient({ id }: { id: string }) {
   }, [set]);
 
   const activePhoto = photos[activeIdx] ?? null;
-
-  useEffect(() => { setImgLoaded(false); }, [activeIdx]);
 
   const goTo = useCallback((i: number) => {
     if (i >= 0 && i < photos.length) setActiveIdx(i);
@@ -179,7 +189,24 @@ export function SetDetailClient({ id }: { id: string }) {
       .filter(Boolean) as Product[];
   }, [set, allProducts]);
 
-  const totalValue = setProducts.reduce((sum, p) => sum + p.price, 0);
+  const totalOriginal = setProducts.reduce((sum, p) => sum + p.price, 0);
+  const totalReplica  = setProducts.reduce((sum, p) => sum + (p.replicaPrice ?? p.price), 0);
+
+  /* Loading skeleton while API syncs */
+  if (syncing && !set) {
+    return (
+      <div className="min-h-screen bg-[rgb(var(--background))]">
+        <div className="animate-pulse">
+          <div className="w-full bg-[rgb(var(--surface))]" style={{ height: "clamp(420px, 78vh, 720px)" }} />
+          <div className="container-uha pt-6 pb-5 space-y-4">
+            <div className="h-4 w-24 bg-[rgb(var(--surface))] rounded" />
+            <div className="h-8 w-64 bg-[rgb(var(--surface))] rounded" />
+            <div className="h-4 w-32 bg-[rgb(var(--surface))] rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   /* 404 state */
   if (!set) {
@@ -268,26 +295,16 @@ export function SetDetailClient({ id }: { id: string }) {
               }}
             >
               {activePhoto ? (
-                <>
-                  {/* Skeleton */}
-                  {!imgLoaded && (
-                    <div className="absolute inset-0 z-10 bg-[rgb(var(--surface))] animate-pulse" />
-                  )}
-                  {/* Hero — object-cover fills the entire frame */}
-                  <Image
-                    key={activePhoto}
-                    src={activePhoto}
-                    alt={set.name}
-                    fill
-                    priority
-                    className={`object-contain transition-opacity duration-300 ${
-                      imgLoaded ? "opacity-100" : "opacity-0"
-                    }`}
-                    sizes="(max-width: 768px) 100vw, calc(100vw - 88px)"
-                    onLoad={() => setImgLoaded(true)}
-                    style={{ cursor: "zoom-in" }}
-                  />
-                </>
+                <Image
+                  key={activePhoto}
+                  src={activePhoto}
+                  alt={set.name}
+                  fill
+                  priority
+                  className="object-contain"
+                  sizes="(max-width: 768px) 100vw, calc(100vw - 88px)"
+                  style={{ cursor: "zoom-in" }}
+                />
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent)/0.2)] via-[rgb(var(--surface))] to-[rgb(var(--background))]" />
               )}
@@ -390,17 +407,45 @@ export function SetDetailClient({ id }: { id: string }) {
                 {set.name}
               </h1>
 
-              <div className="flex items-center gap-2 text-[rgb(var(--muted))] text-sm mb-3">
-                <Users className="w-3.5 h-3.5 flex-shrink-0" />
+              <div className="mb-3 flex flex-wrap items-center gap-2">
                 {set.createdBy ? (
                   <Link
                     href={`/profile/${set.createdBy}`}
-                    className="hover:text-[rgb(var(--accent))] transition-colors underline-offset-2 hover:underline"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgb(var(--surface))] border border-[rgb(var(--border))] text-sm font-semibold hover:border-[rgb(var(--accent))] hover:text-[rgb(var(--accent))] transition-all"
                   >
-                    {set.creatorName || "Пользователь"}
+                    <Users className="w-3.5 h-3.5" />
+                    {set.creatorName || fetchedCreator || "Игрок"}
                   </Link>
                 ) : (
-                  <span>{set.creatorName || "Пользователь"}</span>
+                  <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgb(var(--surface))] border border-[rgb(var(--border))] text-sm font-semibold text-[rgb(var(--muted))]">
+                    <Users className="w-3.5 h-3.5" />
+                    {set.creatorName || fetchedCreator || "UHA"}
+                  </span>
+                )}
+
+                {set.socialLinks?.instagram && (
+                  <a href={`https://instagram.com/${set.socialLinks.instagram.replace("@", "")}`} target="_blank" rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-[rgb(var(--surface))] border border-[rgb(var(--border))] flex items-center justify-center hover:border-[rgb(var(--accent))] hover:text-[rgb(var(--accent))] transition-all">
+                    <Instagram className="w-3.5 h-3.5" />
+                  </a>
+                )}
+                {set.socialLinks?.tiktok && (
+                  <a href={`https://tiktok.com/${set.socialLinks.tiktok.replace("@", "@")}`} target="_blank" rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-[rgb(var(--surface))] border border-[rgb(var(--border))] flex items-center justify-center hover:border-[rgb(var(--accent))] hover:text-[rgb(var(--accent))] transition-all">
+                    <LinkIcon className="w-3.5 h-3.5" />
+                  </a>
+                )}
+                {set.socialLinks?.youtube && (
+                  <a href={`https://youtube.com/@${set.socialLinks.youtube.replace("@", "")}`} target="_blank" rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-[rgb(var(--surface))] border border-[rgb(var(--border))] flex items-center justify-center hover:border-[rgb(var(--accent))] hover:text-[rgb(var(--accent))] transition-all">
+                    <Youtube className="w-3.5 h-3.5" />
+                  </a>
+                )}
+                {set.socialLinks?.telegram && (
+                  <a href={`https://t.me/${set.socialLinks.telegram.replace("@", "")}`} target="_blank" rel="noopener noreferrer"
+                    className="w-8 h-8 rounded-full bg-[rgb(var(--surface))] border border-[rgb(var(--border))] flex items-center justify-center hover:border-[rgb(var(--accent))] hover:text-[rgb(var(--accent))] transition-all">
+                    <Send className="w-3.5 h-3.5" />
+                  </a>
                 )}
               </div>
 
@@ -412,31 +457,43 @@ export function SetDetailClient({ id }: { id: string }) {
             </div>
 
             {/* Right: stats + CTA */}
-            <div className="flex sm:flex-col items-center sm:items-end gap-5 sm:gap-3 flex-shrink-0">
-              {/* Stats row */}
-              <div className="flex items-center gap-5 sm:gap-4">
-                <div className="text-center sm:text-right">
-                  <div className="flex items-center gap-1 text-[rgb(var(--muted))] text-xs mb-0.5 justify-center sm:justify-end">
-                    <Package className="w-3 h-3" />
-                    <span>Товаров</span>
-                  </div>
-                  <span className="text-2xl font-bold tabular-nums">{setProducts.length}</span>
-                </div>
-                {totalValue > 0 && (
-                  <div className="text-center sm:text-right">
-                    <div className="text-[rgb(var(--muted))] text-xs mb-0.5">Итого</div>
-                    <span className="text-2xl font-bold text-[rgb(var(--accent))] tabular-nums">
-                      {formatPrice(totalValue)}
-                    </span>
-                  </div>
-                )}
+            <div className="flex flex-col sm:items-end gap-3 flex-shrink-0 w-full sm:w-auto">
+              {/* Item count */}
+              <div className="flex items-center gap-1 text-[rgb(var(--muted))] text-xs">
+                <Package className="w-3 h-3" />
+                <span>Товаров: <strong className="text-[rgb(var(--foreground))]">{setProducts.length}</strong></span>
               </div>
+
+              {/* Price table */}
+              {totalOriginal > 0 && (
+                <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl px-5 py-4 space-y-2.5 w-full sm:min-w-[220px] sm:w-auto">
+                  {/* Original */}
+                  <div className="flex items-center justify-between gap-6">
+                    <span className="text-xs text-[rgb(var(--muted))] uppercase tracking-wide">Оригинал</span>
+                    <div className="text-right">
+                      <div className="text-[11px] text-[rgb(var(--muted))] line-through">{formatPrice(totalOriginal)}</div>
+                      <div className="text-base font-bold text-[rgb(var(--accent))]">{formatPrice(Math.round(totalOriginal * 0.9))}</div>
+                    </div>
+                  </div>
+                  {/* Replica */}
+                  {totalReplica < totalOriginal && (
+                    <div className="flex items-center justify-between gap-6 border-t border-[rgb(var(--border))] pt-2.5">
+                      <span className="text-xs text-[rgb(var(--muted))] uppercase tracking-wide">Реплика</span>
+                      <div className="text-right">
+                        <div className="text-[11px] text-[rgb(var(--muted))] line-through">{formatPrice(totalReplica)}</div>
+                        <div className="text-base font-bold text-emerald-400">{formatPrice(Math.round(totalReplica * 0.9))}</div>
+                      </div>
+                    </div>
+                  )}
+                  <div className="text-[10px] text-[rgb(var(--muted))] text-right">скидка 10% на сет</div>
+                </div>
+              )}
 
               {/* Primary CTA */}
               {setProducts.length > 0 && (
                 <a
                   href="#set-products"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white text-sm font-bold rounded-2xl transition-all active:scale-95 shadow-lg shadow-[rgb(var(--accent)/0.2)] whitespace-nowrap"
+                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 bg-[rgb(var(--accent))] hover:bg-[rgb(var(--accent-hover))] text-white text-sm font-bold rounded-2xl transition-all active:scale-95 shadow-lg shadow-[rgb(var(--accent)/0.2)] whitespace-nowrap"
                 >
                   <ShoppingBag className="w-4 h-4" />
                   Купить сет

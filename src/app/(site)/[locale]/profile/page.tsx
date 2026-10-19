@@ -11,7 +11,7 @@ import {
   Camera, Trophy, Edit2, Trash2, Plus, Search, ChevronUp, ChevronDown,
   Instagram, Youtube, Link as LinkIcon, ImageIcon, Upload, Save, Check,
 } from "lucide-react";
-import { useAuthStore, getUserToken } from "@/store/auth";
+import { useAuthStore, getUserToken, type UserProfile } from "@/store/auth";
 import { useSearchParams } from "next/navigation";
 import { useCartStore } from "@/store/cart";
 import { useWishlist } from "@/store/wishlist";
@@ -227,6 +227,26 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
   });
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [pw, setPw] = useState("");
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwMsg, setPwMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const savePassword = async () => {
+    if (pw.length < 6) { setPwMsg({ ok: false, text: "Минимум 6 символов" }); return; }
+    setPwSaving(true); setPwMsg(null);
+    try {
+      const res = await fetch("/api/user/set-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-user-token": getUserToken() },
+        body: JSON.stringify({ password: pw }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? `HTTP ${res.status}`);
+      setPw(""); setPwMsg({ ok: true, text: "Пароль сохранён — теперь можно входить по телефону." });
+    } catch (e) {
+      setPwMsg({ ok: false, text: e instanceof Error ? e.message : String(e) });
+    } finally { setPwSaving(false); }
+  };
 
   const avatar = user?.avatar ?? null;
   const initials = (user?.name ?? "U").split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
@@ -341,6 +361,30 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
               ))}
             </div>
           </div>
+
+          {/* Password for no-Telegram login */}
+          <div className="pt-2 border-t border-[rgb(var(--border))]">
+            <label className="block text-[10px] font-bold text-[rgb(var(--muted))] uppercase tracking-wider mb-1">
+              {user?.hasPassword ? "Сменить пароль" : "Пароль для входа без Telegram"}
+            </label>
+            <p className="text-[11px] text-[rgb(var(--muted))] mb-2">
+              {user?.phone
+                ? `Вход по номеру ${user.phone} + пароль.`
+                : "Сначала войдите через Telegram, чтобы привязать номер телефона."}
+            </p>
+            <div className="flex items-center gap-2">
+              <input type="password" value={pw} onChange={e => { setPw(e.target.value); setPwMsg(null); }}
+                placeholder="Новый пароль (мин. 6 символов)" disabled={!user?.phone}
+                className="flex-1 h-10 px-3 bg-[rgb(var(--surface-2))] border border-[rgb(var(--border))] rounded-xl text-[rgb(var(--foreground))] text-sm placeholder:text-[rgb(var(--muted))] focus:outline-none focus:border-[rgb(var(--accent)/0.5)] transition-colors disabled:opacity-50" />
+              <button onClick={savePassword} disabled={pwSaving || !user?.phone || pw.length < 6}
+                className="h-10 px-4 rounded-xl bg-[rgb(var(--accent))] text-white text-sm font-bold hover:bg-red-900 transition-colors disabled:opacity-40">
+                {pwSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : "OK"}
+              </button>
+            </div>
+            {pwMsg && (
+              <p className={`text-[11px] mt-1.5 ${pwMsg.ok ? "text-emerald-400" : "text-red-400"}`}>{pwMsg.text}</p>
+            )}
+          </div>
         </div>
 
         <div className="px-6 py-4 border-t border-[rgb(var(--border))] flex justify-end gap-3">
@@ -358,12 +402,24 @@ function EditProfileModal({ onClose }: { onClose: () => void }) {
 }
 
 // ── User Set editor modal ─────────────────────────────────────────────
-type SetForm = { name: string; description: string; heroImages: string[]; productIds: string[] };
-const EMPTY_SET: SetForm = { name: "", description: "", heroImages: [], productIds: [] };
+type SetForm = {
+  name: string; description: string; heroImages: string[]; productIds: string[];
+  instagram: string; tiktok: string; youtube: string; telegram: string;
+};
+const EMPTY_SET: SetForm = {
+  name: "", description: "", heroImages: [], productIds: [],
+  instagram: "", tiktok: "", youtube: "", telegram: "",
+};
+const SET_SOCIAL_FIELDS: { key: "instagram" | "tiktok" | "youtube" | "telegram"; label: string; icon: React.ElementType; placeholder: string }[] = [
+  { key: "instagram", label: "Instagram",  icon: Instagram, placeholder: "@username" },
+  { key: "tiktok",    label: "TikTok",     icon: LinkIcon,  placeholder: "@username" },
+  { key: "youtube",   label: "YouTube",    icon: Youtube,   placeholder: "Канал или @handle" },
+  { key: "telegram",  label: "Telegram",   icon: Send,      placeholder: "@username" },
+];
 
 function UserSetModal({
-  userId, editing, onClose,
-}: { userId: string; editing: PlayerSet | "new"; onClose: () => void }) {
+  userId, creatorName, editing, onClose,
+}: { userId: string; creatorName: string; editing: PlayerSet | "new"; onClose: () => void }) {
   const { addSet, updateSet } = usePlayerSets();
   const customProds = useCustomProducts(s => s.products);
   const [form, setForm] = useState<SetForm>(() => {
@@ -373,6 +429,10 @@ function UserSetModal({
       description: editing.description,
       heroImages:  editing.heroImages?.length ? editing.heroImages : (editing.heroImage ? [editing.heroImage] : []),
       productIds:  [...editing.productIds],
+      instagram:   editing.socialLinks?.instagram ?? "",
+      tiktok:      editing.socialLinks?.tiktok ?? "",
+      youtube:     editing.socialLinks?.youtube ?? "",
+      telegram:    editing.socialLinks?.telegram ?? "",
     };
   });
   const [productSearch, setProductSearch] = useState("");
@@ -447,10 +507,16 @@ function UserSetModal({
       id,
       name:        form.name.trim(),
       description: form.description.trim(),
-      creatorName: "",
+      creatorName: creatorName || "",
       heroImage:   primaryImage,
       heroImages:  form.heroImages,
       productIds:  form.productIds,
+      socialLinks: {
+        instagram: form.instagram.trim() || undefined,
+        tiktok:    form.tiktok.trim() || undefined,
+        youtube:   form.youtube.trim() || undefined,
+        telegram:  form.telegram.trim() || undefined,
+      },
       displayOrder: isNew ? 999 : (editing as PlayerSet).displayOrder,
       createdAt:   isNew ? new Date().toISOString() : (editing as PlayerSet).createdAt,
       type:        "player",
@@ -466,7 +532,7 @@ function UserSetModal({
       if (isNew) {
         addSet({ ...payload, createdBy: userId } as PlayerSet);
       } else {
-        updateSet(id, { name: payload.name, description: payload.description, heroImage: primaryImage, heroImages: form.heroImages, productIds: form.productIds });
+        updateSet(id, { name: payload.name, description: payload.description, heroImage: primaryImage, heroImages: form.heroImages, productIds: form.productIds, socialLinks: payload.socialLinks });
       }
       setSaved(true);
       setTimeout(() => { setSaved(false); onClose(); }, 700);
@@ -615,6 +681,23 @@ function UserSetModal({
               ))}
             </div>
           </div>
+
+          {/* Social links */}
+          <div>
+            <label className="block text-[10px] font-bold text-[rgb(var(--muted))] uppercase tracking-wider mb-2">Социальные сети</label>
+            <div className="space-y-2">
+              {SET_SOCIAL_FIELDS.map(({ key, label, icon: Icon, placeholder }) => (
+                <div key={key} className="flex items-center gap-2">
+                  <div className="w-8 h-10 flex items-center justify-center text-[rgb(var(--muted))] flex-shrink-0">
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <input value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                    placeholder={`${label}: ${placeholder}`}
+                    className="flex-1 h-10 px-3 bg-[rgb(var(--surface-2))] border border-[rgb(var(--border))] rounded-xl text-[rgb(var(--foreground))] text-sm placeholder:text-[rgb(var(--muted))] focus:outline-none focus:border-[rgb(var(--accent)/0.5)] transition-colors" />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="px-6 py-4 border-t border-[rgb(var(--border))] flex justify-end gap-3">
@@ -631,9 +714,80 @@ function UserSetModal({
   );
 }
 
+// ── Академия section (inside the unified profile) ─────────────────────
+function AcademySection({ user }: { user: UserProfile }) {
+  const dashHref = user.academy
+    ? (user.academy.role === "athlete" ? `/academy/athlete/${user.academy.academyId}` : "/academy/parent")
+    : "/academy/login";
+  return (
+    <div className="container-uha py-10">
+      {user.academy ? (
+        <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl p-7 sm:p-9">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-11 h-11 rounded-2xl bg-blue-500/15 border border-blue-500/25 flex items-center justify-center">
+              <Trophy className="w-5 h-5 text-blue-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">UHA Academy</h2>
+              <p className="text-[rgb(var(--muted))] text-xs">
+                Ваша роль: {user.academy.role === "athlete" ? "Спортсмен" : "Родитель"}
+              </p>
+            </div>
+          </div>
+          <p className="text-[rgb(var(--muted))] text-sm mb-5 max-w-lg">
+            {user.academy.role === "athlete"
+              ? "Расписание тренировок, задания, прогресс, бейджи и заметки тренера."
+              : "Расписание детей, оплаты, прогресс и заметки тренера."}
+          </p>
+          <Link href={dashHref}
+            className="inline-flex items-center gap-2 h-12 px-7 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl text-sm uppercase tracking-wider transition-colors">
+            Открыть кабинет академии <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+      ) : (
+        <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl p-7 sm:p-9 text-center">
+          <Trophy className="w-10 h-10 text-blue-400 mx-auto mb-3" />
+          <h2 className="text-lg font-bold mb-2">Вы пока не в академии</h2>
+          <p className="text-[rgb(var(--muted))] text-sm mb-5 max-w-md mx-auto">
+            Если вы спортсмен или родитель UHA Academy — войдите в кабинет через бота
+            (кнопка «Войти в академию») или по PIN/паролю. После входа раздел появится здесь автоматически.
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Link href="/academy/login"
+              className="inline-flex items-center gap-2 h-11 px-6 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl text-sm transition-colors">
+              Войти в академию
+            </Link>
+            <Link href="/academy"
+              className="inline-flex items-center gap-2 h-11 px-6 border border-[rgb(var(--border))] rounded-2xl text-sm font-semibold hover:border-blue-500/40 transition-colors">
+              Об академии
+            </Link>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Лига section — info + the captain's own registered teams ──────────
+function LeagueSection() {
+  return (
+    <div className="container-uha py-10">
+      <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-3xl p-8 sm:p-12 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-[rgb(var(--accent)/0.12)] border border-[rgb(var(--accent)/0.25)] flex items-center justify-center mx-auto mb-5">
+          <Box className="w-7 h-7 text-[rgb(var(--accent))]" />
+        </div>
+        <h2 className="text-xl font-bold mb-2">UHA League · 3×3</h2>
+        <p className="text-[rgb(var(--muted))] text-sm max-w-sm mx-auto">
+          🛠 Сервис в разработке. Скоро здесь появятся регистрация команд, расписание турниров и результаты.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 // ── Profile Page ──────────────────────────────────────────────────────
 export default function ProfilePage() {
-  const { user, isAuthenticated, logout, loginWithToken } = useAuthStore();
+  const { user, isAuthenticated, loading: authLoading, logout, loginWithToken } = useAuthStore();
   const { items } = useCartStore();
   const { slugs: wishlistSlugs } = useWishlist();
   const customProds = useCustomProducts(s => s.products);
@@ -649,6 +803,7 @@ export default function ProfilePage() {
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [setEditing, setSetEditing] = useState<PlayerSet | "new" | null>(null);
+  const [section, setSection] = useState<"shop" | "academy" | "league">("shop");
 
   // Handle Telegram deep-link auto-login: the webhook embeds a signed token in
   // the "Open profile" button URL (?t=...) so clicking it from Telegram logs the
@@ -664,10 +819,12 @@ export default function ProfilePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tToken]);
 
-  // Redirect to login only if we have no active session AND no pending token
+  // Redirect to login only AFTER the auth store has hydrated — otherwise a
+  // hard-load/bookmark of /profile bounces to login before localStorage is read
+  // (child effects run before the provider's hydrate effect).
   useEffect(() => {
-    if (!isAuthenticated && !tToken) router.replace("/auth/login");
-  }, [isAuthenticated, tToken]);
+    if (!authLoading && !isAuthenticated && !tToken) router.replace("/auth/login");
+  }, [authLoading, isAuthenticated, tToken]);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -783,9 +940,34 @@ export default function ProfilePage() {
                 </div>
               ))}
             </div>
+
+            {/* ── Section switcher: Магазин / Академия / Лига ── */}
+            <div className="flex gap-2 mt-8 overflow-x-auto pb-1">
+              {([
+                { key: "shop" as const,    label: "Магазин",  icon: ShoppingBag },
+                { key: "academy" as const, label: "Академия", icon: Trophy },
+                { key: "league" as const,  label: "Лига",     icon: Box },
+              ]).map(({ key, label, icon: Icon }) => (
+                <button key={key} onClick={() => setSection(key)}
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${
+                    section === key
+                      ? "bg-[rgb(var(--accent))] text-white"
+                      : "bg-[rgb(var(--background))] border border-[rgb(var(--border))] text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))]"
+                  }`}>
+                  <Icon className="w-4 h-4" /> {label}
+                  {key === "academy" && user.academy && (
+                    <span className={`w-1.5 h-1.5 rounded-full ${section === key ? "bg-white" : "bg-emerald-400"}`} />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
+        {section === "academy" && <AcademySection user={user} />}
+        {section === "league" && <LeagueSection />}
+
+        {section === "shop" && (
         <div className="container-uha py-10 space-y-10">
           {/* ── Link Telegram (email accounts not yet linked) ── */}
           {!user.telegram && !user.email?.includes("@telegram.local") && (
@@ -804,63 +986,6 @@ export default function ProfilePage() {
               </div>
             </section>
           )}
-
-          {/* ── Orders ── */}
-          <section>
-            <h2 className="text-lg font-bold mb-5 flex items-center gap-2">
-              <Package className="w-5 h-5 text-[rgb(var(--accent))]" /> Мои заказы
-            </h2>
-            <div className="space-y-3">
-              {ordersLoading && (
-                <div className="py-8 text-center">
-                  <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[rgb(var(--accent))]" />
-                  <p className="text-sm text-[rgb(var(--muted))]">Загрузка заказов...</p>
-                </div>
-              )}
-              {!ordersLoading && orders.map(order => {
-                const info = ORDER_STATUS_INFO[order.status];
-                const stepIdx = STEP_INDEX[order.status];
-                const progress = order.status === "cancelled" ? 0 : ((stepIdx + 1) / ORDER_STEPS.length) * 100;
-                return (
-                  <motion.div key={order.id} whileHover={{ scale: 1.005 }}
-                    className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl overflow-hidden hover:border-[rgb(var(--foreground)/0.12)] transition-all cursor-pointer"
-                    onClick={() => setSelectedOrder(order)}>
-                    <div className="flex items-center justify-between p-5">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-1">
-                          <span className="font-bold text-sm font-mono">{order.orderNumber}</span>
-                          <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border ${info.color} ${info.bg} ${info.border}`}>{info.label}</span>
-                        </div>
-                        <p className="text-[rgb(var(--muted))] text-xs">{order.date} · {order.items.length} {order.items.length === 1 ? "товар" : "товара"}</p>
-                        {order.estimatedDelivery && (
-                          <p className="text-xs text-[rgb(var(--accent))] mt-1 flex items-center gap-1.5">
-                            <Truck className="w-3 h-3" /> {order.estimatedDelivery}
-                          </p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-4 ml-4 flex-shrink-0">
-                        <span className="font-bold text-lg">{formatPrice(order.total)}</span>
-                        <ChevronRight className="w-4 h-4 text-[rgb(var(--muted))]" />
-                      </div>
-                    </div>
-                    {order.status !== "cancelled" && (
-                      <div className="h-1 bg-[rgb(var(--surface-2))]">
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-                          className={`h-full ${order.status === "delivered" ? "bg-emerald-400" : "bg-[rgb(var(--accent))]"}`} />
-                      </div>
-                    )}
-                  </motion.div>
-                );
-              })}
-              {!ordersLoading && orders.length === 0 && (
-                <div className="py-12 text-center border border-[rgb(var(--border))] border-dashed rounded-2xl">
-                  <Package className="w-8 h-8 mx-auto mb-2 text-[rgb(var(--muted))] opacity-40" />
-                  <p className="text-[rgb(var(--muted))]">Заказов пока нет</p>
-                  <Link href="/marketplace" className="text-[rgb(var(--accent))] text-sm mt-1 inline-block hover:underline">Перейти в каталог</Link>
-                </div>
-              )}
-            </div>
-          </section>
 
           {/* ── My Sets ── */}
           <section>
@@ -925,6 +1050,63 @@ export default function ProfilePage() {
             )}
           </section>
 
+          {/* ── Orders ── */}
+          <section>
+            <h2 className="text-lg font-bold mb-5 flex items-center gap-2">
+              <Package className="w-5 h-5 text-[rgb(var(--accent))]" /> Мои заказы
+            </h2>
+            <div className="space-y-3">
+              {ordersLoading && (
+                <div className="py-8 text-center">
+                  <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[rgb(var(--accent))]" />
+                  <p className="text-sm text-[rgb(var(--muted))]">Загрузка заказов...</p>
+                </div>
+              )}
+              {!ordersLoading && orders.map(order => {
+                const info = ORDER_STATUS_INFO[order.status];
+                const stepIdx = STEP_INDEX[order.status];
+                const progress = order.status === "cancelled" ? 0 : ((stepIdx + 1) / ORDER_STEPS.length) * 100;
+                return (
+                  <motion.div key={order.id} whileHover={{ scale: 1.005 }}
+                    className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl overflow-hidden hover:border-[rgb(var(--foreground)/0.12)] transition-all cursor-pointer"
+                    onClick={() => setSelectedOrder(order)}>
+                    <div className="flex items-center justify-between p-5">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="font-bold text-sm font-mono">{order.orderNumber}</span>
+                          <span className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full border ${info.color} ${info.bg} ${info.border}`}>{info.label}</span>
+                        </div>
+                        <p className="text-[rgb(var(--muted))] text-xs">{order.date} · {order.items.length} {order.items.length === 1 ? "товар" : "товара"}</p>
+                        {order.estimatedDelivery && (
+                          <p className="text-xs text-[rgb(var(--accent))] mt-1 flex items-center gap-1.5">
+                            <Truck className="w-3 h-3" /> {order.estimatedDelivery}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-4 ml-4 flex-shrink-0">
+                        <span className="font-bold text-lg">{formatPrice(order.total)}</span>
+                        <ChevronRight className="w-4 h-4 text-[rgb(var(--muted))]" />
+                      </div>
+                    </div>
+                    {order.status !== "cancelled" && (
+                      <div className="h-1 bg-[rgb(var(--surface-2))]">
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
+                          className={`h-full ${order.status === "delivered" ? "bg-emerald-400" : "bg-[rgb(var(--accent))]"}`} />
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+              {!ordersLoading && orders.length === 0 && (
+                <div className="py-12 text-center border border-[rgb(var(--border))] border-dashed rounded-2xl">
+                  <Package className="w-8 h-8 mx-auto mb-2 text-[rgb(var(--muted))] opacity-40" />
+                  <p className="text-[rgb(var(--muted))]">Заказов пока нет</p>
+                  <Link href="/marketplace" className="text-[rgb(var(--accent))] text-sm mt-1 inline-block hover:underline">Перейти в каталог</Link>
+                </div>
+              )}
+            </div>
+          </section>
+
           {/* ── Wishlist ── */}
           <section>
             <h2 className="text-lg font-bold mb-5 flex items-center gap-2">
@@ -944,6 +1126,7 @@ export default function ProfilePage() {
             )}
           </section>
         </div>
+        )}
       </div>
 
       {/* Modals */}
@@ -951,7 +1134,7 @@ export default function ProfilePage() {
         {selectedOrder && <OrderTracker order={selectedOrder} onClose={() => setSelectedOrder(null)} />}
         {editProfileOpen && <EditProfileModal onClose={() => setEditProfileOpen(false)} />}
         {setEditing !== null && (
-          <UserSetModal userId={user.id} editing={setEditing} onClose={() => setSetEditing(null)} />
+          <UserSetModal userId={user.id} creatorName={user.name} editing={setEditing} onClose={() => setSetEditing(null)} />
         )}
       </AnimatePresence>
     </>

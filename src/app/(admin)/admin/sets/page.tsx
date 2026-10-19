@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Edit2, Trash2, ChevronUp, ChevronDown, X,
   Users, Save, Search, Check, Loader2, Upload, ImageIcon,
+  Instagram, Youtube, Link as LinkIcon, Send,
 } from "lucide-react";
 import { usePlayerSets } from "@/store/playerSets";
 import { useCustomProducts } from "@/store/customProducts";
@@ -24,11 +25,23 @@ type SetForm = {
   heroImages: string[];
   productIds: string[];
   type: PlayerSet["type"];
+  instagram: string;
+  tiktok: string;
+  youtube: string;
+  telegram: string;
 };
 
 const EMPTY_FORM: SetForm = {
   name: "", description: "", creatorName: "", heroImages: [], productIds: [], type: "player",
+  instagram: "", tiktok: "", youtube: "", telegram: "",
 };
+
+const SET_SOCIAL_FIELDS: { key: "instagram" | "tiktok" | "youtube" | "telegram"; label: string; icon: React.ElementType; placeholder: string }[] = [
+  { key: "instagram", label: "Instagram",  icon: Instagram, placeholder: "@username" },
+  { key: "tiktok",    label: "TikTok",     icon: LinkIcon,  placeholder: "@username" },
+  { key: "youtube",   label: "YouTube",    icon: Youtube,   placeholder: "Канал или @handle" },
+  { key: "telegram",  label: "Telegram",   icon: Send,      placeholder: "@username" },
+];
 
 export default function AdminSetsPage() {
   const { sets, addSet, updateSet, removeSet } = usePlayerSets();
@@ -72,6 +85,10 @@ export default function AdminSetsPage() {
       creatorName: s.creatorName,
       heroImages: s.heroImages?.length ? s.heroImages : (s.heroImage ? [s.heroImage] : []),
       productIds: [...s.productIds], type: s.type ?? "player",
+      instagram: s.socialLinks?.instagram ?? "",
+      tiktok:    s.socialLinks?.tiktok ?? "",
+      youtube:   s.socialLinks?.youtube ?? "",
+      telegram:  s.socialLinks?.telegram ?? "",
     });
     setEditing(s);
   };
@@ -119,6 +136,12 @@ export default function AdminSetsPage() {
     if (!form.name.trim()) return;
     const now = new Date().toISOString();
     const primaryImage = form.heroImages[0] ?? "";
+    const socialLinks = {
+      instagram: form.instagram.trim() || undefined,
+      tiktok:    form.tiktok.trim() || undefined,
+      youtube:   form.youtube.trim() || undefined,
+      telegram:  form.telegram.trim() || undefined,
+    };
 
     if (editing === "new") {
       addSet({
@@ -128,6 +151,7 @@ export default function AdminSetsPage() {
         heroImage: primaryImage, heroImages: form.heroImages,
         productIds: form.productIds, displayOrder: sets.length,
         createdAt: now, type: form.type, isActive: true,
+        socialLinks,
       });
     } else if (editing) {
       updateSet(editing.id, {
@@ -135,6 +159,7 @@ export default function AdminSetsPage() {
         creatorName: form.creatorName.trim(),
         heroImage: primaryImage, heroImages: form.heroImages,
         productIds: form.productIds, type: form.type,
+        socialLinks,
       });
     }
     setSaved(true);
@@ -388,6 +413,23 @@ export default function AdminSetsPage() {
                         <span className="text-[#555] text-xs">{formatPrice(p.price)}</span>
                         <Check className="w-3 h-3 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Social links */}
+                <div>
+                  <label className="block text-[10px] font-bold text-[#555] uppercase tracking-wider mb-2">Социальные сети</label>
+                  <div className="space-y-2">
+                    {SET_SOCIAL_FIELDS.map(({ key, label, icon: Icon, placeholder }) => (
+                      <div key={key} className="flex items-center gap-2">
+                        <div className="w-8 h-10 flex items-center justify-center text-[#555] flex-shrink-0">
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        <input value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
+                          placeholder={`${label}: ${placeholder}`}
+                          className={inputCls + " flex-1"} />
+                      </div>
                     ))}
                   </div>
                 </div>
