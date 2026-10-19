@@ -6,8 +6,13 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
+      // Cloudflare R2 — where uploaded photos live now.
+      { protocol: "https", hostname: "*.r2.dev" },
+      { protocol: "https", hostname: "cdn.uhashop.uz" },
       { protocol: "https", hostname: "res.cloudinary.com" },
       { protocol: "https", hostname: "images.unsplash.com" },
+      // Firebase Storage — legacy URLs still in Firestore until the migration
+      // script has rewritten every document. Keep until then.
       { protocol: "https", hostname: "firebasestorage.googleapis.com" },
       { protocol: "https", hostname: "*.firebasestorage.app" },
       { protocol: "https", hostname: "storage.googleapis.com" },

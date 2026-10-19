@@ -1,13 +1,14 @@
 /**
- * User media upload (avatars, set images). Requires a valid user session token;
- * files are always stored under the AUTHENTICATED user's path
- * (user-uploads/{userId}/{uuid}.{ext}) — a client cannot write to another
- * user's folder by passing a different userId.
+ * User media upload (avatars, set images) → Cloudflare R2.
+ *
+ * Requires a valid user session token; files are always stored under the
+ * AUTHENTICATED user's prefix (user-uploads/{userId}/…) — a client cannot write
+ * to another user's folder by passing a different userId.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { getAdminStorage } from "@/lib/firebase/admin";
 import { getAuthUserId, unauthorizedUser } from "@/lib/user-auth";
+import { uploadToR2 } from "@/lib/r2";
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,36 +16,27 @@ export async function POST(req: NextRequest) {
     if (!userId) return unauthorizedUser();
 
     const formData = await req.formData();
-    const files   = formData.getAll("files") as File[];
+    const files    = formData.getAll("files") as File[];
 
     if (!files.length) {
       return NextResponse.json({ error: "files required" }, { status: 400 });
     }
 
-    const storage = getAdminStorage();
-    const bucket  = storage.bucket();
     const urls: string[] = [];
 
     for (const file of files) {
-      const ext   = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-      const token = randomUUID();
-      const path  = `user-uploads/${userId}/${token}.${ext}`;
-      const buf   = Buffer.from(await file.arrayBuffer());
-
-      await bucket.file(path).save(buf, {
-        metadata: {
-          contentType: file.type || "image/jpeg",
-          metadata: { firebaseStorageDownloadTokens: token },
-        },
-      });
-
-      const encoded = encodeURIComponent(path);
-      urls.push(`https://firebasestorage.googleapis.com/v0/b/${bucket.name}/o/${encoded}?alt=media&token=${token}`);
+      const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const key = `user-uploads/${userId}/${randomUUID()}.${ext}`;
+      const buf = Buffer.from(await file.arrayBuffer());
+      urls.push(await uploadToR2(key, buf, file.type || "image/jpeg"));
     }
 
     return NextResponse.json({ paths: urls });
   } catch (e) {
     console.error("User upload error:", e);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Upload failed" },
+      { status: 500 }
+    );
   }
 }
