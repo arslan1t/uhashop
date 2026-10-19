@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, Camera } from "lucide-react";
+import { ArrowRight, Camera, Layers } from "lucide-react";
 
 export function HeroSection() {
   const t = useTranslations("home");
@@ -70,6 +70,11 @@ export function HeroSection() {
                   className="inline-flex items-center gap-2 px-8 py-4 border border-[rgb(var(--border))] font-bold uppercase tracking-widest text-sm rounded-2xl hover:border-[rgb(var(--foreground)/0.4)] transition-all">
                   {t("hero_cta_merch")}
                 </Link>
+                <Link href="/marketplace?tab=sets"
+                  className="inline-flex items-center gap-2 px-8 py-4 border border-[rgb(var(--accent)/0.4)] text-[rgb(var(--accent))] font-bold uppercase tracking-widest text-sm rounded-2xl hover:bg-[rgb(var(--accent)/0.08)] hover:border-[rgb(var(--accent))] transition-all">
+                  <Layers className="w-4 h-4" />
+                  {t("hero_cta_sets")}
+                </Link>
               </motion.div>
 
               {/* Stats */}
@@ -120,8 +125,7 @@ export function HeroSection() {
               <div className="relative w-full max-w-[520px] aspect-[4/5] rounded-3xl overflow-hidden bg-black border border-[rgb(var(--border)/0.5)] shadow-2xl">
                 <video autoPlay muted loop playsInline preload="metadata"
                   className="absolute inset-0 w-full h-full object-cover">
-                  <source src="/videos/3d-tee.mov" type="video/quicktime" />
-                  <source src="/videos/3d-tee.mov" type="video/mp4" />
+                  <source src="/videos/3d-tee.mp4" type="video/mp4" />
                 </video>
 
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />

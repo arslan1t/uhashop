@@ -72,8 +72,7 @@ export function MerchClient() {
                   <video
                     autoPlay muted loop playsInline preload="metadata"
                     className="w-full h-full object-cover">
-                    <source src="/videos/3d-tee.mov" type="video/quicktime" />
-                    <source src="/videos/3d-tee.mov" type="video/mp4" />
+                    <source src="/videos/3d-tee.mp4" type="video/mp4" />
                   </video>
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20 pointer-events-none" />
                 </div>
@@ -130,8 +129,7 @@ export function MerchClient() {
                 <div className="relative aspect-square overflow-hidden bg-black">
                   <video autoPlay muted loop playsInline preload="metadata"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
-                    <source src="/videos/3d-tee.mov" type="video/quicktime" />
-                    <source src="/videos/3d-tee.mov" type="video/mp4" />
+                    <source src="/videos/3d-tee.mp4" type="video/mp4" />
                   </video>
 
                   {/* UHA rotating badge */}

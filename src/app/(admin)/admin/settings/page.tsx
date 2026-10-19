@@ -94,12 +94,11 @@ export default function AdminSettingsPage() {
           <div className="flex items-center gap-4">
             <div className="relative w-28 h-28 rounded-2xl overflow-hidden bg-black border border-[#2a2a2a] flex items-center justify-center">
               <video autoPlay muted loop playsInline className="w-full h-full object-cover">
-                <source src="/videos/3d-tee.mov" type="video/quicktime" />
-                <source src="/videos/3d-tee.mov" type="video/mp4" />
+                <source src="/videos/3d-tee.mp4" type="video/mp4" />
               </video>
             </div>
             <div>
-              <p className="text-white text-sm font-medium mb-1">3d-tee.mov</p>
+              <p className="text-white text-sm font-medium mb-1">3d-tee.mp4</p>
               <p className="text-[#555] text-xs mb-3">Используется на Merch странице</p>
               <button className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] border border-[#2a2a2a] text-[#888] hover:text-white text-xs font-semibold rounded-xl transition-colors">
                 <Upload className="w-3.5 h-3.5" />

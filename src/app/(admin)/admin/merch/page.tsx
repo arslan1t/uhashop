@@ -170,14 +170,13 @@ export default function AdminMerchPage() {
         <div className="p-5 flex items-start gap-5">
           <div className="relative w-36 h-36 rounded-2xl overflow-hidden bg-black border border-[#2a2a2a] flex-shrink-0">
             <video autoPlay muted loop playsInline className="w-full h-full object-cover">
-              <source src="/videos/3d-tee.mov" type="video/quicktime" />
-              <source src="/videos/3d-tee.mov" type="video/mp4" />
+              <source src="/videos/3d-tee.mp4" type="video/mp4" />
             </video>
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
               <Film className="w-4 h-4 text-purple-400" />
-              <span className="text-white text-sm font-semibold">3d-tee.mov</span>
+              <span className="text-white text-sm font-semibold">3d-tee.mp4</span>
             </div>
             <p className="text-[#555] text-xs mb-4">MOV · 12.4 MB · Текущее видео</p>
             <div className="border-2 border-dashed border-[#2a2a2a] rounded-xl p-5 flex flex-col items-center gap-2 cursor-pointer hover:border-red-800/40 transition-colors">
