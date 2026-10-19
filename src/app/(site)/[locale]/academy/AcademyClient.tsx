@@ -53,9 +53,17 @@ export function AcademyClient() {
   const AGE_GROUPS = [
     { group: "U-10", ageRange: "8–10",  scheduleKey: "age_schedule_3" as const, price: "600 000 сум/мес" },
     { group: "U-12", ageRange: "10–12", scheduleKey: "age_schedule_3" as const, price: "600 000 сум/мес" },
-    { group: "U-14", ageRange: "12–14", scheduleKey: "age_schedule_4" as const, price: "600 000 сум/мес" },
-    { group: "U-16", ageRange: "14–16", scheduleKey: "age_schedule_4" as const, price: "600 000 сум/мес" },
-    { group: "U-18", ageRange: "16–18", scheduleKey: "age_schedule_5" as const, price: "600 000 сум/мес" },
+    { group: "U-14", ageRange: "12–14", scheduleKey: "age_schedule_3" as const, price: "600 000 сум/мес" },
+    { group: "U-16", ageRange: "14–16", scheduleKey: "age_schedule_3" as const, price: "600 000 сум/мес" },
+    { group: "U-18", ageRange: "16–18", scheduleKey: "age_schedule_3" as const, price: "600 000 сум/мес" },
+  ];
+
+  // Morning slots, Mon/Wed/Fri. The 10:30 open-gym block is drop-in and priced
+  // per visit — the three before it are the regular coached groups.
+  const MORNING_SLOTS = [
+    { from: "7:30",  to: "8:30",  titleKey: "sched_amateur"    as const, descKey: "sched_amateur_desc"    as const },
+    { from: "8:30",  to: "9:30",  titleKey: "sched_advanced"   as const, descKey: "sched_advanced_desc"   as const },
+    { from: "9:30",  to: "10:30", titleKey: "sched_individual" as const, descKey: "sched_individual_desc" as const },
   ];
 
   const COACHES = [
@@ -335,10 +343,63 @@ export function AcademyClient() {
               </div>
             </div>
             <div className="text-right flex-shrink-0">
-              <p className="text-xl font-black text-blue-400">800 000 сум</p>
+              <p className="text-xl font-black text-blue-400">1 000 000 сум</p>
               <p className="text-xs text-[rgb(var(--muted))]">в месяц</p>
             </div>
           </motion.div>
+        </div>
+      </div>
+
+      {/* ── Morning schedule ── */}
+      <div className="border-t border-[rgb(var(--border))]">
+        <div className="container-uha py-16">
+          <h2 className="font-display text-3xl tracking-tight mb-3 text-center">{t("sched_title")}</h2>
+          <p className="text-center text-[rgb(var(--muted))] text-sm mb-8">{t("sched_subtitle")}</p>
+
+          <div className="max-w-3xl mx-auto space-y-3">
+            {MORNING_SLOTS.map(({ from, to, titleKey, descKey }, i) => (
+              <motion.div key={from}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.05 }}
+                className="flex items-center gap-4 p-4 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl hover:border-blue-500/25 transition-colors">
+                <div className="flex-shrink-0 w-[104px] text-center">
+                  <div className="text-lg font-black text-blue-400 leading-none tabular-nums">{from}</div>
+                  <div className="text-[10px] text-[rgb(var(--muted))] mt-1 tabular-nums">до {to}</div>
+                </div>
+                <div className="w-px self-stretch bg-[rgb(var(--border))]" />
+                <div className="min-w-0">
+                  <p className="font-bold text-[rgb(var(--foreground))]">{t(titleKey)}</p>
+                  <p className="text-xs text-[rgb(var(--muted))] mt-0.5">{t(descKey)}</p>
+                </div>
+              </motion.div>
+            ))}
+
+            {/* Open gym — drop-in, priced per visit rather than per month */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.15 }}
+              className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/25 rounded-2xl">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="flex-shrink-0 w-[104px] text-center">
+                  <div className="text-lg font-black text-blue-400 leading-none tabular-nums">10:30</div>
+                  <div className="text-[10px] text-[rgb(var(--muted))] mt-1 tabular-nums">до 12:00</div>
+                </div>
+                <div className="w-px self-stretch bg-blue-500/20 hidden sm:block" />
+                <div className="min-w-0">
+                  <p className="font-bold text-[rgb(var(--foreground))]">{t("sched_opengym")}</p>
+                  <p className="text-xs text-[rgb(var(--muted))] mt-0.5">{t("sched_opengym_desc")}</p>
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0 pl-[120px] sm:pl-0">
+                <p className="text-xl font-black text-blue-400 whitespace-nowrap">40 000 сум</p>
+                <p className="text-xs text-[rgb(var(--muted))]">{t("sched_per_visit")}</p>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
 
@@ -425,14 +486,6 @@ export function AcademyClient() {
                       <div className="flex justify-between text-sm">
                         <span className="text-[rgb(var(--foreground))]">{t("loc_mon_wed_fri")}</span>
                         <span className="font-semibold text-blue-400">17:00 – 19:00</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-[rgb(var(--foreground))]">{t("loc_tue_thu")}</span>
-                        <span className="font-semibold text-blue-400">18:00 – 20:00</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-[rgb(var(--foreground))]">{t("loc_saturday")}</span>
-                        <span className="font-semibold text-blue-400">10:00 – 12:00</span>
                       </div>
                     </div>
                   </div>
