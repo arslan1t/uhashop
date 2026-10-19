@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Link } from "@/i18n/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ShoppingBag, Eye, Clock, Check, Heart, X } from "lucide-react";
+import { SafeImage } from "./SafeImage";
 import { Badge } from "./Badge";
 import { useCartStore } from "@/store/cart";
 import { useProductOverrides } from "@/store/productOverrides";
@@ -98,7 +99,7 @@ export const ProductCard = memo(function ProductCard({ product, priority = false
       <Link href={`/product/${product.slug}`} className="block">
         {/* Image */}
         <div className="relative aspect-square overflow-hidden bg-[rgb(var(--surface-2))]">
-          <Image
+          <SafeImage
             src={displayImage}
             alt={product.name}
             fill

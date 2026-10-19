@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,7 +36,8 @@ export function MarketplaceClient() {
   const loadOrder       = useProductOrder(s => s.loadFromServer);
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
 
-  const [showSets, setShowSets] = useState(false);
+  const initTab = searchParams?.get("tab") ?? "";
+  const [showSets, setShowSets] = useState(initTab === "sets");
 
   // Keep sets and product ordering in sync with Firestore on every visit.
   useEffect(() => {
@@ -235,6 +236,36 @@ export function MarketplaceClient() {
     return result;
   }, [filters, allProducts]);
 
+  // ── Incremental rendering ────────────────────────────────────────────────
+  // The full catalogue is ~244 products and every card mounts two <Image>
+  // elements, so rendering it in one go put 490 <img> and ~10k nodes in the
+  // DOM before the first scroll. Render a page at a time and extend as the
+  // sentinel below the grid comes into view.
+  const PAGE = 40;
+  const [visible, setVisible] = useState(PAGE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Any change to the filters starts the list over from the top.
+  useEffect(() => { setVisible(PAGE); }, [filters, showSets]);
+
+  useEffect(() => {
+    const node = sentinelRef.current;
+    if (!node || visible >= filtered.length) return;
+    const io = new IntersectionObserver(
+      entries => {
+        if (entries[0]?.isIntersecting) {
+          setVisible(v => Math.min(v + PAGE, filtered.length));
+        }
+      },
+      // Start fetching the next page before the user reaches the bottom.
+      { rootMargin: "600px" }
+    );
+    io.observe(node);
+    return () => io.disconnect();
+  }, [visible, filtered.length]);
+
+  const shown = useMemo(() => filtered.slice(0, visible), [filtered, visible]);
+
   const tgHintUrl = `${TG_URL}?text=${encodeURIComponent("Привет! Не нашёл нужный товар в каталоге, помогите с заказом.")}`;
 
   return (
@@ -277,8 +308,39 @@ export function MarketplaceClient() {
 
         {/* ── Quick category chips ── */}
         <div className="flex flex-wrap gap-2 mb-6">
+          {/* All products */}
+          <button
+            onClick={() => { setShowSets(false); updateFilter({ category: "" }); }}
+            className={`h-9 px-4 rounded-xl text-sm font-semibold border transition-all ${
+              !showSets && filters.category === ""
+                ? "bg-[rgb(var(--accent))] border-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent)/0.25)]"
+                : "bg-[rgb(var(--surface))] border-[rgb(var(--border))] text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:border-[rgb(var(--accent)/0.4)]"
+            }`}
+          >
+            {t("tab_all")}
+          </button>
+
+          {/* Player Sets chip — second position */}
+          <button
+            onClick={() => setShowSets(true)}
+            className={`flex items-center gap-1.5 h-9 px-4 rounded-xl text-sm font-semibold border transition-all ${
+              showSets
+                ? "bg-[rgb(var(--accent))] border-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent)/0.25)]"
+                : "bg-[rgb(var(--surface))] border-[rgb(var(--border))] text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:border-[rgb(var(--accent)/0.4)]"
+            }`}
+          >
+            <span>{t("tab_sets")}</span>
+            {playerSets.length > 0 && (
+              <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                showSets ? "bg-white/20" : "bg-[rgb(var(--accent)/0.15)] text-[rgb(var(--accent))]"
+              }`}>
+                {playerSets.length}
+              </span>
+            )}
+          </button>
+
+          {/* Category chips */}
           {[
-            { label: t("tab_all"),                value: "" },
             { label: t("categories.shoes"),       value: "shoes" },
             { label: t("categories.apparel"),     value: "apparel" },
             { label: t("categories.accessories"), value: "accessories" },
@@ -301,25 +363,6 @@ export function MarketplaceClient() {
               </button>
             );
           })}
-
-          {/* Player Sets chip */}
-          <button
-            onClick={() => setShowSets(true)}
-            className={`flex items-center gap-1.5 h-9 px-4 rounded-xl text-sm font-semibold border transition-all ${
-              showSets
-                ? "bg-[rgb(var(--accent))] border-[rgb(var(--accent))] text-white shadow-lg shadow-[rgb(var(--accent)/0.25)]"
-                : "bg-[rgb(var(--surface))] border-[rgb(var(--border))] text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] hover:border-[rgb(var(--accent)/0.4)]"
-            }`}
-          >
-            <span>{t("tab_sets")}</span>
-            {playerSets.length > 0 && (
-              <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                showSets ? "bg-white/20" : "bg-[rgb(var(--accent)/0.15)] text-[rgb(var(--accent))]"
-              }`}>
-                {playerSets.length}
-              </span>
-            )}
-          </button>
         </div>
 
         {/* Filters — hidden in sets view */}
@@ -373,9 +416,9 @@ export function MarketplaceClient() {
                       <motion.div key={s.id} variants={fadeUp}>
                         <div className="bg-[rgb(var(--card-bg))] border border-[rgb(var(--card-border))] rounded-2xl overflow-hidden product-card-hover group">
                           {/* Hero image — square */}
-                          <Link href={`/marketplace/player-sets/${s.id}`} className="block relative aspect-square overflow-hidden bg-[rgb(var(--surface-2))]">
+                          <Link href={`/marketplace/player-sets/${s.id}`} className="block relative aspect-[3/4] overflow-hidden bg-[rgb(var(--surface-2))]">
                             {s.heroImages?.[0] ?? s.heroImage ? (
-                              <Image src={s.heroImages?.[0] ?? s.heroImage!} alt={s.name} fill className="object-contain transition-transform duration-500 [@media(hover:hover)]:group-hover:scale-105" sizes="(max-width: 640px) 100vw, 50vw" />
+                              <Image src={s.heroImages?.[0] ?? s.heroImage!} alt={s.name} fill className="object-cover object-top transition-transform duration-500 [@media(hover:hover)]:group-hover:scale-105" sizes="(max-width: 640px) 100vw, 50vw" />
                             ) : (
                               <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--accent)/0.2)] to-[rgb(var(--surface))] flex items-center justify-center">
                                 <Users className="w-12 h-12 text-[rgb(var(--accent)/0.3)]" />
@@ -456,16 +499,27 @@ export function MarketplaceClient() {
               </div>
             </motion.div>
           ) : (
-            <motion.div key={`grid-${filters.version}`}
-              variants={stagger} initial="hidden" animate="show"
-              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
-              {filtered.map(product => (
-                <motion.div key={product.id} variants={fadeUp} layout>
-                  <ProductCard product={product}
-                    displayVersion={filters.version === "all" ? undefined : filters.version} />
-                </motion.div>
-              ))}
-            </motion.div>
+            <div key={`grid-${filters.version}`}>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+                {shown.map(product => (
+                  // No `layout` here: framer-motion re-measures every laid-out
+                  // child on each render, and with a couple hundred cards that
+                  // alone dropped scrolling to single-digit FPS.
+                  <div key={product.id}>
+                    <ProductCard product={product}
+                      displayVersion={filters.version === "all" ? undefined : filters.version} />
+                  </div>
+                ))}
+              </div>
+
+              {visible < filtered.length && (
+                <div ref={sentinelRef} className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5 mt-4 md:mt-5">
+                  {Array.from({ length: Math.min(5, filtered.length - visible) }).map((_, i) => (
+                    <ProductCardSkeleton key={i} />
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </AnimatePresence>}
       </div>
