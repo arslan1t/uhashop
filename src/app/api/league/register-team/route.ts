@@ -1,8 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { getAuthUserId } from "@/lib/user-auth";
 import { sendTelegramMessage, escapeHtml } from "@/lib/telegram";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { teamName, captainName, captainPhone, captainTg, players } = body as {
@@ -22,6 +23,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Необходимо указать 4 игроков" }, { status: 400 });
     }
 
+    // Link to the unified account if the captain is signed in.
+    const userId = getAuthUserId(req);
+
     // Save to Firestore via Admin SDK
     const db     = getAdminDb();
     const docRef = await db.collection("league_team_registrations").add({
@@ -32,6 +36,7 @@ export async function POST(req: Request) {
       players:    cleanPlayers,
       status:     "pending",
       createdAt:  new Date().toISOString(),
+      ...(userId ? { userId } : {}),
     });
 
     // Telegram notification to admin
@@ -56,5 +61,21 @@ export async function POST(req: Request) {
       { error: e instanceof Error ? e.message : "Server error" },
       { status: 500 }
     );
+  }
+}
+
+/** GET — the signed-in captain's own team registrations (for the profile). */
+export async function GET(req: NextRequest) {
+  const userId = getAuthUserId(req);
+  if (!userId) return NextResponse.json({ teams: [] });
+  try {
+    const db = getAdminDb();
+    const snap = await db.collection("league_team_registrations").where("userId", "==", userId).get();
+    const teams = snap.docs
+      .map(d => ({ id: d.id, teamName: d.data().teamName, status: d.data().status, createdAt: d.data().createdAt }))
+      .sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+    return NextResponse.json({ teams });
+  } catch (e) {
+    return NextResponse.json({ error: String(e), teams: [] }, { status: 500 });
   }
 }

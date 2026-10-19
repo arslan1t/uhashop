@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, Users, FolderOpen,
   Image as ImageIcon, Settings, Shirt, FileText,
   ChevronLeft, LogOut, ExternalLink, Tag, GraduationCap,
-  Trophy, ArrowUpDown,
+  Trophy, ArrowUpDown, X,
 } from "lucide-react";
 import { useAdminStore } from "@/store/admin";
 import { cn } from "@/lib/utils";
@@ -29,9 +29,9 @@ const NAV = [
   { label: "Настройки", href: "/admin/settings", icon: Settings },
 ];
 
-interface Props { collapsed?: boolean; onToggle?: () => void }
+interface Props { collapsed?: boolean; onToggle?: () => void; mobileOpen?: boolean; onMobileClose?: () => void }
 
-export function AdminSidebar({ collapsed, onToggle }: Props) {
+export function AdminSidebar({ collapsed, onToggle, mobileOpen, onMobileClose }: Props) {
   const pathname = usePathname();
   const router = useRouter();
   const { adminUser, logout } = useAdminStore();
@@ -44,14 +44,21 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
   const isActive = (href: string, exact?: boolean) =>
     exact ? pathname === href : pathname.startsWith(href);
 
+  // Labels stay visible whenever the mobile drawer is open (it's always
+  // full-width there) — `collapsed` only governs the icons-only desktop rail.
+  const showLabels = mobileOpen || !collapsed;
+
   return (
     <aside className={cn(
       "flex flex-col bg-[#0a0a0a] border-r border-[#1a1a1a] h-full transition-all duration-300",
-      collapsed ? "w-16" : "w-60"
+      "fixed inset-y-0 left-0 z-50 w-64",
+      "lg:static lg:z-auto lg:translate-x-0",
+      mobileOpen ? "translate-x-0" : "-translate-x-full",
+      collapsed ? "lg:w-16" : "lg:w-60"
     )}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-5 border-b border-[#1a1a1a] min-h-[64px]">
-        {!collapsed && (
+        {showLabels && (
           <div className="flex items-center gap-2.5">
             <div className="relative h-6 w-20">
               <Image src="/images/branding/logo-white.png" alt="UHA"
@@ -62,9 +69,15 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
             </span>
           </div>
         )}
+        {/* Mobile: close drawer */}
+        <button onClick={onMobileClose}
+          className="lg:hidden w-7 h-7 rounded-lg flex items-center justify-center text-[#555] hover:text-white hover:bg-[#1a1a1a] transition-colors">
+          <X className="w-4 h-4" />
+        </button>
+        {/* Desktop: collapse rail */}
         <button onClick={onToggle}
           className={cn(
-            "w-7 h-7 rounded-lg flex items-center justify-center text-[#555] hover:text-white hover:bg-[#1a1a1a] transition-colors",
+            "hidden lg:flex w-7 h-7 rounded-lg items-center justify-center text-[#555] hover:text-white hover:bg-[#1a1a1a] transition-colors",
             collapsed && "mx-auto"
           )}>
           <ChevronLeft className={cn("w-4 h-4 transition-transform", collapsed && "rotate-180")} />
@@ -76,7 +89,7 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         {NAV.map(({ label, href, icon: Icon, exact, badge }) => {
           const active = isActive(href, exact);
           return (
-            <Link key={href} href={href}
+            <Link key={href} href={href} onClick={onMobileClose}
               className={cn(
                 "relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group",
                 active
@@ -87,10 +100,10 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-red-800 rounded-r-full" />
               )}
               <Icon className={cn("w-4 h-4 flex-shrink-0", active ? "text-red-500" : "text-[#555] group-hover:text-[#888]")} />
-              {!collapsed && (
+              {showLabels && (
                 <span className="truncate">{label}</span>
               )}
-              {!collapsed && badge && (
+              {showLabels && badge && (
                 <span className="ml-auto bg-red-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase">
                   {badge}
                 </span>
@@ -105,16 +118,16 @@ export function AdminSidebar({ collapsed, onToggle }: Props) {
         <Link href="/" target="_blank"
           className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#555] hover:text-white hover:bg-[#141414] transition-colors group">
           <ExternalLink className="w-4 h-4 flex-shrink-0 text-[#444] group-hover:text-[#888]" />
-          {!collapsed && <span>Открыть сайт</span>}
+          {showLabels && <span>Открыть сайт</span>}
         </Link>
 
         <button onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-[#555] hover:text-red-500 hover:bg-red-500/5 transition-colors group">
           <LogOut className="w-4 h-4 flex-shrink-0" />
-          {!collapsed && <span>Выйти</span>}
+          {showLabels && <span>Выйти</span>}
         </button>
 
-        {!collapsed && adminUser && (
+        {showLabels && adminUser && (
           <div className="px-3 pt-2 pb-1">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-red-800/20 border border-red-800/30 flex items-center justify-center flex-shrink-0">

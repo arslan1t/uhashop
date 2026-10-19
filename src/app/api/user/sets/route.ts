@@ -55,10 +55,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    // Fetch creator display name from user_profiles
+    const profileSnap = await db.collection("user_profiles").doc(authId).get();
+    const creatorName = profileSnap.data()?.name || setData.creatorName || "";
+
     const payload = sanitize({
       ...setData,
       id,
       createdBy: authId,
+      creatorName,
       displayOrder: setData.displayOrder ?? 999,
       createdAt: setData.createdAt ?? new Date().toISOString(),
     });

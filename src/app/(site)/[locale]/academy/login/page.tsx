@@ -1,48 +1,76 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "@/i18n/navigation";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { ArrowLeft, AlertCircle, Loader2, GraduationCap, Users } from "lucide-react";
 import { useAcademyAuth } from "@/store/academy";
+import { AcademyTelegramLoginButton } from "@/components/ui/AcademyTelegramLoginButton";
 
 type Role = "athlete" | "parent";
+
+function redirectForScope() {
+  const { scope } = useAcademyAuth.getState();
+  if (!scope) return null;
+  return scope.role === "athlete" ? `/academy/athlete/${scope.athlete.id}` : "/academy/parent";
+}
 
 export default function AcademyLoginPage() {
   const t = useTranslations("academy");
   const [role, setRole] = useState<Role>("athlete");
   const [name, setName] = useState("");
-  const [pin, setPin] = useState("");
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAcademyAuth();
+  const [resolvingToken, setResolvingToken] = useState(false);
+  const { login, loginWithToken } = useAcademyAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Deep link from the Telegram login bot (?t=<token>) — resolve and redirect.
+  useEffect(() => {
+    const token = searchParams.get("t");
+    if (!token) return;
+    setResolvingToken(true);
+    loginWithToken(token).then(result => {
+      if (result.ok) {
+        const dest = redirectForScope();
+        if (dest) { router.replace(dest); return; }
+      }
+      setError(t("error_login_default"));
+      setResolvingToken(false);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !pin.trim()) {
+    if (!name.trim() || !code.trim()) {
       setError(t("error_fill_all"));
-      return;
-    }
-    if (pin.length !== 4) {
-      setError(t("error_pin_length"));
       return;
     }
     setLoading(true);
     setError("");
-    await new Promise(r => setTimeout(r, 500));
 
-    const result = login(role, name, pin);
+    const result = await login(role, name, code.trim());
     if (result.ok) {
-      router.replace(role === "athlete" ? "/academy/athlete" : "/academy/parent");
+      router.replace(redirectForScope() ?? (role === "athlete" ? "/academy/athlete" : "/academy/parent"));
     } else {
       setError(result.error || t("error_login_default"));
     }
     setLoading(false);
   };
+
+  if (resolvingToken) {
+    return (
+      <div className="min-h-screen bg-[rgb(var(--background))] flex items-center justify-center">
+        <Loader2 className="w-6 h-6 text-blue-400 animate-spin" />
+      </div>
+    );
+  }
 
   const INP = "w-full h-12 px-4 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl text-[rgb(var(--foreground))] text-sm placeholder:text-[rgb(var(--muted))] focus:outline-none focus:border-blue-500/60 transition-all";
 
@@ -96,12 +124,13 @@ export default function AcademyLoginPage() {
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-[rgb(var(--muted))] mb-1.5">
-                {t("pin_label")}
+                Код доступа
               </label>
-              <input type="password" inputMode="numeric" maxLength={4}
-                value={pin} onChange={e => { setPin(e.target.value.replace(/\D/g, "")); setError(""); }}
-                placeholder="• • • •"
-                className={`${INP} text-center tracking-[0.5em] text-lg font-bold`} />
+              <input type="password" value={code}
+                onChange={e => { setCode(e.target.value); setError(""); }}
+                placeholder="PIN или ваш пароль"
+                className={INP} />
+              <p className="text-[11px] text-[rgb(var(--muted))] mt-1.5">Код выдаёт тренер. Забыли — напишите тренеру.</p>
             </div>
 
             {error && (
@@ -120,6 +149,14 @@ export default function AcademyLoginPage() {
               }
             </button>
           </form>
+
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px bg-[rgb(var(--border))]" />
+            <span className="text-[rgb(var(--muted))] text-[11px] uppercase tracking-wider">или</span>
+            <div className="flex-1 h-px bg-[rgb(var(--border))]" />
+          </div>
+
+          <AcademyTelegramLoginButton role={role} />
 
           <p className="text-center text-[rgb(var(--muted))] text-xs mt-5 leading-relaxed">
             {t("pin_hint")}{" "}

@@ -58,9 +58,9 @@ async function sendTelegram(text: string): Promise<void> {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { parentName, parentTg, age, athleteName, height, weight, skillLevel } = body;
+    const { parentName, parentTg, parentPhone, age, athleteName, height, weight, skillLevel } = body;
 
-    if (!parentName?.trim() || !parentTg?.trim() || !age) {
+    if (!parentName?.trim() || !parentTg?.trim() || !parentPhone?.trim() || !age) {
       return NextResponse.json({ error: "Обязательные поля не заполнены" }, { status: 400 });
     }
 
@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
     const docId = await saveToFirestore({
       parentName:  String(parentName).trim(),
       parentTg:    formattedTg,
+      parentPhone: String(parentPhone).trim(),
       age:         Number(age),
       athleteName: athleteName?.trim() || null,
       height:      height ? Number(height) : null,
@@ -86,6 +87,7 @@ export async function POST(req: NextRequest) {
       "",
       `👤 <b>Родитель:</b> ${String(parentName).trim()}`,
       `📱 <b>Telegram:</b> ${formattedTg}`,
+      `📞 <b>Телефон:</b> ${String(parentPhone).trim()}`,
       `🎂 <b>Возраст:</b> ${age} лет`,
     ];
     if (athleteName?.trim()) lines.push(`🏅 <b>Спортсмен:</b> ${athleteName.trim()}`);

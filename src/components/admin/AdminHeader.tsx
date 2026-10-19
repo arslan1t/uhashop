@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Search, Plus } from "lucide-react";
+import { Bell, Search, Plus, Menu } from "lucide-react";
 
 const PAGE_TITLES: Record<string, string> = {
   "/admin": "Dashboard",
@@ -21,16 +21,22 @@ const PAGE_ACTIONS: Record<string, { label: string; href?: string }> = {
   "/admin/categories": { label: "Добавить категорию" },
 };
 
-export function AdminHeader() {
+export function AdminHeader({ onMenuClick }: { onMenuClick?: () => void }) {
   const pathname = usePathname();
   const title = PAGE_TITLES[pathname] ?? "Admin";
   const action = PAGE_ACTIONS[pathname];
 
   return (
-    <header className="h-16 bg-[#0d0d0d] border-b border-[#1a1a1a] flex items-center justify-between px-6 flex-shrink-0">
-      <div>
-        <h1 className="text-white font-semibold text-base">{title}</h1>
-        <p className="text-[#444] text-xs">UHA SHOP · Admin Panel</p>
+    <header className="h-16 bg-[#0d0d0d] border-b border-[#1a1a1a] flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
+      <div className="flex items-center gap-3 min-w-0">
+        <button onClick={onMenuClick}
+          className="lg:hidden w-9 h-9 rounded-xl bg-[#141414] border border-[#222] flex items-center justify-center text-[#888] hover:text-white transition-colors flex-shrink-0">
+          <Menu className="w-4 h-4" />
+        </button>
+        <div className="min-w-0">
+          <h1 className="text-white font-semibold text-base truncate">{title}</h1>
+          <p className="text-[#444] text-xs hidden sm:block">UHA SHOP · Admin Panel</p>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">

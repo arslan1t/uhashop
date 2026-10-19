@@ -20,11 +20,22 @@ export interface AcademyAthlete {
   height?: number;
   weight?: number;
   avatar?: string;
-  parentId: string;
+  /** Optional — a bot self-signup may not have a linked parent yet. */
+  parentId?: string;
   status: AthleteStatus;
   joinedAt: string;
   phone?: string;
-  pin: string;
+  telegram?: string;
+  /** PIN assigned by admin/trainer (legacy/primary credential). */
+  pin?: string;
+  /** Self-chosen password hash — set when the account signed up via the
+   *  Telegram bot instead of being PIN-assigned. Either credential works. */
+  passwordHash?: string;
+  /** Telegram chat id, captured once the athlete logs in/links via the bot. */
+  chatId?: number;
+  /** Unified shop account this academy record belongs to (tg_<telegramId>).
+   *  Set once the athlete links Telegram — bridges shop ↔ academy identity. */
+  userId?: string;
 }
 
 export interface AcademyParent {
@@ -34,7 +45,23 @@ export interface AcademyParent {
   telegram?: string;
   email?: string;
   childrenIds: string[];
-  pin: string;
+  pin?: string;
+  passwordHash?: string;
+  createdAt: string;
+  /** Telegram chat id, captured once the parent links their Telegram — lets
+   *  the admin panel send them payment reminders via the bot. */
+  chatId?: number;
+  /** Unified shop account this academy record belongs to (tg_<telegramId>). */
+  userId?: string;
+}
+
+/** Free-text feedback a coach leaves for an athlete — visible to the athlete
+ *  and their parent in their dashboards (website only, no Telegram push). */
+export interface AcademyNote {
+  id: string;
+  athleteId: string;
+  coachName: string;
+  text: string;
   createdAt: string;
 }
 

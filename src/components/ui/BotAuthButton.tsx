@@ -198,7 +198,7 @@ export function BotAuthButton({ redirectTo = "/profile", linkUserId, label }: Pr
           Ожидание подтверждения в Telegram...
         </div>
         <p className="text-xs text-[rgb(var(--muted))] text-center">
-          Поделитесь номером в боте и вернитесь на эту страницу
+          Поделитесь номером и напишите имя в боте, затем вернитесь на эту страницу
         </p>
         <button onClick={cancel}
           className="text-xs text-[rgb(var(--muted))] hover:text-[rgb(var(--foreground))] underline-offset-2 hover:underline transition-colors">

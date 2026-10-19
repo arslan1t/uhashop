@@ -23,8 +23,11 @@ export async function GET(req: NextRequest) {
       email: data.email ?? `${userId}@telegram.local`,
       avatar: data.avatar ?? null,
       telegram: data.telegram ?? null,
+      phone: data.phone ?? null,
       bio: data.bio ?? null,
       socialLinks: data.socialLinks ?? null,
+      academy: data.academy ?? null,
+      hasPassword: !!data.passwordHash,
       createdAt: data.createdAt ?? new Date().toISOString(),
     };
     return NextResponse.json({ profile });

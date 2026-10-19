@@ -30,6 +30,7 @@ export function AcademyApplicationModal({ onClose }: Props) {
   // Required fields
   const [parentName,  setParentName]  = useState("");
   const [parentTg,    setParentTg]    = useState("");
+  const [parentPhone, setParentPhone] = useState("");
   const [age,         setAge]         = useState("");
 
   // Optional fields
@@ -42,7 +43,7 @@ export function AcademyApplicationModal({ onClose }: Props) {
     e.preventDefault();
     setError(null);
 
-    if (!parentName.trim() || !parentTg.trim() || !age.trim()) {
+    if (!parentName.trim() || !parentTg.trim() || !parentPhone.trim() || !age.trim()) {
       setError(t("modal_required_error"));
       return;
     }
@@ -57,8 +58,9 @@ export function AcademyApplicationModal({ onClose }: Props) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          parentName: parentName.trim(),
-          parentTg:   parentTg.trim(),
+          parentName:  parentName.trim(),
+          parentTg:    parentTg.trim(),
+          parentPhone: parentPhone.trim(),
           age:        Number(age),
           athleteName: athleteName.trim() || undefined,
           height:      height ? Number(height) : undefined,
@@ -168,6 +170,16 @@ export function AcademyApplicationModal({ onClose }: Props) {
                       className={`${INP} pl-8`} required
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className={LBL}>{t("modal_parent_phone")}</label>
+                  <input
+                    type="tel"
+                    value={parentPhone} onChange={e => setParentPhone(e.target.value)}
+                    placeholder="+998 90 123 45 67"
+                    className={INP} required
+                  />
                 </div>
 
                 <div>

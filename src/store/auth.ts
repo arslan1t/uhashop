@@ -11,6 +11,7 @@ export interface UserProfile {
   name: string;
   email: string;
   telegram?: string;
+  phone?: string;
   avatar?: string;
   createdAt: string;
   bio?: string;
@@ -20,6 +21,15 @@ export interface UserProfile {
     youtube?: string;
     telegram?: string;
   };
+  /** Set when this unified account is also an academy athlete/parent —
+   *  bridges shop ↔ academy so the profile can show the Академия section. */
+  academy?: {
+    role: "athlete" | "parent";
+    academyId: string;
+    linkedAt: string;
+  };
+  /** True if the user has set a phone+password for no-Telegram login. */
+  hasPassword?: boolean;
 }
 
 interface AuthStore {
@@ -172,17 +182,32 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   refreshProfile: async () => {
     const current = get().user;
     if (!current?.id || typeof window === "undefined") return;
-    const p = await fetchServerProfile(current.id);
+    // Prefer the authed /api/user/me — it returns the full record (phone,
+    // academy link, hasPassword) needed for the unified profile. Fall back to
+    // the public projection if there's no token yet.
+    let p: Partial<UserProfile> | null = null;
+    const token = getUserToken();
+    if (token) {
+      try {
+        const res = await fetch("/api/user/me", { headers: { "x-user-token": token } });
+        if (res.ok) p = (await res.json()).profile as Partial<UserProfile>;
+      } catch { /* fall through */ }
+    }
+    if (!p) p = await fetchServerProfile(current.id);
     if (!p) return;
+    const fresh = p;
     set((state) => {
       if (!state.user) return {};
       const merged: UserProfile = {
         ...state.user,
-        name: p.name || state.user.name,
-        avatar: p.avatar ?? state.user.avatar,
-        bio: p.bio ?? state.user.bio,
-        socialLinks: p.socialLinks ?? state.user.socialLinks,
-        telegram: p.telegram ?? state.user.telegram,
+        name: fresh.name || state.user.name,
+        avatar: fresh.avatar ?? state.user.avatar,
+        bio: fresh.bio ?? state.user.bio,
+        socialLinks: fresh.socialLinks ?? state.user.socialLinks,
+        telegram: fresh.telegram ?? state.user.telegram,
+        phone: fresh.phone ?? state.user.phone,
+        academy: fresh.academy ?? state.user.academy,
+        hasPassword: fresh.hasPassword ?? state.user.hasPassword,
       };
       safeStorage.setItem(AUTH_KEY, JSON.stringify(merged));
       return { user: merged };

@@ -1,13 +1,12 @@
 /**
- * Firestore operations for UHA Academy applications.
- * Collection: "academy_applications"
+ * Types for UHA Academy applications (collection: "academy_applications").
+ *
+ * Reads/writes go through the Admin SDK — /api/academy/apply (public submit,
+ * REST API + key) and /api/admin/academy (admin read/update) — never the
+ * client Firestore SDK, since security rules deny client reads with no
+ * Firebase Auth session (this app's admin login is a separate custom-token
+ * system, so the client is never actually authenticated with Firebase).
  */
-import {
-  collection, doc, addDoc, updateDoc, onSnapshot,
-  getDocs, serverTimestamp, query, orderBy,
-  type Unsubscribe,
-} from "firebase/firestore";
-import { getDb } from "./config";
 
 export type ApplicationStatus = "new" | "contacted" | "enrolled" | "rejected";
 export type SkillLevel = "beginner" | "intermediate" | "advanced" | "pro";
@@ -16,6 +15,7 @@ export interface AcademyApplication {
   id?: string;
   parentName: string;
   parentTg: string;
+  parentPhone?: string;
   age: number;
   athleteName?: string;
   height?: number;
@@ -25,45 +25,13 @@ export interface AcademyApplication {
   status: ApplicationStatus;
   createdAt: unknown; // Firestore Timestamp
   updatedAt?: unknown;
-}
-
-const COLLECTION = "academy_applications";
-
-export async function submitApplication(
-  data: Omit<AcademyApplication, "id" | "createdAt" | "updatedAt">
-): Promise<string> {
-  const db = getDb();
-  const ref = await addDoc(collection(db, COLLECTION), {
-    ...data,
-    status: "new",
-    createdAt: serverTimestamp(),
-  });
-  return ref.id;
-}
-
-export async function updateApplicationStatus(
-  id: string,
-  status: ApplicationStatus,
-  notes?: string
-): Promise<void> {
-  const db = getDb();
-  await updateDoc(doc(collection(db, COLLECTION), id), {
-    status,
-    ...(notes !== undefined ? { notes } : {}),
-    updatedAt: serverTimestamp(),
-  });
-}
-
-export function subscribeToApplications(
-  callback: (apps: AcademyApplication[]) => void
-): Unsubscribe {
-  const db = getDb();
-  const q = query(collection(db, COLLECTION), orderBy("createdAt", "desc"));
-  return onSnapshot(q, (snap) => {
-    const apps = snap.docs.map(d => ({
-      id: d.id,
-      ...d.data(),
-    })) as AcademyApplication[];
-    callback(apps);
-  });
+  /** Self-registered via the Telegram bot instead of the website apply form.
+   *  parentName holds the registrant's own name in this case, regardless of
+   *  role — "Спортсмен"/"Родитель" label is derived from `role` in the UI. */
+  source?: "website" | "bot";
+  role?: "athlete" | "parent";
+  chatId?: number;
+  telegramId?: number;
+  /** Set once a trainer enrolls a bot signup into a real account. */
+  linkedAccountId?: string;
 }

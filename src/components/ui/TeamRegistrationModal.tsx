@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, CheckCircle2, Users } from "lucide-react";
+import { useAuthStore, getUserToken } from "@/store/auth";
 
 interface Props {
   onClose: () => void;
@@ -12,15 +13,18 @@ const INP = "w-full h-12 px-4 bg-[#050505] border border-[#1e1e1e] rounded-xl te
 const LBL = "block text-[10px] font-bold uppercase tracking-widest text-white/40 mb-2";
 
 export function TeamRegistrationModal({ onClose }: Props) {
+  const user = useAuthStore(s => s.user);
   const [step, setStep]     = useState<"form" | "success">("form");
   const [loading, setLoading] = useState(false);
   const [error, setError]   = useState("");
 
+  // Pre-fill the captain fields from the logged-in unified account so a
+  // signed-in user registers in two taps — the league is part of the system.
   const [formData, setFormData] = useState({
     teamName:     "",
-    captainName:  "",
-    captainPhone: "",
-    captainTg:    "",
+    captainName:  user?.name ?? "",
+    captainPhone: user?.phone ?? "",
+    captainTg:    user?.telegram ?? "",
     players:      ["", "", "", ""], // 4 players
   });
 
@@ -52,7 +56,7 @@ export function TeamRegistrationModal({ onClose }: Props) {
     try {
       const res = await fetch("/api/league/register-team", {
         method:  "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(getUserToken() ? { "x-user-token": getUserToken() } : {}) },
         body:    JSON.stringify(formData),
       });
       if (!res.ok) {

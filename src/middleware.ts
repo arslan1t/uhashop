@@ -5,8 +5,8 @@ import { NextRequest } from "next/server";
 const intlMiddleware = createMiddleware(routing);
 
 export default function middleware(request: NextRequest) {
-  // Skip i18n for admin routes
-  if (request.nextUrl.pathname.startsWith("/admin")) {
+  // Skip i18n for admin and trainer routes
+  if (request.nextUrl.pathname.startsWith("/admin") || request.nextUrl.pathname.startsWith("/trainer")) {
     return;
   }
   return intlMiddleware(request);

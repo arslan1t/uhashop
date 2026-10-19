@@ -83,4 +83,10 @@ export interface PlayerSet {
   type?: "player" | "featured" | "seasonal" | "creator" | "athlete" | "sponsored" | "campaign";
   isActive?: boolean;
   tags?: string[];
+  socialLinks?: {
+    instagram?: string;
+    tiktok?: string;
+    youtube?: string;
+    telegram?: string;
+  };
 }

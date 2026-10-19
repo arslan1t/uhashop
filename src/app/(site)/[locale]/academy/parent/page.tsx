@@ -11,7 +11,8 @@ import {
   Medal, TrendingUp, CalendarDays, Camera, Image as ImageIcon,
   Play, ArrowUp, ArrowDown, Minus, Trophy
 } from "lucide-react";
-import { useAcademyAuth, useAcademyStore } from "@/store/academy";
+import { useAcademyAuth } from "@/store/academy";
+import { AcademyTelegramLinkButton } from "@/components/ui/AcademyTelegramLinkButton";
 import {
   POSITION_SHORT, STATUS_COLORS,
   SESSION_TYPE_COLORS,
@@ -26,40 +27,34 @@ type ParentTab = "overview" | "progress" | "events" | "gallery";
 
 export default function ParentDashboardPage() {
   const t = useTranslations("academy");
-  const { role, currentId, isLoggedIn, logout } = useAcademyAuth();
-  const store = useAcademyStore();
-  const { athletes, parents, schedule, exercises, payments, events, badges, athleteBadges, progress, media } = store;
+  const { role, isLoggedIn, initialized, scope, refresh, logout } = useAcademyAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<ParentTab>("overview");
   const [selectedChild, setSelectedChild] = useState<string | "all">("all");
 
+  useEffect(() => { refresh(); }, []);
+
   useEffect(() => {
-    if (!isLoggedIn || role !== "parent") router.replace("/academy/login");
-  }, [isLoggedIn, role]);
+    if (initialized && (!isLoggedIn || role !== "parent")) router.replace("/academy/login");
+  }, [initialized, isLoggedIn, role]);
 
-  const parent = parents.find(p => p.id === currentId);
-  if (!parent) return null;
+  if (!scope || scope.role !== "parent") return null;
+  const { parent, children, schedule, exercises, progress, athleteBadges, badges, media, notes } = scope;
 
-  const children = athletes.filter(a => parent.childrenIds.includes(a.id));
-  const myPayments = payments.filter(p => p.parentId === parent.id);
+  const myPayments = scope.payments;
   const pendingPayments = myPayments.filter(p => p.status === "pending" || p.status === "overdue");
   const totalOwed = pendingPayments.reduce((s, p) => s + p.amount, 0);
 
   // Events for children
   const childAgeGroups = [...new Set(children.map(c => c.ageGroup))];
   const childIds = children.map(c => c.id);
-  const upcomingEvents = events.filter(e =>
-    e.date >= new Date().toISOString().slice(0, 10) &&
-    e.ageGroups.some(ag => childAgeGroups.includes(ag))
-  ).sort((a, b) => a.date.localeCompare(b.date));
+  const upcomingEvents = [...scope.events].sort((a, b) => a.date.localeCompare(b.date));
 
   // Badges for all children
-  const childBadgeEntries = athleteBadges.filter(ab => childIds.includes(ab.athleteId));
+  const childBadgeEntries = athleteBadges;
 
   // Media for children
-  const childMedia = media.filter(m =>
-    m.athleteIds?.some(id => childIds.includes(id)) || (m.ageGroup && childAgeGroups.includes(m.ageGroup))
-  ).sort((a, b) => b.date.localeCompare(a.date));
+  const childMedia = [...media].sort((a, b) => b.date.localeCompare(a.date));
 
   const TABS: { key: ParentTab; label: string; icon: typeof Trophy }[] = [
     { key: "overview", label: t("tab_overview"), icon: User },
@@ -94,6 +89,15 @@ export default function ParentDashboardPage() {
               <div className="flex items-center gap-3 mt-1 text-xs text-[rgb(var(--muted))]">
                 <span>{parent.phone}</span>
                 {parent.telegram && <span className="text-[#2AABEE] flex items-center gap-1"><Send className="w-3 h-3" /> {parent.telegram}</span>}
+              </div>
+              <div className="mt-2">
+                {parent.chatId ? (
+                  <span className="inline-flex items-center gap-1.5 text-emerald-400 text-xs font-semibold">
+                    <Send className="w-3 h-3" /> Telegram подключен — уведомления об оплате включены
+                  </span>
+                ) : (
+                  <AcademyTelegramLinkButton />
+                )}
               </div>
             </div>
           </div>
@@ -132,6 +136,29 @@ export default function ParentDashboardPage() {
         {/* ═══ OVERVIEW ═══ */}
         {activeTab === "overview" && (
           <>
+            {/* Trainer notes */}
+            {notes.length > 0 && (
+              <section>
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <Medal className="w-5 h-5 text-amber-400" /> Заметки тренера
+                </h2>
+                <div className="space-y-2">
+                  {notes.map(n => {
+                    const child = children.find(c => c.id === n.athleteId);
+                    return (
+                      <div key={n.id} className="p-4 bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl">
+                        {child && <p className="text-blue-400 text-xs font-bold mb-1">{child.name}</p>}
+                        <p className="text-sm leading-relaxed">{n.text}</p>
+                        <p className="text-[rgb(var(--muted))] text-[10px] mt-1.5">
+                          {n.coachName} · {(() => { try { return formatDateRu(n.createdAt.slice(0, 10)); } catch { return ""; } })()}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
             {/* Children cards */}
             <section>
               <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
@@ -142,7 +169,7 @@ export default function ParentDashboardPage() {
                   const childExercises = exercises.filter(e => e.athleteId === child.id);
                   const todayEx = childExercises.filter(e => isToday(e.assignedDate));
                   const completedToday = todayEx.filter(e => e.completed).length;
-                  const childSchedule = getAthleteSchedule(child.id, athletes, schedule);
+                  const childSchedule = getAthleteSchedule(child.id, children, schedule);
                   const nextSession = childSchedule.find(s => s.date >= new Date().toISOString().slice(0, 10));
                   const childBadges = athleteBadges.filter(ab => ab.athleteId === child.id);
 
@@ -210,7 +237,7 @@ export default function ParentDashboardPage() {
               <div className="space-y-2">
                 {(() => {
                   const allSessions = children.flatMap(child =>
-                    getAthleteSchedule(child.id, athletes, schedule).map(s => ({ ...s, childName: child.name }))
+                    getAthleteSchedule(child.id, children, schedule).map(s => ({ ...s, childName: child.name }))
                   );
                   const unique = allSessions.filter((s, i, arr) => arr.findIndex(x => x.id === s.id) === i);
                   const upcoming = unique.filter(s => s.date >= new Date().toISOString().slice(0, 10))
@@ -250,7 +277,7 @@ export default function ParentDashboardPage() {
               <div className="bg-[rgb(var(--surface))] border border-[rgb(var(--border))] rounded-2xl overflow-hidden">
                 <div className="divide-y divide-[rgb(var(--border))]">
                   {myPayments.sort((a, b) => b.month.localeCompare(a.month)).map(payment => {
-                    const child = athletes.find(a => a.id === payment.athleteId);
+                    const child = children.find(a => a.id === payment.athleteId);
                     return (
                       <div key={payment.id} className="flex items-center justify-between p-4 hover:bg-[rgb(var(--background)/0.5)] transition-colors">
                         <div>

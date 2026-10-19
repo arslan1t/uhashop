@@ -12,6 +12,7 @@ import { useFirestoreProducts } from "@/hooks/useFirestoreProducts";
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const [ready, setReady] = useState(false);
   const { isAuthenticated, checkAuth, validateToken } = useAdminStore();
   const hydrateOverrides = useProductOverrides(s => s.hydrate);
@@ -46,6 +47,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     }
   }, [ready, isAuthenticated, isLogin]);
 
+  // Close the mobile drawer whenever the route changes.
+  useEffect(() => { setMobileOpen(false); }, [pathname]);
+
   // Login page — no shell
   if (isLogin) {
     return (
@@ -66,12 +70,17 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex h-screen bg-[#0a0a0a] text-white overflow-hidden">
+      {mobileOpen && (
+        <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setMobileOpen(false)} />
+      )}
       <AdminSidebar
         collapsed={collapsed}
         onToggle={() => setCollapsed(!collapsed)}
+        mobileOpen={mobileOpen}
+        onMobileClose={() => setMobileOpen(false)}
       />
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <AdminHeader />
+        <AdminHeader onMenuClick={() => setMobileOpen(true)} />
         <main className="flex-1 overflow-y-auto bg-[#0d0d0d]">
           {children}
         </main>
