@@ -40,3 +40,6 @@ public/images/products/**/*копия*
 public/images/products/**/Problembo*
 public/images/products/**/*— *
 public/images/products/**/*\xa0*
+public/images-original
+scripts/.migration-log.json
+videos-original
