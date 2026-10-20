@@ -1,33 +1,40 @@
 /**
  * One-way migration: Firebase Cloud Storage → Cloudflare R2.
  *
- * Every product photo uploaded through the admin panel lives in the Firebase
- * bucket, which now answers 402 ("billing account ... disabled in state
- * closed") for every object. Firestore is untouched and still holds the URLs,
- * so once Firebase billing is restored this script can walk those URLs,
- * re-host the bytes on R2 and rewrite the documents.
+ * Every photo uploaded through the admin panel or by a user lives in the
+ * Firebase bucket, which answers 402 ("billing account ... disabled in state
+ * closed") for every *download*. Listing still works, which is how we know the
+ * 779 objects (150MB) are intact — but the bytes cannot be read until billing
+ * is restored. Firestore is unaffected and still holds every URL.
  *
- * ORDER MATTERS: Firebase billing must be active while this runs. Downloads
- * fail with 402 otherwise and the script will tell you so and stop.
+ * ORDER MATTERS: restore Firebase billing (Blaze) before running this.
+ * Downloads fail with 402 otherwise and the script stops rather than writing
+ * half-migrated documents.
  *
- * What each photo goes through:
- *   download from Firebase → sharp (≤1200px, WebP q78) → PUT to R2 →
- *   new URL collected → Firestore document rewritten once all its photos are done
+ * Covers EVERY collection, not just the catalogue — an audit found Storage
+ * URLs in seven of them, and shop_overrides (the admin's main-image picks,
+ * which ProductCard prefers over product.image) holds more of them than
+ * shop_products does. Each document is walked recursively, so a URL nested in
+ * an array or a sub-object is migrated too; non-plain Firestore values
+ * (Timestamp, GeoPoint, DocumentReference) are passed through untouched.
  *
- * Safe to re-run. A journal at scripts/.migration-log.json records every
- * source URL already migrated, so an interrupted run resumes where it stopped
- * and finished documents are not touched again.
+ * Each photo: download via the Admin SDK (no public token needed) → sharp to
+ * ≤1200px WebP → PUT to R2 → URL swapped in the document.
  *
- *   node scripts/migrate-storage.mjs --dry           # report only, writes nothing
- *   node scripts/migrate-storage.mjs --limit 1       # migrate one product end-to-end
- *   node scripts/migrate-storage.mjs                 # the real run
+ * Safe to re-run. scripts/.migration-log.json maps every source URL to its R2
+ * replacement, so an interrupted run resumes and finished documents are left
+ * alone.
+ *
+ *   node scripts/migrate-storage.mjs --dry      # report only, writes nothing
+ *   node scripts/migrate-storage.mjs --limit 1  # one document, end to end
+ *   node scripts/migrate-storage.mjs            # the real run
  */
 import fs from "node:fs";
-import path from "node:path";
 import sharp from "sharp";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { getStorage } from "firebase-admin/storage";
 
 // ── env ──────────────────────────────────────────────────────────────────────
 for (const file of [".env.local", ".env"]) {
@@ -36,7 +43,7 @@ for (const file of [".env.local", ".env"]) {
     const i = line.indexOf("=");
     if (i < 1 || line.trimStart().startsWith("#")) continue;
     const k = line.slice(0, i).trim();
-    if (!process.env[k]) process.env[k] = line.slice(i + 1).trim();
+    if (!process.env[k]) process.env[k] = line.slice(i + 1).trim().replace(/^"|"$/g, "");
   }
 }
 
@@ -50,17 +57,16 @@ const need = [
   "R2_ACCOUNT_ID", "R2_ACCESS_KEY_ID", "R2_SECRET_ACCESS_KEY",
   "R2_BUCKET", "NEXT_PUBLIC_R2_PUBLIC_URL",
   "FIREBASE_PROJECT_ID", "FIREBASE_CLIENT_EMAIL", "FIREBASE_PRIVATE_KEY",
+  "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
 ];
 const missing = need.filter(k => !process.env[k]);
 if (missing.length) {
   console.error("Не заданы переменные окружения:\n  " + missing.join("\n  "));
-  console.error("\nR2_* берутся из Cloudflare, FIREBASE_* — из Vercel → Settings → Environment Variables.");
   process.exit(1);
 }
 
 const MAX_EDGE = 1200;
 const QUALITY = 78;
-const COLLECTION = "shop_products";
 const LOG = "scripts/.migration-log.json";
 const PUBLIC_BASE = process.env.NEXT_PUBLIC_R2_PUBLIC_URL.replace(/\/+$/, "");
 
@@ -72,10 +78,12 @@ if (!getApps().length) {
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
       privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
     }),
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   });
 }
 const db = getFirestore();
 db.settings({ ignoreUndefinedProperties: true });
+const bucket = getStorage().bucket();
 
 const r2 = new S3Client({
   region: "auto",
@@ -88,32 +96,41 @@ const r2 = new S3Client({
 });
 
 // ── journal ──────────────────────────────────────────────────────────────────
-/** @type {Record<string,string>} source Firebase URL → new R2 URL */
 const done = fs.existsSync(LOG) ? JSON.parse(fs.readFileSync(LOG, "utf8")) : {};
 const saveLog = () => fs.writeFileSync(LOG, JSON.stringify(done, null, 1));
 
-const isFirebaseUrl = u => typeof u === "string" && u.includes("firebasestorage.googleapis.com");
+const FB_RE = /^https:\/\/firebasestorage\.googleapis\.com\/v0\/b\/[^/]+\/o\/([^?]+)/;
+const isFirebaseUrl = v => typeof v === "string" && FB_RE.test(v);
+
+/** Storage object path encoded inside a Firebase download URL. */
+const pathFromUrl = url => decodeURIComponent(url.match(FB_RE)[1]);
+
+const stats = { photos: 0, docs: 0, bytesIn: 0, bytesOut: 0, failed: 0 };
+const failures = [];
+let billingStopped = false;
 
 /** Download → compress → upload. Returns the new public URL. */
-async function migrateOne(url, slug, index) {
+async function migrateUrl(url) {
   if (done[url]) return done[url];
 
-  const res = await fetch(url);
-  if (!res.ok) {
-    const hint = res.status === 402
-      ? " — биллинг Firebase выключен, включите его и запустите снова"
-      : "";
-    throw new Error(`скачивание вернуло HTTP ${res.status}${hint}`);
+  const srcPath = pathFromUrl(url);
+  let original;
+  try {
+    [original] = await bucket.file(srcPath).download();
+  } catch (e) {
+    if (/billing account/i.test(e.message)) billingStopped = true;
+    throw e;
   }
 
-  const original = Buffer.from(await res.arrayBuffer());
   const webp = await sharp(original)
     .rotate()
     .resize({ width: MAX_EDGE, height: MAX_EDGE, fit: "inside", withoutEnlargement: true })
     .webp({ quality: QUALITY })
     .toBuffer();
 
-  const key = `product-images/${slug}/${index}.webp`;
+  // Keep the Storage layout so paths stay recognisable, swap the extension.
+  const key = srcPath.replace(/\.[^./]+$/, "") + ".webp";
+
   if (!DRY) {
     await r2.send(new PutObjectCommand({
       Bucket: process.env.R2_BUCKET,
@@ -129,66 +146,77 @@ async function migrateOne(url, slug, index) {
 
   stats.bytesIn += original.length;
   stats.bytesOut += webp.length;
+  stats.photos++;
   return newUrl;
 }
 
-// ── run ──────────────────────────────────────────────────────────────────────
-const stats = { photos: 0, docs: 0, skipped: 0, failed: 0, bytesIn: 0, bytesOut: 0 };
-const failures = [];
+/**
+ * Recursively copy a value, replacing Firebase URLs. Only plain objects and
+ * arrays are walked — Timestamp, GeoPoint and DocumentReference are returned
+ * as-is so Firestore types survive the round trip.
+ */
+async function transform(value) {
+  if (isFirebaseUrl(value)) return { changed: true, value: await migrateUrl(value) };
+  if (Array.isArray(value)) {
+    let changed = false;
+    const out = [];
+    for (const item of value) {
+      const r = await transform(item);
+      changed ||= r.changed;
+      out.push(r.value);
+    }
+    return { changed, value: out };
+  }
+  if (value && value.constructor === Object) {
+    let changed = false;
+    const out = {};
+    for (const [k, v] of Object.entries(value)) {
+      const r = await transform(v);
+      changed ||= r.changed;
+      out[k] = r.value;
+    }
+    return { changed, value: out };
+  }
+  return { changed: false, value };
+}
 
-const snap = await db.collection(COLLECTION).get();
-console.log(`Товаров в Firestore: ${snap.size}${DRY ? "   [ПРОБНЫЙ ЗАПУСК — ничего не пишется]" : ""}\n`);
+// ── run ──────────────────────────────────────────────────────────────────────
+const collections = await db.listCollections();
+console.log(`Коллекций: ${collections.length}${DRY ? "   [ПРОБНЫЙ ЗАПУСК — ничего не пишется]" : ""}\n`);
 
 let handled = 0;
-for (const doc of snap.docs) {
-  if (handled >= LIMIT) break;
-  const data = doc.data();
-  const slug = data.slug || doc.id;
+outer:
+for (const col of collections) {
+  const snap = await col.get();
+  let colDocs = 0;
 
-  const main = isFirebaseUrl(data.image) ? data.image : null;
-  const gallery = Array.isArray(data.images) ? data.images.filter(isFirebaseUrl) : [];
-  if (!main && !gallery.length) { stats.skipped++; continue; }
+  for (const doc of snap.docs) {
+    if (handled >= LIMIT) break outer;
+    const data = doc.data();
+    if (!JSON.stringify(data).includes("firebasestorage.googleapis.com")) continue;
 
-  handled++;
-  const label = (data.nameRu || data.name || slug).slice(0, 44);
-
-  try {
-    const update = {};
-    let n = 0;
-
-    if (main) {
-      update.image = await migrateOne(main, slug, ++n);
-      stats.photos++;
-    }
-    if (gallery.length) {
-      const moved = [];
-      for (const u of data.images) {
-        moved.push(isFirebaseUrl(u) ? await migrateOne(u, slug, ++n) : u);
-        if (isFirebaseUrl(u)) stats.photos++;
+    handled++;
+    try {
+      const { changed, value } = await transform(data);
+      if (changed && !DRY) await doc.ref.set(value);
+      if (changed) { stats.docs++; colDocs++; }
+    } catch (e) {
+      stats.failed++;
+      failures.push(`${col.id}/${doc.id}: ${e.message.slice(0, 120)}`);
+      if (billingStopped) {
+        console.error("\n⛔ Firebase отдаёт 402 — биллинг выключен.");
+        console.error("   Включите Blaze и запустите снова: перенесённое пропустится.");
+        break outer;
       }
-      update.images = moved;
-    }
-
-    if (!DRY) await doc.ref.update(update);
-    stats.docs++;
-    console.log(`✓ ${label.padEnd(46)} ${String(n).padStart(2)} фото`);
-  } catch (e) {
-    stats.failed++;
-    failures.push(`${label}: ${e.message}`);
-    console.log(`✗ ${label.padEnd(46)} ${e.message}`);
-    // A 402 means billing is off — every later download fails the same way.
-    if (e.message.includes("402")) {
-      console.error("\nОстановлено: Firebase отдаёт 402. Включите биллинг и запустите снова —\nуже перенесённое пропустится автоматически.");
-      break;
     }
   }
+  if (colDocs) console.log(`  ${col.id.padEnd(26)} документов обновлено: ${colDocs}`);
 }
 
 const mb = n => (n / 1048576).toFixed(1);
-console.log(`\n${DRY ? "[ПРОБНЫЙ ЗАПУСК] " : ""}товаров обновлено: ${stats.docs}, фото перенесено: ${stats.photos}`);
-console.log(`без Firebase-фото: ${stats.skipped}, с ошибкой: ${stats.failed}`);
+console.log(`\n${DRY ? "[ПРОБНЫЙ ЗАПУСК] " : ""}документов: ${stats.docs}, фото перенесено: ${stats.photos}, ошибок: ${stats.failed}`);
 if (stats.bytesIn) {
   console.log(`объём: ${mb(stats.bytesIn)}MB → ${mb(stats.bytesOut)}MB  (-${(100 - stats.bytesOut / stats.bytesIn * 100).toFixed(1)}%)`);
 }
-if (failures.length) console.log("\nНе удалось:\n  " + failures.join("\n  "));
-if (!DRY && stats.photos) console.log(`\nЖурнал: ${LOG} (повторный запуск пропустит перенесённое)`);
+if (failures.length) console.log("\nНе удалось:\n  " + failures.slice(0, 10).join("\n  "));
+if (!DRY && stats.photos) console.log(`\nЖурнал: ${LOG}`);
