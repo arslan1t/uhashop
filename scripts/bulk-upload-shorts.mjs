@@ -2,7 +2,7 @@
  * Bulk product creator — shorts from local folders.
  *
  * Usage:
- *   ADMIN_PASSWORD="t-SXLP5DZq-8tuP5" node scripts/bulk-upload-shorts.mjs
+ *   ADMIN_PASSWORD="<admin password>" node scripts/bulk-upload-shorts.mjs
  *
  * Creates one product per image file: uploads the photo to Firebase Storage
  * via the admin API, then creates the product record.

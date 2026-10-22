@@ -2,7 +2,7 @@
  * Renames all "Eric Emanuel Shorts #N" products to "Шорты Eric Emanuel Shorts #N".
  *
  * Usage:
- *   ADMIN_PASSWORD="t-SXLP5DZq-8tuP5" node scripts/rename-eric-emanuel.mjs
+ *   ADMIN_PASSWORD="<admin password>" node scripts/rename-eric-emanuel.mjs
  */
 
 const BASE_URL = "https://frontend-designswipe.vercel.app";
